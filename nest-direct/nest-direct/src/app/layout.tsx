@@ -1,3 +1,4 @@
+import Navbar from "@/components/Navbar";
 import { Provider } from "@/components/ui/provider";
 import type { Metadata } from "next";
 
@@ -11,7 +12,13 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
       <body>
-        <Provider>{children}</Provider>
+        <Provider>
+          <nav>
+            <Navbar />
+          </nav>
+
+          <main>{children}</main>
+        </Provider>
       </body>
     </html>
   );
