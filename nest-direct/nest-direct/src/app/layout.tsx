@@ -1,6 +1,9 @@
-import Navbar from "@/components/Navbar";
 import { Provider } from "@/components/ui/provider";
 import type { Metadata } from "next";
+
+//components
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,6 +21,10 @@ export default function RootLayout(props: { children: React.ReactNode }) {
           </nav>
 
           <main>{children}</main>
+
+          <footer>
+            <Footer />
+          </footer>
         </Provider>
       </body>
     </html>

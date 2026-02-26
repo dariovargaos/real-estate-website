@@ -1,4 +1,6 @@
-import { Box, Button, Flex, Text, Icon } from "@chakra-ui/react";
+"use client";
+
+import { Button, Flex, Text, Icon } from "@chakra-ui/react";
 import { Link as ChakraLink } from "@chakra-ui/react";
 import Link from "next/link";
 
@@ -23,42 +25,42 @@ export default function Navbar() {
       </Flex>
 
       <Flex gap={5} alignItems="center">
-        <Link href="/" passHref>
-          {" "}
-          <ChakraLink
-            color="gray.500"
-            _hover={{
-              color: "black",
-              textDecoration: "none",
-            }}
-          >
-            Browse
-          </ChakraLink>
-        </Link>
-        <Link href="/" passHref>
-          {" "}
-          <ChakraLink
-            color="gray.500"
-            _hover={{
-              color: "black",
-              textDecoration: "none",
-            }}
-          >
-            How It Works
-          </ChakraLink>
-        </Link>
-        <Link href="/" passHref>
-          {" "}
-          <ChakraLink
-            color="gray.500"
-            _hover={{
-              color: "black",
-              textDecoration: "none",
-            }}
-          >
-            Sell
-          </ChakraLink>
-        </Link>
+        <ChakraLink
+          as={Link}
+          href="/"
+          color="gray.500"
+          _hover={{
+            color: "black",
+            textDecoration: "none",
+          }}
+        >
+          Browse
+        </ChakraLink>
+
+        <ChakraLink
+          as={Link}
+          href="/how-it-works"
+          color="gray.500"
+          _hover={{
+            color: "black",
+            textDecoration: "none",
+          }}
+        >
+          How It Works
+        </ChakraLink>
+
+        <ChakraLink
+          as={Link}
+          href="/sell"
+          color="gray.500"
+          _hover={{
+            color: "black",
+            textDecoration: "none",
+          }}
+        >
+          Sell
+        </ChakraLink>
+
         <Button
           variant="outline"
           rounded="lg"

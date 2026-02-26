@@ -1,0 +1,143 @@
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  Container,
+  Grid,
+  GridItem,
+  Heading,
+  Icon,
+} from "@chakra-ui/react";
+
+import { Link } from "@chakra-ui/react";
+
+//icons
+import { LuHouse } from "react-icons/lu";
+
+export default function Footer() {
+  const columns = [
+    {
+      title: "Marketplace",
+      links: ["Browse Listings", "Sell Property", "Pricing", "How It Works"],
+    },
+    { title: "Company", links: ["About Us", "Careers", "Blog", "Press"] },
+    {
+      title: "Support",
+      links: ["Help Center", "Contact", "Privacy Policy", "Terms of Service"],
+    },
+  ];
+  return (
+    <Flex
+      direction="column"
+      bg="#1D212B"
+      p={10}
+      align="center"
+      justify="center"
+    >
+      <Flex direction="column">
+        <Flex direction="column" align="center" justify="center" gap={5}>
+          <Text color="white" fontSize="6xl">
+            Ready to Buy or Sell?
+          </Text>
+          <Box maxW="500px">
+            <Text color="#B9B9BB" wordWrap="break-word" textAlign="center">
+              {" "}
+              Join thousands of homeowners who are saving money by dealing
+              directly.
+            </Text>
+          </Box>
+
+          <Flex gap={5}>
+            <Button
+              bg="#E99E35"
+              rounded="lg"
+              _hover={{
+                bg: "#bc802d",
+              }}
+            >
+              Browse Properties
+            </Button>
+            <Button
+              bg="transparent"
+              borderColor="#B9B9BB"
+              rounded="lg"
+              _hover={{
+                bg: "whiteAlpha.300",
+              }}
+            >
+              List Your Home
+            </Button>
+          </Flex>
+        </Flex>
+      </Flex>
+
+      <Container maxW="container.xl" px={4}>
+        <Grid
+          templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
+          gap={8}
+          mb={12}
+        >
+          <GridItem colSpan={{ base: 2, md: 1 }}>
+            <Flex align="center" gap={2} mb={4}>
+              <Icon size="lg" color="#E99E35">
+                <LuHouse />
+              </Icon>
+              <Text fontFamily="serif" fontSize="lg" color="background">
+                NestDirect
+              </Text>
+            </Flex>
+            <Text
+              color="backgroundAlpha.500"
+              fontSize="sm"
+              lineHeight="relaxed"
+            >
+              The peer-to-peer marketplace connecting buyers and sellers
+              directly.
+            </Text>
+          </GridItem>
+          {columns.map((col) => (
+            <Box key={col.title}>
+              <Heading
+                as="h4"
+                fontFamily="serif"
+                color="background"
+                fontSize="sm"
+                mb={4}
+              >
+                {col.title}
+              </Heading>
+              <Box>
+                {col.links.map((link) => (
+                  <Link
+                    key={link}
+                    href="#"
+                    color="backgroundAlpha.400"
+                    fontSize="sm"
+                    _hover={{ color: "backgroundAlpha.700" }}
+                    transition="color 0.2s"
+                    display="block"
+                    mb={2}
+                  >
+                    {link}
+                  </Link>
+                ))}
+              </Box>
+            </Box>
+          ))}
+        </Grid>
+
+        <Box
+          borderTop="1px solid"
+          borderColor="backgroundAlpha.100"
+          pt={8}
+          textAlign="center"
+        >
+          <Text color="backgroundAlpha.300" fontSize="xs">
+            © 2026 NestDirect. All rights reserved.
+          </Text>
+        </Box>
+      </Container>
+    </Flex>
+  );
+}
