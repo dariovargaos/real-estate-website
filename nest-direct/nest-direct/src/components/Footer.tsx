@@ -34,6 +34,7 @@ export default function Footer() {
       p={10}
       align="center"
       justify="center"
+      gap="180px"
     >
       <Flex direction="column">
         <Flex direction="column" align="center" justify="center" gap={5}>
@@ -52,6 +53,7 @@ export default function Footer() {
             <Button
               bg="#E99E35"
               rounded="lg"
+              size="2xl"
               _hover={{
                 bg: "#bc802d",
               }}
@@ -61,6 +63,7 @@ export default function Footer() {
             <Button
               bg="transparent"
               borderColor="#B9B9BB"
+              size="2xl"
               rounded="lg"
               _hover={{
                 bg: "whiteAlpha.300",
@@ -87,11 +90,7 @@ export default function Footer() {
                 NestDirect
               </Text>
             </Flex>
-            <Text
-              color="backgroundAlpha.500"
-              fontSize="sm"
-              lineHeight="relaxed"
-            >
+            <Text color="gray.500" fontSize="sm" lineHeight="relaxed">
               The peer-to-peer marketplace connecting buyers and sellers
               directly.
             </Text>
@@ -102,7 +101,7 @@ export default function Footer() {
                 as="h4"
                 fontFamily="serif"
                 color="background"
-                fontSize="sm"
+                fontSize="md"
                 mb={4}
               >
                 {col.title}
@@ -112,10 +111,12 @@ export default function Footer() {
                   <Link
                     key={link}
                     href="#"
-                    color="backgroundAlpha.400"
+                    color="gray.500"
                     fontSize="sm"
-                    _hover={{ color: "backgroundAlpha.700" }}
-                    transition="color 0.2s"
+                    _hover={{
+                      color: "#B9B9BB",
+                      textDecoration: "none",
+                    }}
                     display="block"
                     mb={2}
                   >
@@ -129,11 +130,11 @@ export default function Footer() {
 
         <Box
           borderTop="1px solid"
-          borderColor="backgroundAlpha.100"
+          borderColor="gray.700"
           pt={8}
           textAlign="center"
         >
-          <Text color="backgroundAlpha.300" fontSize="xs">
+          <Text color="gray.700" fontSize="xs">
             © 2026 NestDirect. All rights reserved.
           </Text>
         </Box>
