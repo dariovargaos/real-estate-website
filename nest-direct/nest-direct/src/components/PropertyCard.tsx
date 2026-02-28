@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import type { StaticImageData } from "next/image";
 
 //icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
@@ -94,15 +97,15 @@ const PropertyCard = ({
           backdropFilter="blur(4px)"
           _hover={{ bg: cardBg, opacity: 1 }}
         >
-          <FaRegHeart size={16} color={foreground} />
+          <FaRegHeart size={16} color="black" />
         </Button>
         {tag && (
           <Badge
             position="absolute"
             top={3}
             left={3}
-            bg="secondary"
-            color="secondary.900"
+            bg="#E99E35"
+            color="white"
             border="none"
             fontWeight="medium"
             fontSize="xs"

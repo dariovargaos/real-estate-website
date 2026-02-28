@@ -1,17 +1,7 @@
-import type { StaticImageData } from "next/image";
-
-//property images
-import property1 from "../assets/property1.jpg";
-import property2 from "../assets/property2.jpg";
-import property3 from "../assets/property3.jpg";
-import property4 from "../assets/property4.jpg";
-import property5 from "../assets/property5.jpg";
-import property6 from "../assets/property6.jpg";
-
 export interface Property {
   id: string;
-  image: string | StaticImageData;
-  images: (string | StaticImageData)[];
+  image: string;
+  images: string[];
   price: string;
   title: string;
   location: string;
@@ -31,8 +21,8 @@ export interface Property {
 export const properties: Property[] = [
   {
     id: "skyline-penthouse",
-    image: property1,
-    images: [property1, property2, property3],
+    image: "/property-1.jpg",
+    images: ["/property-1.jpg", "/property-2.jpg", "/property-3.jpg"],
     price: "$1,250,000",
     title: "Skyline Penthouse with Panoramic Views",
     location: "Manhattan, New York",
@@ -56,8 +46,8 @@ export const properties: Property[] = [
   },
   {
     id: "charming-family-home",
-    image: property2,
-    images: [property2, property4, property6],
+    image: "/property-2.jpg",
+    images: ["/property-2.jpg", "/property-4.jpg", "/property-6.jpg"],
     price: "$485,000",
     title: "Charming Family Home with Garden",
     location: "Oak Park, Illinois",
@@ -78,8 +68,8 @@ export const properties: Property[] = [
   },
   {
     id: "luxury-penthouse-rooftop",
-    image: property3,
-    images: [property3, property1, property5],
+    image: "/property-3.jpg",
+    images: ["/property-3.jpg", "/property-1.jpg", "/property-5.jpg"],
     price: "$3,200,000",
     title: "Luxury Penthouse with Rooftop Pool",
     location: "Downtown, Chicago",
@@ -103,8 +93,8 @@ export const properties: Property[] = [
   },
   {
     id: "stone-cottage",
-    image: property4,
-    images: [property4, property2, property6],
+    image: "/property-4.jpg",
+    images: ["/property-4.jpg", "/property-2.jpg", "/property-6.jpg"],
     price: "$325,000",
     title: "Cozy Stone Cottage in the Countryside",
     location: "Cotswolds, England",
@@ -130,8 +120,8 @@ export const properties: Property[] = [
   },
   {
     id: "oceanfront-beach-house",
-    image: property5,
-    images: [property5, property3, property1],
+    image: "/property-5.jpg",
+    images: ["/property-5.jpg", "/property-3.jpg", "/property-1.jpg"],
     price: "$2,800,000",
     title: "Oceanfront Beach House with Sunset Deck",
     location: "Malibu, California",
@@ -154,8 +144,8 @@ export const properties: Property[] = [
   },
   {
     id: "european-townhouse",
-    image: property6,
-    images: [property6, property4, property2],
+    image: "/property-6.jpg",
+    images: ["/property-6.jpg", "/property-4.jpg", "/property-2.jpg"],
     price: "$890,000",
     title: "Elegant European Townhouse",
     location: "Le Marais, Paris",
