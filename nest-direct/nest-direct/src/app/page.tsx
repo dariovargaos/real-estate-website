@@ -46,6 +46,31 @@ export default function Home() {
         pointerEvents="none"
       />
 
+      {/* Top Tagline */}
+      <Container
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={3}
+        maxW="container.xl"
+        px={4}
+        pt={4}
+        pointerEvents="none"
+      >
+        <Text
+          color="#e48f18"
+          fontWeight="semibold"
+          fontSize="sm"
+          letterSpacing="widest"
+          textTransform="uppercase"
+          mb={0}
+          pointerEvents="auto"
+        >
+          Peer-to-Peer Real Estate
+        </Text>
+      </Container>
+
       {/* Content */}
       <Container
         position="relative"
@@ -54,17 +79,7 @@ export default function Home() {
         px={4}
         pt={20}
       >
-        <Box maxW="2xl">
-          <Text
-            color="#e48f18"
-            fontWeight="semibold"
-            fontSize="sm"
-            letterSpacing="widest"
-            textTransform="uppercase"
-            mb={4}
-          >
-            Peer-to-Peer Real Estate
-          </Text>
+        <Flex direction="column" maxW="2xl" gap={3}>
           <Heading
             as="h1"
             fontFamily="serif"
@@ -74,16 +89,20 @@ export default function Home() {
             mb={6}
             display="flex"
             flexDirection="column"
-            gap={2}
+            gap={7}
           >
-            <Box as="span">Find Your</Box>
-            <Box as="span">Perfect Home,</Box>
-            <Box as="span" color="teal.400">
+            <Box as="div" color="#FCFAF8" w="100%">
+              Find Your
+            </Box>
+            <Box as="div" color="white" w="100%">
+              Perfect Home,
+            </Box>
+            <Box as="div" color="#FCFAF8" w="100%">
               Directly.
             </Box>
           </Heading>
           <Text
-            color="gray.700"
+            color="#D5D1CB"
             fontSize={{ base: "lg", md: "xl" }}
             mb={10}
             maxW="lg"
@@ -117,7 +136,9 @@ export default function Home() {
                 size="lg"
                 borderRadius="xl"
                 flexShrink={0}
-                colorScheme="teal"
+                bg="#E99E35"
+                color="white"
+                _hover={{ bg: "#e2a856" }}
               >
                 <CiSearch />
                 Search
@@ -133,16 +154,16 @@ export default function Home() {
               { value: "8K+", label: "Happy Buyers" },
             ].map((stat) => (
               <Box key={stat.label}>
-                <Text fontSize="2xl" fontWeight="bold" color="teal.400">
+                <Text fontSize="2xl" fontWeight="bold" color="#E99E35">
                   {stat.value}
                 </Text>
-                <Text color="gray.500" fontSize="xs">
+                <Text color="#99968E" fontSize="xs">
                   {stat.label}
                 </Text>
               </Box>
             ))}
           </Flex>
-        </Box>
+        </Flex>
       </Container>
     </Box>
   );
