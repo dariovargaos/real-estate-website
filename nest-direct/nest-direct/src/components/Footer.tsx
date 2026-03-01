@@ -36,45 +36,6 @@ export default function Footer() {
       justify="center"
       gap="180px"
     >
-      <Flex direction="column">
-        <Flex direction="column" align="center" justify="center" gap={5}>
-          <Text color="white" fontSize="6xl">
-            Ready to Buy or Sell?
-          </Text>
-          <Box maxW="500px">
-            <Text color="#B9B9BB" wordWrap="break-word" textAlign="center">
-              {" "}
-              Join thousands of homeowners who are saving money by dealing
-              directly.
-            </Text>
-          </Box>
-
-          <Flex gap={5}>
-            <Button
-              bg="#E99E35"
-              rounded="lg"
-              size="2xl"
-              _hover={{
-                bg: "#bc802d",
-              }}
-            >
-              Browse Properties
-            </Button>
-            <Button
-              bg="transparent"
-              borderColor="#B9B9BB"
-              size="2xl"
-              rounded="lg"
-              _hover={{
-                bg: "whiteAlpha.300",
-              }}
-            >
-              List Your Home
-            </Button>
-          </Flex>
-        </Flex>
-      </Flex>
-
       <Container maxW="container.xl" px={4}>
         <Grid
           templateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }}
