@@ -72,8 +72,8 @@ export default function Navbar() {
         >
           Sign In
         </Button>
-        <Button colorPalette="gray" variant="solid" rounded="lg">
-          List Property
+        <Button asChild colorPalette="gray" variant="solid" rounded="lg">
+          <Link href="/listproperty">List Property</Link>
         </Button>
       </Flex>
     </Flex>
