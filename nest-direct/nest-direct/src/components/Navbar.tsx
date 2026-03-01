@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
+
+//components
 import { Button, Flex, Text, Icon } from "@chakra-ui/react";
 import { Link as ChakraLink } from "@chakra-ui/react";
-import Link from "next/link";
 
 //icons
 import { LuHouse } from "react-icons/lu";
@@ -19,15 +21,15 @@ export default function Navbar() {
         <Icon size="lg" color="#E99E35">
           <LuHouse />
         </Icon>
-        <Text fontSize="xl" fontWeight="bold">
-          NestDirect
+        <Text fontSize="xl" fontWeight="medium">
+          <Link href="/">NestDirect</Link>
         </Text>
       </Flex>
 
       <Flex gap={5} alignItems="center">
         <ChakraLink
           as={Link}
-          href="/"
+          href="/properties"
           color="gray.500"
           _hover={{
             color: "black",
