@@ -18,7 +18,7 @@ import {
   NativeSelect,
   Separator,
 } from "@chakra-ui/react";
-import { Toaster, toaster } from "@/components/ui/toaster";
+import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //icons
 import {

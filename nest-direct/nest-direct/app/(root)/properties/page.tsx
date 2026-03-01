@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import PropertyCard from "@/components/PropertyCard";
+import PropertyCard from "../../../components/PropertyCard";
 
 //dummy data
-import { properties } from "@/data/properties";
+import { properties } from "../../../data/properties";
 
 import {
   Box,

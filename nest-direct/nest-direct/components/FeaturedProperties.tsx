@@ -13,10 +13,10 @@ import {
 } from "@chakra-ui/react";
 
 //components
-import PropertyCard from "@/components/PropertyCard";
+import PropertyCard from "./PropertyCard";
 
 //dummy data
-import { properties } from "@/data/properties";
+import { properties } from "../data/properties";
 
 export default function FeaturedProperties() {
   return (
