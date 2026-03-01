@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import {
   Box,
@@ -17,7 +18,7 @@ import {
   NativeSelect,
   Separator,
 } from "@chakra-ui/react";
-import { toaster } from "@/components/ui/toaster";
+import { Toaster, toaster } from "@/components/ui/toaster";
 
 //icons
 import {
@@ -29,19 +30,24 @@ import {
 } from "react-icons/fa";
 
 export default function ListProperty() {
-  // Use Chakra v3 toaster
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setSubmitted(true);
     toaster.create({
       title: "Property submitted!",
-      description: "We\'ll review your listing and publish it shortly.",
+      description: "We'll review your listing and publish it shortly.",
       type: "success",
-      duration: 5000,
+      duration: 7000,
       closable: true,
     });
+    setSubmitted(true);
+
+    setTimeout(() => {
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }, 0);
   };
 
   if (submitted) {
@@ -77,11 +83,12 @@ export default function ListProperty() {
               Your property has been submitted for review. We&apos;ll notify you
               once it&apos;s live on the marketplace.
             </Text>
-            <Button colorScheme="orange" onClick={() => setSubmitted(false)}>
-              List Another Property
+            <Button colorPalette="gray" onClick={() => setSubmitted(false)}>
+              <Link href="/listproperty">List Another Property</Link>
             </Button>
           </Box>
         </Flex>
+        <Toaster />
       </Box>
     );
   }
@@ -188,10 +195,11 @@ export default function ListProperty() {
           <Box px={4} maxW="2xl" mx="auto">
             <Heading
               as="h2"
-              fontFamily="serif"
+              fontFamily="DM Serif Display"
               fontSize="3xl"
               color="gray.800"
               mb={8}
+              fontWeight="thin"
             >
               Property Details
             </Heading>
@@ -209,7 +217,7 @@ export default function ListProperty() {
                     />
                   </Field.Root>
                   <Field.Root required>
-                    <Field.Label>Asking Price ($)</Field.Label>
+                    <Field.Label>Asking Price (€)</Field.Label>
                     <Input id="price" type="number" placeholder="500000" />
                   </Field.Root>
                 </Grid>
@@ -220,7 +228,7 @@ export default function ListProperty() {
                 >
                   <Field.Root required>
                     <Field.Label>Location</Field.Label>
-                    <Input id="location" placeholder="City, State / Country" />
+                    <Input id="location" placeholder="City" />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Property Type</Field.Label>
@@ -228,8 +236,6 @@ export default function ListProperty() {
                       <NativeSelect.Field placeholder="Select type">
                         <option value="house">House</option>
                         <option value="apartment">Apartment</option>
-                        <option value="condo">Condo</option>
-                        <option value="townhouse">Townhouse</option>
                         <option value="land">Land</option>
                       </NativeSelect.Field>
                       <NativeSelect.Indicator />
@@ -250,8 +256,8 @@ export default function ListProperty() {
                     <Input id="baths" type="number" placeholder="2" />
                   </Field.Root>
                   <Field.Root required>
-                    <Field.Label>Square Feet</Field.Label>
-                    <Input id="sqft" type="number" placeholder="1800" />
+                    <Field.Label>Size (m²)</Field.Label>
+                    <Input id="sqft" type="number" placeholder="100" />
                   </Field.Root>
                 </Grid>
 
@@ -290,7 +296,8 @@ export default function ListProperty() {
                 <Box pt={6}>
                   <Heading
                     as="h3"
-                    fontFamily="serif"
+                    fontFamily="DM Serif Display"
+                    fontWeight="thin"
                     fontSize="xl"
                     color="gray.800"
                     mb={4}
@@ -303,11 +310,11 @@ export default function ListProperty() {
                   >
                     <Field.Root required>
                       <Field.Label>Full Name</Field.Label>
-                      <Input id="name" placeholder="Your name" />
+                      <Input id="name" placeholder="Your name" type="text" />
                     </Field.Root>
                     <Field.Root required>
                       <Field.Label>Phone Number</Field.Label>
-                      <Input id="phone" placeholder="(555) 000-0000" />
+                      <Input id="phone" placeholder="0912345678" type="tel" />
                     </Field.Root>
                   </Grid>
                 </Box>
