@@ -17,7 +17,7 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { FaHome, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
-import { toaster } from "../../../components/ui/toaster";
+import { Toaster, toaster } from "../../../components/ui/toaster";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -126,19 +126,19 @@ const SignIn = () => {
                 </Field.Root>
 
                 <Field.Root required>
-                  <HStack justifyContent="space-between" mb={2}>
+                  <Flex justify="space-between" w="100%" mb={2}>
                     <Field.Label>Password</Field.Label>
                     <Button
-                      variant="ghost"
+                      variant="plain"
                       size="xs"
-                      color="blue.600"
-                      _hover={{ color: "blue.500" }}
+                      color="hsl(35, 80%, 56%)"
+                      _hover={{ color: "hsl(35, 80%, 66%)" }}
                       fontWeight="medium"
                     >
                       Forgot password?
                     </Button>
-                  </HStack>
-                  <Box position="relative">
+                  </Flex>
+                  <Box position="relative" w="100%">
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
@@ -219,7 +219,7 @@ const SignIn = () => {
               }
             >
               <HStack>
-                <FaGoogle size={20} color="#4285F4" />
+                <FaGoogle size={20} />
                 <Text>Continue with Google</Text>
               </HStack>
             </Button>
@@ -229,9 +229,9 @@ const SignIn = () => {
               <Link href="/sign-up">
                 <Text
                   as="span"
-                  color="blue.600"
+                  color="hsl(35, 80%, 56%)"
                   fontWeight="semibold"
-                  _hover={{ color: "blue.500" }}
+                  _hover={{ color: "hsl(35, 80%, 66%)" }}
                 >
                   Create one
                 </Text>
@@ -240,6 +240,7 @@ const SignIn = () => {
           </Stack>
         </Box>
       </Flex>
+      <Toaster />
     </Flex>
   );
 };

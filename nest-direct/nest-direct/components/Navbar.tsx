@@ -64,6 +64,7 @@ export default function Navbar() {
         </ChakraLink>
 
         <Button
+          asChild
           variant="outline"
           rounded="lg"
           bg="white"
@@ -72,7 +73,7 @@ export default function Navbar() {
             bg: "#E99E35",
           }}
         >
-          Sign In
+          <Link href="/sign-in">Sign In</Link>
         </Button>
         <Button asChild colorPalette="gray" variant="solid" rounded="lg">
           <Link href="/listproperty">List Property</Link>
