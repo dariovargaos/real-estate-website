@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import type { StaticImageData } from "next/image";
 
 //icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";

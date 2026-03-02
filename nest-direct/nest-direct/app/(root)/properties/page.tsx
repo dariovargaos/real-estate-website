@@ -76,11 +76,9 @@ export default function Properties() {
   }, [search, sortBy, bedsFilter]);
 
   // Static color values
-  const bgWarm = "orange.50";
   const borderColor = "gray.200";
   const muted = "gray.500";
   const mutedFg = "gray.600";
-  const fg = "gray.900";
 
   return (
     <Box minH="100vh" bg="gray.50">
