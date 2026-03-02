@@ -16,11 +16,12 @@ import {
   Field,
   IconButton,
 } from "@chakra-ui/react";
-import { FaHome, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
-const SignIn = () => {
+const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -29,7 +30,7 @@ const SignIn = () => {
     toaster.create({
       title: "Demo Mode",
       description:
-        "Sign in functionality will be available once the backend is connected.",
+        "Sign up functionality will be available once the backend is connected.",
       type: "info",
     });
   };
@@ -74,11 +75,36 @@ const SignIn = () => {
             color="hsl(40, 33%, 98%)"
             fontWeight="medium"
           >
-            Welcome back to your property journey.
+            Start your real estate journey with NestDirect
           </Heading>
           <Text color="hsl(40, 33%, 98%, 0.7)" fontSize="lg">
-            Buy and sell properties directly — no agents, no hidden fees.
+            Join thousands of buyers and sellers transacting directly with each
+            other - no middlemen, no hidden fees.
           </Text>
+          <VStack gap={3} pt={4} alignItems="flex-start">
+            {[
+              "No agent commissions",
+              "Direct buyer-seller connection",
+              "Secure & transparent process",
+            ].map((item) => (
+              <HStack key={item} gap={3}>
+                <Box
+                  h={6}
+                  w={6}
+                  rounded="full"
+                  bg="hsl(35, 80%, 56%, 0.2)"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <FaCheck size={14} color="hsl(35, 80%, 56%)" />
+                </Box>
+                <Text color="hsl(40, 33%, 98%, 0.8)" fontSize="sm">
+                  {item}
+                </Text>
+              </HStack>
+            ))}
+          </VStack>
         </Box>
       </Box>
 
@@ -102,19 +128,31 @@ const SignIn = () => {
                 as="h2"
                 fontFamily="DM Serif Display, serif"
                 fontSize="3xl"
+                fontWeight="medium"
                 color="gray.800"
                 mb={2}
-                fontWeight="medium"
               >
-                Sign in
+                Create an account
               </Heading>
               <Text color="gray.600">
-                Enter your credentials to access your account.
+                Get started in under a minute - completely free.
               </Text>
             </Box>
 
             <Box as="form" onSubmit={handleSubmit}>
               <VStack gap={5}>
+                <Field.Root required>
+                  <Field.Label>Full name</Field.Label>
+                  <Input
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    size="lg"
+                    rounded="xl"
+                  />
+                </Field.Root>
+
                 <Field.Root required>
                   <Field.Label>Email address</Field.Label>
                   <Input
@@ -180,7 +218,7 @@ const SignIn = () => {
                   colorPalette="gray"
                   rounded="xl"
                 >
-                  Sign In
+                  Create Account
                 </Button>
               </VStack>
             </Box>
@@ -215,7 +253,7 @@ const SignIn = () => {
               onClick={() =>
                 toaster.create({
                   title: "Demo Mode",
-                  description: "Google sign-in will be available soon.",
+                  description: "Google sign-up will be available soon.",
                   type: "info",
                 })
               }
@@ -227,15 +265,15 @@ const SignIn = () => {
             </Button>
 
             <Text textAlign="center" fontSize="sm" color="gray.600">
-              Don&apos;t have an account?{" "}
-              <Link href="/sign-up">
+              Already have an account?{" "}
+              <Link href="/sign-in">
                 <Text
                   as="span"
                   color="hsl(35, 80%, 56%)"
                   fontWeight="semibold"
                   _hover={{ color: "hsl(35, 80%, 66%)" }}
                 >
-                  Create one
+                  Sign in
                 </Text>
               </Link>
             </Text>
@@ -247,4 +285,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default SignUp;
