@@ -27,7 +27,7 @@ export default function Footer() {
     { title: "Company", links: ["About Us", "Careers", "Blog", "Press"] },
     {
       title: "Support",
-      links: ["Help Center", "Privacy Policy", "Terms of Service"],
+      links: ["Help Center"],
     },
   ];
   return (
@@ -82,6 +82,8 @@ export default function Footer() {
                       color: "#B9B9BB",
                       textDecoration: "none",
                     }}
+                    _focus={{ boxShadow: "none", outline: "none" }}
+                    _active={{ boxShadow: "none", outline: "none" }}
                     display="block"
                     mb={2}
                   >
@@ -94,10 +96,38 @@ export default function Footer() {
                   color="gray.500"
                   fontSize="sm"
                   _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _focus={{ boxShadow: "none", outline: "none" }}
+                  _active={{ boxShadow: "none", outline: "none" }}
                   display="block"
                   mb={2}
                 >
                   Contact
+                </ChakraLink>
+                <ChakraLink
+                  as={Link}
+                  href="/privacy-policy"
+                  color="gray.500"
+                  fontSize="sm"
+                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _focus={{ boxShadow: "none", outline: "none" }}
+                  _active={{ boxShadow: "none", outline: "none" }}
+                  display="block"
+                  mb={2}
+                >
+                  Privacy Policy
+                </ChakraLink>
+                <ChakraLink
+                  as={Link}
+                  href="/terms-of-service"
+                  color="gray.500"
+                  fontSize="sm"
+                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _focus={{ boxShadow: "none", outline: "none" }}
+                  _active={{ boxShadow: "none", outline: "none" }}
+                  display="block"
+                  mb={2}
+                >
+                  Terms of Service
                 </ChakraLink>
               </Box>
             </Box>
