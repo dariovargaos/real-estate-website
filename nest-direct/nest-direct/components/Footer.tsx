@@ -1,6 +1,9 @@
+"use client";
+
+import Link from "next/link";
+
 import {
   Box,
-  Button,
   Flex,
   Text,
   Container,
@@ -10,7 +13,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 
-import { Link } from "@chakra-ui/react";
+import { Link as ChakraLink } from "@chakra-ui/react";
 
 //icons
 import { LuHouse } from "react-icons/lu";
@@ -24,7 +27,7 @@ export default function Footer() {
     { title: "Company", links: ["About Us", "Careers", "Blog", "Press"] },
     {
       title: "Support",
-      links: ["Help Center", "Contact", "Privacy Policy", "Terms of Service"],
+      links: ["Help Center", "Privacy Policy", "Terms of Service"],
     },
   ];
   return (
@@ -69,8 +72,9 @@ export default function Footer() {
               </Heading>
               <Box>
                 {col.links.map((link) => (
-                  <Link
+                  <ChakraLink
                     key={link}
+                    as={Link}
                     href="#"
                     color="gray.500"
                     fontSize="sm"
@@ -82,8 +86,19 @@ export default function Footer() {
                     mb={2}
                   >
                     {link}
-                  </Link>
+                  </ChakraLink>
                 ))}
+                <ChakraLink
+                  as={Link}
+                  href="/contact"
+                  color="gray.500"
+                  fontSize="sm"
+                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  display="block"
+                  mb={2}
+                >
+                  Contact
+                </ChakraLink>
               </Box>
             </Box>
           ))}

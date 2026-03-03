@@ -18,7 +18,6 @@ import {
   Flex,
   Container,
   Separator,
-  Image as ChakraImage,
   IconButton,
   Icon,
 } from "@chakra-ui/react";
@@ -33,7 +32,6 @@ import { CiLocationOn } from "react-icons/ci";
 import {
   FaRegHeart,
   FaTrash,
-  FaMapMarkerAlt,
   FaBed,
   FaBath,
   FaChevronRight,
