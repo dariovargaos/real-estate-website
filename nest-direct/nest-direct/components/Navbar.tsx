@@ -8,6 +8,7 @@ import { Link as ChakraLink } from "@chakra-ui/react";
 
 //icons
 import { LuHouse } from "react-icons/lu";
+import { FiUser } from "react-icons/fi";
 
 export default function Navbar() {
   return (
@@ -66,7 +67,7 @@ export default function Navbar() {
         <Button
           asChild
           variant="outline"
-          rounded="lg"
+          rounded="xl"
           bg="white"
           _hover={{
             color: "white",
@@ -75,7 +76,22 @@ export default function Navbar() {
         >
           <Link href="/sign-in">Sign In</Link>
         </Button>
-        <Button asChild colorPalette="gray" variant="solid" rounded="lg">
+
+        <Button
+          asChild
+          variant="plain"
+          rounded="full"
+          _hover={{
+            color: "white",
+            bg: "#E99E35",
+          }}
+        >
+          <Link href="/profile">
+            <FiUser />
+          </Link>
+        </Button>
+
+        <Button asChild colorPalette="gray" variant="solid" rounded="xl">
           <Link href="/listproperty">List Property</Link>
         </Button>
       </Flex>
