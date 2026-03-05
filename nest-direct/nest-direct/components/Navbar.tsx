@@ -16,7 +16,14 @@ export default function Navbar() {
       justifyContent="space-between"
       alignItems="center"
       padding="1rem"
-      bg="gray.100"
+      bg="whiteAlpha.800"
+      position="fixed"
+      top={0}
+      left={0}
+      right={0}
+      zIndex={1000}
+      w="100%"
+      backdropFilter="blur(16px)"
     >
       <Flex gap={5} alignItems="center">
         <Icon size="lg" color="#E99E35">
@@ -36,6 +43,8 @@ export default function Navbar() {
             color: "black",
             textDecoration: "none",
           }}
+          _focus={{ boxShadow: "none", outline: "none" }}
+          _active={{ boxShadow: "none", outline: "none" }}
         >
           Browse
         </ChakraLink>
@@ -48,6 +57,8 @@ export default function Navbar() {
             color: "black",
             textDecoration: "none",
           }}
+          _focus={{ boxShadow: "none", outline: "none" }}
+          _active={{ boxShadow: "none", outline: "none" }}
         >
           How It Works
         </ChakraLink>
@@ -60,6 +71,8 @@ export default function Navbar() {
             color: "black",
             textDecoration: "none",
           }}
+          _focus={{ boxShadow: "none", outline: "none" }}
+          _active={{ boxShadow: "none", outline: "none" }}
         >
           Sell
         </ChakraLink>
@@ -72,6 +85,8 @@ export default function Navbar() {
             color: "black",
             textDecoration: "none",
           }}
+          _focus={{ boxShadow: "none", outline: "none" }}
+          _active={{ boxShadow: "none", outline: "none" }}
         >
           Premium
         </ChakraLink>

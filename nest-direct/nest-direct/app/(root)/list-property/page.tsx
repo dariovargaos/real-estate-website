@@ -21,13 +21,9 @@ import {
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //icons
-import {
-  FaUpload,
-  FaHome,
-  FaEuroSign,
-  FaMapMarkerAlt,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
+import { LuHouse, LuMapPin } from "react-icons/lu";
+import { MdOutlineFileUpload } from "react-icons/md";
 
 export default function ListProperty() {
   const [submitted, setSubmitted] = useState(false);
@@ -107,7 +103,7 @@ export default function ListProperty() {
             mx="auto"
           >
             <Text
-              color="#EAB67C"
+              color="#E99E35"
               fontWeight="semibold"
               fontSize="sm"
               letterSpacing="widest"
@@ -120,9 +116,8 @@ export default function ListProperty() {
               as="h1"
               fontFamily="DM Serif Display"
               fontSize={{ base: "4xl", md: "5xl" }}
-              color="gray.800"
               mb={4}
-              fontWeight="extralight"
+              fontWeight="thin"
             >
               List Your Property
             </Heading>
@@ -150,12 +145,12 @@ export default function ListProperty() {
                   desc: "Keep 100% of your sale price — no agent fees.",
                 },
                 {
-                  icon: FaHome,
+                  icon: LuHouse,
                   title: "Full Control",
                   desc: "Manage your listing, photos, and pricing on your terms.",
                 },
                 {
-                  icon: FaMapMarkerAlt,
+                  icon: LuMapPin,
                   title: "Wide Reach",
                   desc: "Your property is seen by thousands of active buyers.",
                 },
@@ -165,8 +160,8 @@ export default function ListProperty() {
                     w={12}
                     h={12}
                     rounded="xl"
-                    bg="orange.100"
-                    color="#EAB67C"
+                    bg="#F9F1E4"
+                    color="#E99E35"
                     align="center"
                     justify="center"
                     mb={3}
@@ -197,7 +192,6 @@ export default function ListProperty() {
               as="h2"
               fontFamily="DM Serif Display"
               fontSize="3xl"
-              color="gray.800"
               mb={8}
               fontWeight="thin"
             >
@@ -214,11 +208,17 @@ export default function ListProperty() {
                     <Input
                       id="title"
                       placeholder="e.g. Modern Loft in Downtown"
+                      rounded="xl"
                     />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Asking Price (€)</Field.Label>
-                    <Input id="price" type="number" placeholder="500000" />
+                    <Input
+                      id="price"
+                      type="number"
+                      placeholder="500000"
+                      rounded="xl"
+                    />
                   </Field.Root>
                 </Grid>
 
@@ -228,12 +228,15 @@ export default function ListProperty() {
                 >
                   <Field.Root required>
                     <Field.Label>Location</Field.Label>
-                    <Input id="location" placeholder="City" />
+                    <Input id="location" placeholder="City" rounded="xl" />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Property Type</Field.Label>
                     <NativeSelect.Root>
-                      <NativeSelect.Field placeholder="Select type">
+                      <NativeSelect.Field
+                        placeholder="Select type"
+                        borderRadius="xl"
+                      >
                         <option value="house">House</option>
                         <option value="apartment">Apartment</option>
                         <option value="land">Land</option>
@@ -249,15 +252,30 @@ export default function ListProperty() {
                 >
                   <Field.Root required>
                     <Field.Label>Bedrooms</Field.Label>
-                    <Input id="beds" type="number" placeholder="3" />
+                    <Input
+                      id="beds"
+                      type="number"
+                      placeholder="3"
+                      rounded="xl"
+                    />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Bathrooms</Field.Label>
-                    <Input id="baths" type="number" placeholder="2" />
+                    <Input
+                      id="baths"
+                      type="number"
+                      placeholder="2"
+                      rounded="xl"
+                    />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Size (m²)</Field.Label>
-                    <Input id="sqft" type="number" placeholder="100" />
+                    <Input
+                      id="sqft"
+                      type="number"
+                      placeholder="100"
+                      rounded="xl"
+                    />
                   </Field.Root>
                 </Grid>
 
@@ -267,22 +285,28 @@ export default function ListProperty() {
                     id="description"
                     placeholder="Describe your property — what makes it special?"
                     rows={5}
+                    rounded="xl"
                   />
                 </Field.Root>
 
                 <Field.Root>
                   <Field.Label>Photos</Field.Label>
                   <Box
-                    border="2px dashed"
+                    border="1px dashed"
                     borderColor="gray.200"
                     rounded="xl"
                     p={8}
                     textAlign="center"
                     cursor="pointer"
                     _hover={{ borderColor: "orange.300" }}
-                    transition="border-color 0.2s"
+                    w="full"
                   >
-                    <Icon as={FaUpload} boxSize={8} color="gray.400" mb={2} />
+                    <Icon
+                      as={MdOutlineFileUpload}
+                      boxSize={8}
+                      color="gray.400"
+                      mb={2}
+                    />
                     <Text fontSize="sm" color="gray.500">
                       Drag & drop photos here, or click to browse
                     </Text>
@@ -293,13 +317,12 @@ export default function ListProperty() {
                 </Field.Root>
 
                 <Separator />
-                <Box pt={6}>
+                <Box>
                   <Heading
                     as="h3"
                     fontFamily="DM Serif Display"
                     fontWeight="thin"
                     fontSize="xl"
-                    color="gray.800"
                     mb={4}
                   >
                     Your Contact Info
@@ -310,16 +333,31 @@ export default function ListProperty() {
                   >
                     <Field.Root required>
                       <Field.Label>Full Name</Field.Label>
-                      <Input id="name" placeholder="Your name" type="text" />
+                      <Input
+                        id="name"
+                        placeholder="Your name"
+                        type="text"
+                        rounded="xl"
+                      />
                     </Field.Root>
                     <Field.Root required>
                       <Field.Label>Phone Number</Field.Label>
-                      <Input id="phone" placeholder="0912345678" type="tel" />
+                      <Input
+                        id="phone"
+                        placeholder="0912345678"
+                        type="tel"
+                        rounded="xl"
+                      />
                     </Field.Root>
                   </Grid>
                 </Box>
 
-                <Button type="submit" colorScheme="orange" size="lg" w="full">
+                <Button
+                  type="submit"
+                  colorScheme="gray"
+                  size="lg"
+                  borderRadius="xl"
+                >
                   Submit Listing
                 </Button>
               </Stack>

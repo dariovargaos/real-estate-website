@@ -75,11 +75,6 @@ export default function Properties() {
     return result;
   }, [search, sortBy, bedsFilter]);
 
-  // Static color values
-  const borderColor = "gray.200";
-  const muted = "gray.500";
-  const mutedFg = "gray.600";
-
   return (
     <Box minH="100vh" bg="gray.50">
       <Box as="main" pt={{ base: 16, md: 16 }}>
@@ -94,7 +89,7 @@ export default function Properties() {
             textAlign="center"
           >
             <Text
-              color="#EAB67C"
+              color="#E99E35"
               fontWeight="semibold"
               fontSize="sm"
               letterSpacing="widest"
@@ -108,7 +103,6 @@ export default function Properties() {
               fontFamily="DM Serif Display"
               fontWeight="extralight"
               fontSize={{ base: "4xl", md: "5xl" }}
-              color="gray.800"
               mb={4}
             >
               Browse Properties
@@ -126,7 +120,7 @@ export default function Properties() {
           py={6}
           bg="gray.50"
           borderBottomWidth={1}
-          borderColor={borderColor}
+          borderColor="gray.200"
         >
           <Container maxW="container.xl" px={4}>
             <Flex
@@ -141,6 +135,7 @@ export default function Properties() {
                     onChange={(e) => setSearch(e.target.value)}
                     pl={10}
                     placeholder="Search by title or location..."
+                    rounded="xl"
                   />
                 </InputGroup>
               </Box>
@@ -153,7 +148,7 @@ export default function Properties() {
                   <Select.HiddenSelect />
 
                   <Select.Control>
-                    <Select.Trigger>
+                    <Select.Trigger borderRadius="xl">
                       <Select.ValueText placeholder="Any Beds" />
                     </Select.Trigger>
                     <Select.IndicatorGroup>
@@ -181,7 +176,7 @@ export default function Properties() {
                   <Select.HiddenSelect />
 
                   <Select.Control>
-                    <Select.Trigger>
+                    <Select.Trigger borderRadius="xl">
                       <Select.ValueText placeholder="Default" />
                     </Select.Trigger>
                     <Select.IndicatorGroup>
@@ -207,7 +202,7 @@ export default function Properties() {
         {/* Results */}
         <Box as="section" py={12} bg="gray.50">
           <Container maxW="container.xl" px={4}>
-            <Text fontSize="sm" color={mutedFg} mb={6}>
+            <Text fontSize="sm" color="gray.500" mb={6}>
               {filtered.length} properties found
             </Text>
             {filtered.length > 0 ? (
@@ -225,10 +220,10 @@ export default function Properties() {
               </SimpleGrid>
             ) : (
               <VStack textAlign="center" py={16}>
-                <Text color={mutedFg} fontSize="lg">
+                <Text color="gray.600" fontSize="lg">
                   No properties match your search.
                 </Text>
-                <Text color={muted} fontSize="sm">
+                <Text color="gray.500" fontSize="sm">
                   Try adjusting your filters.
                 </Text>
               </VStack>
