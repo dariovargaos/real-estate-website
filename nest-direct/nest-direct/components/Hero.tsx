@@ -6,7 +6,7 @@ import {
   Heading,
   Input,
   Button,
-  Icon,
+  InputGroup,
 } from "@chakra-ui/react";
 
 //icons
@@ -80,7 +80,7 @@ export default function Hero() {
             gap={7}
             fontWeight="medium"
           >
-            <Box as="div" color="#FCFAF8" w="100%">
+            <Box as="div" color="white" w="100%">
               Find Your
             </Box>
             <Box as="div" color="white" w="100%">
@@ -91,7 +91,7 @@ export default function Hero() {
             </Box>
           </Heading>
           <Text
-            color="#D5D1CB"
+            color="gray.300"
             fontSize={{ base: "lg", md: "xl" }}
             mb={10}
             maxW="lg"
@@ -111,15 +111,22 @@ export default function Hero() {
           >
             <Flex align="center" gap={2}>
               <Flex align="center" gap={2} flex={1} px={4}>
-                <Icon boxSize={5} color="gray.400" flexShrink={0}>
-                  <LuMapPin />
-                </Icon>
-                <Input
-                  type="text"
-                  placeholder="Search by city, neighborhood, or address..."
-                  py={3}
-                  fontSize="sm"
-                />
+                <InputGroup startElement={<LuMapPin color="gray.500" />}>
+                  <Input
+                    type="text"
+                    color="gray.500"
+                    placeholder="Search by city, neighborhood, or address..."
+                    _placeholder={{ color: "gray.500" }}
+                    py={3}
+                    fontSize="sm"
+                    border="none"
+                    _focus={{
+                      border: "none",
+                      boxShadow: "none",
+                      outline: "none",
+                    }}
+                  />
+                </InputGroup>
               </Flex>
               <Button
                 size="lg"
@@ -146,7 +153,7 @@ export default function Hero() {
                 <Text fontSize="2xl" fontWeight="bold" color="#E99E35">
                   {stat.value}
                 </Text>
-                <Text color="#99968E" fontSize="xs">
+                <Text color="gray.300" fontSize="xs">
                   {stat.label}
                 </Text>
               </Box>
