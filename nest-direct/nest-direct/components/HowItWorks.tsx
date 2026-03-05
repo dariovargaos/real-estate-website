@@ -9,11 +9,13 @@ import {
 } from "@chakra-ui/react";
 
 //icons
-import { FaSearch, FaRegCommentDots, FaHandshake } from "react-icons/fa";
+import { FaRegCommentDots } from "react-icons/fa";
+import { CiSearch } from "react-icons/ci";
+import { LuHandshake } from "react-icons/lu";
 
 const steps = [
   {
-    icon: FaSearch,
+    icon: CiSearch,
     title: "Discover Properties",
     description:
       "Browse thousands of listings posted directly by property owners. Filter by location, price, and features to find your match.",
@@ -25,7 +27,7 @@ const steps = [
       "Message sellers directly through our secure platform. Schedule viewings, ask questions, and negotiate — no middlemen.",
   },
   {
-    icon: FaHandshake,
+    icon: LuHandshake,
     title: "Close the Deal",
     description:
       "Finalize your purchase with transparent pricing. Save thousands by cutting out traditional agent commissions.",
@@ -33,20 +35,12 @@ const steps = [
 ];
 
 export default function HowItWorks() {
-  //Color palette
-  const bg = "orange.50";
-  const secondary = "orange.500";
-  const secondaryFg = "white";
-  const muted = "gray.500";
-  const mutedFg = "gray.600";
-  const foreground = "gray.900";
-
   return (
-    <Box as="section" id="how-it-works" py={{ base: 16, md: 24 }} bg={bg}>
+    <Box as="section" id="how-it-works" py={{ base: 16, md: 24 }} bg="#F6F2EE">
       <Container maxW="container.xl" px={{ base: 4, md: 8 }}>
         <Box textAlign="center" mb={16}>
           <Text
-            color="#F0C159"
+            color="#E99E35"
             fontWeight="semibold"
             fontSize="sm"
             letterSpacing="widest"
@@ -57,14 +51,14 @@ export default function HowItWorks() {
           </Text>
           <Heading
             as="h2"
-            fontFamily="serif"
+            fontFamily="DM Serif Display, serif"
+            fontWeight="thin"
             fontSize={{ base: "4xl", md: "5xl" }}
-            color={foreground}
             mb={4}
           >
             How It Works
           </Heading>
-          <Text color={mutedFg} maxW="md" mx="auto">
+          <Text color="gray.500" maxW="md" mx="auto">
             Three simple steps to your next home — or to selling yours.
           </Text>
         </Box>
@@ -85,18 +79,15 @@ export default function HowItWorks() {
                   w={16}
                   h={16}
                   rounded="2xl"
-                  bg="#F4E9DB" // 20 = ~12% opacity
-                  color={secondary}
+                  bg="#F4E9DB"
                   mb={6}
-                  transition="all 0.3s"
-                  _groupHover={{ bg: secondary, color: secondaryFg }}
                 >
-                  <Icon size={28} color="#E99E35" />
+                  <Icon size={28} color="#E99E35" strokeWidth={2} />
                 </Flex>
                 <Text
                   fontSize="xs"
                   fontWeight="bold"
-                  color={muted}
+                  color="gray.500"
                   opacity={0.5}
                   mb={2}
                 >
@@ -106,12 +97,12 @@ export default function HowItWorks() {
                   as="h3"
                   fontFamily="serif"
                   fontSize="xl"
-                  color={foreground}
+                  fontWeight="thin"
                   mb={3}
                 >
                   {step.title}
                 </Heading>
-                <Text color={muted} fontSize="sm" lineHeight="relaxed">
+                <Text color="gray.500" fontSize="sm" lineHeight="relaxed">
                   {step.description}
                 </Text>
               </VStack>

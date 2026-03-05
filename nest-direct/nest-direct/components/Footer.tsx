@@ -11,6 +11,7 @@ import {
   GridItem,
   Heading,
   Icon,
+  Separator,
 } from "@chakra-ui/react";
 
 import { Link as ChakraLink } from "@chakra-ui/react";
@@ -54,7 +55,7 @@ export default function Footer() {
                 NestDirect
               </Text>
             </Flex>
-            <Text color="gray.500" fontSize="sm" lineHeight="relaxed">
+            <Text color="gray.400" fontSize="sm" lineHeight="relaxed">
               The peer-to-peer marketplace connecting buyers and sellers
               directly.
             </Text>
@@ -95,7 +96,7 @@ export default function Footer() {
                   href="/contact"
                   color="gray.500"
                   fontSize="sm"
-                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _hover={{ color: "gray.400", textDecoration: "none" }}
                   _focus={{ boxShadow: "none", outline: "none" }}
                   _active={{ boxShadow: "none", outline: "none" }}
                   display="block"
@@ -108,7 +109,7 @@ export default function Footer() {
                   href="/privacy-policy"
                   color="gray.500"
                   fontSize="sm"
-                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _hover={{ color: "gray.400", textDecoration: "none" }}
                   _focus={{ boxShadow: "none", outline: "none" }}
                   _active={{ boxShadow: "none", outline: "none" }}
                   display="block"
@@ -121,7 +122,7 @@ export default function Footer() {
                   href="/terms-of-service"
                   color="gray.500"
                   fontSize="sm"
-                  _hover={{ color: "#B9B9BB", textDecoration: "none" }}
+                  _hover={{ color: "gray.400", textDecoration: "none" }}
                   _focus={{ boxShadow: "none", outline: "none" }}
                   _active={{ boxShadow: "none", outline: "none" }}
                   display="block"
@@ -135,12 +136,12 @@ export default function Footer() {
         </Grid>
 
         <Box
-          borderTop="1px solid"
-          borderColor="gray.700"
           pt={8}
           textAlign="center"
+          borderTop="1px solid"
+          borderColor="gray.700"
         >
-          <Text color="gray.700" fontSize="xs">
+          <Text color="gray.500" fontSize="xs">
             © 2026 NestDirect. All rights reserved.
           </Text>
         </Box>

@@ -1,14 +1,19 @@
-import { Box, Flex, Text, Button } from "@chakra-ui/react";
+import Link from "next/link";
+
+import { Box, Flex, Text, Button, Icon } from "@chakra-ui/react";
+
+//react icons
+import { FaArrowRight } from "react-icons/fa";
 
 export default function CTASection() {
   return (
     <Flex direction="column" bg="#1D212B" p={10} maxH="500px">
       <Flex direction="column" align="center" justify="center" gap={5}>
-        <Text color="white" fontSize="5xl">
+        <Text color="white" fontSize="5xl" fontFamily="serif">
           Ready to Buy or Sell?
         </Text>
         <Box maxW="500px">
-          <Text color="#B9B9BB" wordWrap="break-word" textAlign="center">
+          <Text color="gray.400" wordWrap="break-word" textAlign="center">
             {" "}
             Join thousands of homeowners who are saving money by dealing
             directly.
@@ -17,25 +22,33 @@ export default function CTASection() {
 
         <Flex gap={5} mt={5} mb={5}>
           <Button
+            asChild
             bg="#E99E35"
-            rounded="lg"
-            size="2xl"
+            rounded="xl"
+            size="xl"
             _hover={{
               bg: "#bc802d",
             }}
           >
-            Browse Properties
+            <Link href="/properties">
+              Browse Properties{" "}
+              <Icon size="xs">
+                <FaArrowRight />
+              </Icon>
+            </Link>
           </Button>
+
           <Button
+            asChild
             bg="transparent"
-            borderColor="#B9B9BB"
-            size="2xl"
-            rounded="lg"
+            borderColor="gray.500"
+            size="xl"
+            rounded="xl"
             _hover={{
               bg: "whiteAlpha.300",
             }}
           >
-            List Your Home
+            <Link href="/list-property">List Your Home</Link>
           </Button>
         </Flex>
       </Flex>

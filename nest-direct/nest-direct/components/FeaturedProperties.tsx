@@ -12,6 +12,9 @@ import {
   Container,
 } from "@chakra-ui/react";
 
+//react icons
+import { FaArrowRight } from "react-icons/fa";
+
 //components
 import PropertyCard from "./PropertyCard";
 
@@ -20,7 +23,7 @@ import { properties } from "../data/properties";
 
 export default function FeaturedProperties() {
   return (
-    <Box as="section" id="properties" py={{ base: 24 }} bg="background">
+    <Box as="section" id="properties" py={{ base: 24 }} bg="#FCFAF8">
       <Container maxW="container.xl" px={4}>
         <Flex
           align="flex-end"
@@ -31,7 +34,7 @@ export default function FeaturedProperties() {
         >
           <Box>
             <Text
-              color="secondary"
+              color="#E99E35"
               fontWeight="semibold"
               fontSize="sm"
               letterSpacing="widest"
@@ -42,26 +45,24 @@ export default function FeaturedProperties() {
             </Text>
             <Heading
               as="h2"
-              fontFamily="serif"
+              fontFamily="DM Serif Display, serif"
               fontSize={{ base: "4xl", md: "5xl" }}
-              color="foreground"
+              fontWeight="thin"
             >
               Featured Properties
             </Heading>
           </Box>
           <ChakraLink
             as={Link}
-            href="#"
+            href="/properties"
             display={{ base: "none", md: "inline-flex" }}
             fontSize="sm"
-            fontWeight="medium"
-            color="muted-foreground"
-            _hover={{ color: "foreground" }}
-            transition="colors 0.2s"
+            color="gray.500"
+            _hover={{ color: "gray.700" }}
             textDecoration="underline"
             textUnderlineOffset={4}
           >
-            View all listings →
+            View all listings <FaArrowRight />
           </ChakraLink>
         </Flex>
         <Grid

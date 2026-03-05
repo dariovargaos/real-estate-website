@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 //icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
 
 import {
   Box,
-  Image,
   Flex,
   Text,
   Heading,
@@ -16,6 +16,7 @@ import {
   Icon,
   Button,
   Link as ChakraLink,
+  Separator,
 } from "@chakra-ui/react";
 
 interface PropertyCardProps {
@@ -41,62 +42,61 @@ const PropertyCard = ({
   sqft,
   tag,
 }: PropertyCardProps) => {
-  // Static color values (customize as needed)
-  const cardBg = "white";
-  const cardShadow = "md";
-  const hoverShadow = "xl";
-  const borderColor = "gray.200";
-  const muted = "gray.500";
-  const foreground = "gray.900";
-
   return (
     <ChakraLink
       as={Link}
       href={`/property/${id}`}
-      bg={cardBg}
       borderRadius="2xl"
       overflow="hidden"
-      boxShadow={cardShadow}
+      boxShadow="md"
       transition="all 0.3s"
       _hover={{
-        boxShadow: hoverShadow,
+        boxShadow: "xl",
         transform: "translateY(-4px)",
         textDecoration: "none",
       }}
       cursor="pointer"
       display="block"
       p={0}
-      _focus={{ boxShadow: hoverShadow }}
+      _focus={{ boxShadow: "xl" }}
     >
       {/* Image */}
       <Box position="relative" pb="75%" overflow="hidden">
-        <Image
-          src={image}
-          alt={title}
+        <Box
           position="absolute"
           top={0}
           left={0}
           w="100%"
           h="100%"
-          objectFit="cover"
           transition="transform 0.5s"
           _groupHover={{ transform: "scale(1.05)" }}
-          loading="lazy"
-        />
+        >
+          <Image
+            src={image}
+            alt={title}
+            fill
+            style={{
+              objectFit: "cover",
+            }}
+          />
+        </Box>
         <Button
           aria-label="Add to favorites"
           position="absolute"
+          bg="white"
           top={3}
           right={3}
           h={9}
           w={9}
-          bg={cardBg}
           opacity={0.8}
           borderRadius="full"
           backdropFilter="blur(4px)"
-          _hover={{ bg: cardBg, opacity: 1 }}
+          _hover={{ bg: "white", opacity: 1 }}
+          role="group"
         >
-          <FaRegHeart size={16} color="black" />
+          <Icon>
+            <FaRegHeart size={14} color="black" />
+          </Icon>
         </Button>
         {tag && (
           <Badge
@@ -118,25 +118,24 @@ const PropertyCard = ({
       {/* Content */}
       <Box p={5}>
         <Flex align="start" justify="space-between" mb={2}>
-          <Text fontFamily="serif" fontSize="2xl" color={foreground}>
+          <Text
+            fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
+            fontSize="2xl"
+          >
             {price}
           </Text>
         </Flex>
-        <Heading
-          as="h3"
-          fontWeight="semibold"
-          color={foreground}
-          fontSize="sm"
-          mb={1}
-        >
+        <Heading as="h3" fontWeight="semibold" fontSize="sm" mb={1}>
           {title}
         </Heading>
-        <Flex align="center" gap={1} color={muted} fontSize="xs" mb={4}>
+        <Flex align="center" gap={1} color="gray.500" fontSize="xs" mb={4}>
           <Icon>
             <LuMapPin size={14} />
           </Icon>
           <span>{location}</span>
         </Flex>
+
+        <Separator />
 
         {/* Features */}
         <Flex
@@ -144,21 +143,21 @@ const PropertyCard = ({
           gap={4}
           pt={4}
           borderTop="1px"
-          borderColor={borderColor}
+          borderColor="gray.200"
         >
-          <Flex align="center" gap={1.5} color={muted} fontSize="xs">
+          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
             <Icon>
               <LuBedDouble size={14} />
             </Icon>
             <span>{beds} Beds</span>
           </Flex>
-          <Flex align="center" gap={1.5} color={muted} fontSize="xs">
+          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
             <Icon>
               <LuBath size={14} />
             </Icon>
             <span>{baths} Baths</span>
           </Flex>
-          <Flex align="center" gap={1.5} color={muted} fontSize="xs">
+          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
             <Icon>
               <LuMaximize size={14} />
             </Icon>

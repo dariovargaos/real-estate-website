@@ -22,7 +22,7 @@ export default function Navbar() {
         <Icon size="lg" color="#E99E35">
           <LuHouse />
         </Icon>
-        <Text fontSize="xl" fontWeight="medium">
+        <Text fontSize="xl" fontWeight="medium" fontFamily="serif">
           <Link href="/">NestDirect</Link>
         </Text>
       </Flex>
@@ -64,6 +64,18 @@ export default function Navbar() {
           Sell
         </ChakraLink>
 
+        <ChakraLink
+          as={Link}
+          href="/premium"
+          color="gray.500"
+          _hover={{
+            color: "black",
+            textDecoration: "none",
+          }}
+        >
+          Premium
+        </ChakraLink>
+
         <Button
           asChild
           variant="outline"
@@ -92,7 +104,7 @@ export default function Navbar() {
         </Button>
 
         <Button asChild colorPalette="gray" variant="solid" rounded="xl">
-          <Link href="/listproperty">List Property</Link>
+          <Link href="/list-property">List Property</Link>
         </Button>
       </Flex>
     </Flex>
