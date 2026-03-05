@@ -41,37 +41,12 @@ export default function Hero() {
         left={0}
         right={0}
         bottom={0}
-        background="linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)"
+        background="linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.6) 100%)"
         w="100%"
         h="100%"
         zIndex={1}
         pointerEvents="none"
       />
-
-      {/* Top Tagline */}
-      <Container
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        zIndex={3}
-        maxW="container.xl"
-        px={4}
-        pt={4}
-        pointerEvents="none"
-      >
-        <Text
-          color="#e48f18"
-          fontWeight="semibold"
-          fontSize="sm"
-          letterSpacing="widest"
-          textTransform="uppercase"
-          mb={0}
-          pointerEvents="auto"
-        >
-          Peer-to-Peer Real Estate
-        </Text>
-      </Container>
 
       {/* Content */}
       <Container
@@ -82,6 +57,17 @@ export default function Hero() {
         pt={20}
       >
         <Flex direction="column" maxW="2xl" gap={3}>
+          {/* Top Tagline */}
+          <Text
+            color="#fe9b10"
+            fontWeight="semibold"
+            fontSize="sm"
+            letterSpacing="widest"
+            textTransform="uppercase"
+            mb={4}
+          >
+            Peer-to-Peer Real Estate
+          </Text>
           <Heading
             as="h1"
             fontFamily="serif"
@@ -92,6 +78,7 @@ export default function Hero() {
             display="flex"
             flexDirection="column"
             gap={7}
+            fontWeight="medium"
           >
             <Box as="div" color="#FCFAF8" w="100%">
               Find Your
@@ -99,7 +86,7 @@ export default function Hero() {
             <Box as="div" color="white" w="100%">
               Perfect Home,
             </Box>
-            <Box as="div" color="#FCFAF8" w="100%">
+            <Box as="div" color="#fe9b10" w="100%">
               Directly.
             </Box>
           </Heading>
