@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -18,21 +19,95 @@ import {
 } from "@chakra-ui/react";
 import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
 import { Toaster, toaster } from "../../../components/ui/toaster";
+import { supabase } from "../../../lib/supabase";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    toaster.create({
-      title: "Demo Mode",
-      description:
-        "Sign up functionality will be available once the backend is connected.",
-      type: "info",
-    });
+    setIsLoading(true);
+
+    try {
+      // Validate form
+      if (!fullName.trim() || !email.trim() || !password.trim()) {
+        throw new Error("Please fill in all fields");
+      }
+
+      if (password.length < 6) {
+        throw new Error("Password must be at least 6 characters long");
+      }
+
+      // Sign up with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+          },
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        toaster.create({
+          title: "Account created successfully!",
+          description: data.user.email_confirmed_at
+            ? "You can now sign in to your account."
+            : "Please check your email to verify your account before signing in.",
+          type: "success",
+          duration: 6000,
+        });
+
+        // Clear form
+        setFullName("");
+        setEmail("");
+        setPassword("");
+
+        // Redirect to sign-in page after a delay
+        setTimeout(() => {
+          router.push("/sign-in");
+        }, 2000);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Sign up failed",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Google sign-up failed",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -217,8 +292,10 @@ const SignUp = () => {
                   size="lg"
                   colorPalette="gray"
                   rounded="xl"
+                  loading={isLoading}
+                  disabled={isLoading}
                 >
-                  Create Account
+                  {isLoading ? "Creating Account..." : "Create Account"}
                 </Button>
               </VStack>
             </Box>
@@ -250,13 +327,8 @@ const SignUp = () => {
               w="full"
               size="lg"
               rounded="xl"
-              onClick={() =>
-                toaster.create({
-                  title: "Demo Mode",
-                  description: "Google sign-up will be available soon.",
-                  type: "info",
-                })
-              }
+              onClick={handleGoogleSignUp}
+              disabled={isLoading}
             >
               <HStack>
                 <FaGoogle size={20} />

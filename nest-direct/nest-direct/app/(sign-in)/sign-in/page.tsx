@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -18,20 +19,79 @@ import {
 } from "@chakra-ui/react";
 import { FaHome, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import { Toaster, toaster } from "../../../components/ui/toaster";
+import { supabase } from "../../../lib/supabase";
 
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    toaster.create({
-      title: "Demo Mode",
-      description:
-        "Sign in functionality will be available once the backend is connected.",
-      type: "info",
-    });
+    setIsLoading(true);
+
+    try {
+      // Validate form
+      if (!email.trim() || !password.trim()) {
+        throw new Error("Please fill in all fields");
+      }
+
+      // Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.user) {
+        toaster.create({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+          type: "success",
+        });
+
+        // Clear form
+        setEmail("");
+        setPassword("");
+
+        // Redirect to home page
+        router.push("/");
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Sign in failed",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Google sign-in failed",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
+      });
+    }
   };
 
   return (
@@ -179,8 +239,10 @@ const SignIn = () => {
                   size="lg"
                   colorPalette="gray"
                   rounded="xl"
+                  loading={isLoading}
+                  disabled={isLoading}
                 >
-                  Sign In
+                  {isLoading ? "Signing In..." : "Sign In"}
                 </Button>
               </VStack>
             </Box>
@@ -212,13 +274,8 @@ const SignIn = () => {
               w="full"
               size="lg"
               rounded="xl"
-              onClick={() =>
-                toaster.create({
-                  title: "Demo Mode",
-                  description: "Google sign-in will be available soon.",
-                  type: "info",
-                })
-              }
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
             >
               <HStack>
                 <FaGoogle size={20} />
