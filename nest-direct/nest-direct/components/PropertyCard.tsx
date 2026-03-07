@@ -5,7 +5,7 @@ import Image from "next/image";
 
 //icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
-import { FaRegHeart, FaHeart } from "react-icons/fa";
+import { FaRegHeart } from "react-icons/fa";
 
 import {
   Box,
@@ -28,7 +28,7 @@ interface PropertyCardProps {
   beds: number;
   baths: number;
   sqft: string;
-  tag?: string;
+  tag?: string | null;
 }
 
 const PropertyCard = ({

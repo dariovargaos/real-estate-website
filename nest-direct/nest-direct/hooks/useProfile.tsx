@@ -219,7 +219,12 @@ export function useUserFavorites() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setFavorites(data?.filter((fav) => fav.property) || []);
+      setFavorites(
+        data?.filter(
+          (fav): fav is UserFavorite & { property: Property } =>
+            fav.property !== null,
+        ) || [],
+      );
     } catch (err: any) {
       setError(err.message);
     } finally {

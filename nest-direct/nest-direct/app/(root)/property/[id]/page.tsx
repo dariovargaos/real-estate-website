@@ -23,6 +23,7 @@ import {
   Badge,
   Field,
   SimpleGrid,
+  Spinner,
 } from "@chakra-ui/react";
 
 //react-icons
@@ -43,14 +44,61 @@ import {
   FaMap,
 } from "react-icons/fa";
 
-import { properties } from "../../../../data/properties";
+import { useProperty } from "../../../../hooks/useProperty";
 import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 const PropertyDetail = () => {
   const params = useParams();
   const id = params.id as string;
-  const property = properties.find((p) => p.id === id);
+  const { property, loading, error } = useProperty(id);
   const [activeImage, setActiveImage] = useState(0);
+
+  if (loading) {
+    return (
+      <Flex minH="100vh" direction="column">
+        <Flex flex={1} alignItems="center" justifyContent="center">
+          <VStack textAlign="center">
+            <Spinner size="xl" color="hsl(35, 80%, 56%)" />
+            <Text mt={4} color="gray.600">
+              Loading property...
+            </Text>
+          </VStack>
+        </Flex>
+      </Flex>
+    );
+  }
+
+  if (error) {
+    return (
+      <Flex minH="100vh" direction="column">
+        <Flex flex={1} alignItems="center" justifyContent="center">
+          <VStack textAlign="center">
+            <Heading
+              as="h1"
+              fontFamily="DM Serif Display, serif"
+              fontSize="4xl"
+              fontWeight="medium"
+              mb={4}
+              color="red.500"
+            >
+              Error loading property
+            </Heading>
+            <Text color="gray.600" mb={4}>
+              {error}
+            </Text>
+            <Link href="/properties">
+              <Button variant="outline">
+                <FaArrowLeft
+                  style={{ marginRight: 8, width: 16, height: 16 }}
+                />
+                Back to Properties
+              </Button>
+            </Link>
+          </VStack>
+        </Flex>
+      </Flex>
+    );
+  }
 
   if (!property) {
     return (
@@ -423,17 +471,17 @@ const PropertyDetail = () => {
                       <FaUser size={24} color="gray" />
                     </Flex>
                     <Box>
-                      <Text fontWeight="semibold">{property.seller.name}</Text>
+                      <Text fontWeight="semibold">{property.seller_name}</Text>
                       <HStack gap={1} fontSize="xs" color="gray.600">
                         <FaCalendarAlt size={12} />
-                        <Text>Member since {property.seller.since}</Text>
+                        <Text>Member since {property.seller_since}</Text>
                       </HStack>
                     </Box>
                   </HStack>
 
                   <HStack gap={2} fontSize="sm" color="gray.600" mb={6}>
                     <FaPhone size={16} />
-                    <Text>{property.seller.phone}</Text>
+                    <Text>{property.seller_phone}</Text>
                   </HStack>
 
                   {/* Contact Form */}

@@ -2,9 +2,7 @@
 
 import { useState, useMemo } from "react";
 import PropertyCard from "../../../components/PropertyCard";
-
-//dummy data
-import { properties } from "../../../data/properties";
+import { useListedProperties } from "../../../hooks/useListedProperties";
 
 import {
   Box,
@@ -18,12 +16,14 @@ import {
   Input,
   InputGroup,
   createListCollection,
+  Spinner,
 } from "@chakra-ui/react";
 
 //icons
 import { CiSearch } from "react-icons/ci";
 
 export default function Properties() {
+  const { properties, loading, error } = useListedProperties();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
   const [bedsFilter, setBedsFilter] = useState<string[]>(["any"]);
@@ -47,6 +47,8 @@ export default function Properties() {
   });
 
   const filtered = useMemo(() => {
+    if (!properties) return [];
+
     let result = properties.filter(
       (p) =>
         p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -73,7 +75,7 @@ export default function Properties() {
     }
 
     return result;
-  }, [search, sortBy, bedsFilter]);
+  }, [properties, search, sortBy, bedsFilter]);
 
   return (
     <Box minH="100vh" bg="gray.50">
@@ -114,122 +116,149 @@ export default function Properties() {
           </Container>
         </Box>
 
-        {/* Filters */}
-        <Box
-          as="section"
-          py={6}
-          bg="gray.50"
-          borderBottomWidth={1}
-          borderColor="gray.200"
-        >
-          <Container maxW="container.xl" px={4}>
-            <Flex
-              direction={{ base: "column", md: "row" }}
-              gap={4}
-              align="center"
+        {/* Show loading state */}
+        {loading && (
+          <Box py={16} textAlign="center">
+            <VStack gap={4}>
+              <Spinner size="lg" color="#E99E35" />
+              <Text>Loading properties...</Text>
+            </VStack>
+          </Box>
+        )}
+
+        {/* Show error state */}
+        {error && (
+          <Box py={16} textAlign="center">
+            <VStack gap={4}>
+              <Text color="red.500" fontSize="lg">
+                Error loading properties
+              </Text>
+              <Text color="gray.500">{error}</Text>
+            </VStack>
+          </Box>
+        )}
+
+        {/* Show filters and results only when not loading and no error */}
+        {!loading && !error && (
+          <>
+            {/* Filters */}
+            <Box
+              as="section"
+              py={6}
+              bg="gray.50"
+              borderBottomWidth={1}
+              borderColor="gray.200"
             >
-              <Box flex={1} w="full" position="relative">
-                <InputGroup startElement={<CiSearch />}>
-                  <Input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    pl={10}
-                    placeholder="Search by title or location..."
-                    rounded="xl"
-                  />
-                </InputGroup>
-              </Box>
-              <Box w={{ base: "full", md: 40 }}>
-                <Select.Root
-                  collection={bedsCollection}
-                  value={bedsFilter}
-                  onValueChange={(e) => setBedsFilter(e.value)}
+              <Container maxW="container.xl" px={4}>
+                <Flex
+                  direction={{ base: "column", md: "row" }}
+                  gap={4}
+                  align="center"
                 >
-                  <Select.HiddenSelect />
-
-                  <Select.Control>
-                    <Select.Trigger borderRadius="xl">
-                      <Select.ValueText placeholder="Any Beds" />
-                    </Select.Trigger>
-                    <Select.IndicatorGroup>
-                      <Select.Indicator />
-                    </Select.IndicatorGroup>
-                  </Select.Control>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {bedsCollection.items.map((item) => (
-                        <Select.Item item={item} key={item.value}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
-              </Box>
-              <Box w={{ base: "full", md: 44 }}>
-                <Select.Root
-                  collection={sortCollection}
-                  value={sortBy}
-                  onValueChange={(e) => setSortBy(e.value)}
-                >
-                  <Select.HiddenSelect />
-
-                  <Select.Control>
-                    <Select.Trigger borderRadius="xl">
-                      <Select.ValueText placeholder="Default" />
-                    </Select.Trigger>
-                    <Select.IndicatorGroup>
-                      <Select.Indicator />
-                    </Select.IndicatorGroup>
-                  </Select.Control>
-                  <Select.Positioner>
-                    <Select.Content>
-                      {sortCollection.items.map((item) => (
-                        <Select.Item item={item} key={item.value}>
-                          {item.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Select.Root>
-              </Box>
-            </Flex>
-          </Container>
-        </Box>
-
-        {/* Results */}
-        <Box as="section" py={12} bg="gray.50">
-          <Container maxW="container.xl" px={4}>
-            <Text fontSize="sm" color="gray.500" mb={6}>
-              {filtered.length} properties found
-            </Text>
-            {filtered.length > 0 ? (
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-                {filtered.map((property, index) => (
-                  <Box
-                    key={property.id}
-                    opacity={0}
-                    animation="fadeInUp 0.4s forwards"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <PropertyCard {...property} />
+                  <Box flex={1} w="full" position="relative">
+                    <InputGroup startElement={<CiSearch />}>
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        pl={10}
+                        placeholder="Search by title or location..."
+                        rounded="xl"
+                      />
+                    </InputGroup>
                   </Box>
-                ))}
-              </SimpleGrid>
-            ) : (
-              <VStack textAlign="center" py={16}>
-                <Text color="gray.600" fontSize="lg">
-                  No properties match your search.
+                  <Box w={{ base: "full", md: 40 }}>
+                    <Select.Root
+                      collection={bedsCollection}
+                      value={bedsFilter}
+                      onValueChange={(e) => setBedsFilter(e.value)}
+                    >
+                      <Select.HiddenSelect />
+
+                      <Select.Control>
+                        <Select.Trigger borderRadius="xl">
+                          <Select.ValueText placeholder="Any Beds" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {bedsCollection.items.map((item) => (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+                  <Box w={{ base: "full", md: 44 }}>
+                    <Select.Root
+                      collection={sortCollection}
+                      value={sortBy}
+                      onValueChange={(e) => setSortBy(e.value)}
+                    >
+                      <Select.HiddenSelect />
+
+                      <Select.Control>
+                        <Select.Trigger borderRadius="xl">
+                          <Select.ValueText placeholder="Default" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {sortCollection.items.map((item) => (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+                </Flex>
+              </Container>
+            </Box>
+
+            {/* Results */}
+            <Box as="section" py={12} bg="gray.50">
+              <Container maxW="container.xl" px={4}>
+                <Text fontSize="sm" color="gray.500" mb={6}>
+                  {filtered.length} properties found
                 </Text>
-                <Text color="gray.500" fontSize="sm">
-                  Try adjusting your filters.
-                </Text>
-              </VStack>
-            )}
-          </Container>
-        </Box>
+                {filtered.length > 0 ? (
+                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                    {filtered.map((property, index) => (
+                      <Box
+                        key={property.id}
+                        opacity={0}
+                        animation="fadeInUp 0.4s forwards"
+                        style={{ animationDelay: `${index * 0.05}s` }}
+                      >
+                        <PropertyCard {...property} />
+                      </Box>
+                    ))}
+                  </SimpleGrid>
+                ) : (
+                  <VStack textAlign="center" py={16}>
+                    <Text color="gray.600" fontSize="lg">
+                      No properties match your search.
+                    </Text>
+                    <Text color="gray.500" fontSize="sm">
+                      Try adjusting your filters.
+                    </Text>
+                  </VStack>
+                )}
+              </Container>
+            </Box>
+          </>
+        )}
       </Box>
       {/* Chakra UI animation keyframes for fadeInUp */}
       <style jsx global>{`
