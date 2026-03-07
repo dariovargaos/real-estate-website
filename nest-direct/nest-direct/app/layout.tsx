@@ -1,4 +1,5 @@
 import { Provider } from "../components/ui/provider";
+import { UserProvider } from "../hooks/useAuthContext";
 import type { Metadata } from "next";
 
 //fonts
@@ -18,7 +19,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
       <body className={dmSans.className}>
-        <Provider>{children}</Provider>
+        <Provider>
+          <UserProvider>{children}</UserProvider>
+        </Provider>
       </body>
     </html>
   );

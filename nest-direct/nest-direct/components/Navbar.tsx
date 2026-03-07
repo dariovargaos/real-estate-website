@@ -1,50 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
 
 //components
 import { Button, Flex, Text, Icon } from "@chakra-ui/react";
 import { Link as ChakraLink } from "@chakra-ui/react";
-import { supabase } from "../lib/supabase";
 import { toaster, Toaster } from "./ui/toaster";
+
+//hooks
+import { useUser } from "../hooks/useAuthContext";
 
 //icons
 import { LuHouse } from "react-icons/lu";
 import { FiUser, FiLogOut } from "react-icons/fi";
 
 export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Get initial session
-    const getSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    };
-
-    getSession();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { user, isLoading, signOut } = useUser();
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await signOut();
 
       toaster.create({
         title: "Logged out successfully",
