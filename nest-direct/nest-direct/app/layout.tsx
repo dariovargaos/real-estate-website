@@ -1,4 +1,5 @@
 import { Provider } from "../components/ui/provider";
+import { QueryProviderWrapper } from "../components/ui/query-provider";
 import { UserProvider } from "../hooks/useAuthContext";
 import type { Metadata } from "next";
 
@@ -19,9 +20,11 @@ export default function RootLayout(props: { children: React.ReactNode }) {
   return (
     <html suppressHydrationWarning>
       <body className={dmSans.className}>
-        <Provider>
-          <UserProvider>{children}</UserProvider>
-        </Provider>
+        <QueryProviderWrapper>
+          <Provider>
+            <UserProvider>{children}</UserProvider>
+          </Provider>
+        </QueryProviderWrapper>
       </body>
     </html>
   );

@@ -1,46 +1,24 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
-import type { Property } from "../lib/database.types";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProperty, propertyKeys } from "../lib/api";
 
-// Hook for fetching a single property by ID
+// Hook for fetching a single property by ID using TanStack Query
 export function useProperty(propertyId: string | undefined) {
-  const [property, setProperty] = useState<Property | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchProperty = async () => {
-    if (!propertyId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("id", propertyId)
-        .eq("status", "active") // Only fetch active listings
-        .single();
-
-      if (error) throw error;
-      setProperty(data);
-    } catch (err: any) {
-      setError(err.message);
-      setProperty(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProperty();
-  }, [propertyId]);
-
-  return {
-    property,
-    loading,
-    error,
-    refetch: fetchProperty,
-  };
+  return useQuery({
+    queryKey: propertyKeys.detail(propertyId || ""),
+    queryFn: () => {
+      if (!propertyId) {
+        throw new Error("Property ID is required");
+      }
+      return fetchProperty(propertyId);
+    },
+    enabled: !!propertyId, // Only run query if propertyId exists
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on "not found" errors
+      if (error.message === "Property not found") {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
 }

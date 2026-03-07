@@ -50,7 +50,7 @@ import { Toaster, toaster } from "../../../../components/ui/toaster";
 const PropertyDetail = () => {
   const params = useParams();
   const id = params.id as string;
-  const { property, loading, error } = useProperty(id);
+  const { data: property, isLoading: loading, error } = useProperty(id);
   const [activeImage, setActiveImage] = useState(0);
 
   if (loading) {
@@ -84,7 +84,7 @@ const PropertyDetail = () => {
               Error loading property
             </Heading>
             <Text color="gray.600" mb={4}>
-              {error}
+              {error.message}
             </Text>
             <Link href="/properties">
               <Button variant="outline">

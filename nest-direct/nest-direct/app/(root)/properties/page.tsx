@@ -23,7 +23,7 @@ import {
 import { CiSearch } from "react-icons/ci";
 
 export default function Properties() {
-  const { properties, loading, error } = useListedProperties();
+  const { data: properties, isLoading: loading, error } = useListedProperties();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
   const [bedsFilter, setBedsFilter] = useState<string[]>(["any"]);
@@ -133,7 +133,7 @@ export default function Properties() {
               <Text color="red.500" fontSize="lg">
                 Error loading properties
               </Text>
-              <Text color="gray.500">{error}</Text>
+              <Text color="gray.500">{error.message}</Text>
             </VStack>
           </Box>
         )}

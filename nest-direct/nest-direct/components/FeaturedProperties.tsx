@@ -24,7 +24,7 @@ import PropertyCard from "./PropertyCard";
 import { useListedProperties } from "../hooks/useListedProperties";
 
 export default function FeaturedProperties() {
-  const { properties, loading, error } = useListedProperties();
+  const { data: properties, isLoading: loading, error } = useListedProperties();
 
   // Show only first 6 properties or featured ones
   const featuredProperties = properties?.slice(0, 6) || [];
@@ -50,7 +50,7 @@ export default function FeaturedProperties() {
             <Text color="red.500" fontSize="lg">
               Failed to load properties
             </Text>
-            <Text color="gray.500">{error}</Text>
+            <Text color="gray.500">{error.message}</Text>
           </VStack>
         </Container>
       </Box>
@@ -100,7 +100,7 @@ export default function FeaturedProperties() {
             View all listings <FaArrowRight />
           </ChakraLink>
         </Flex>
-        
+
         {featuredProperties.length > 0 ? (
           <Grid
             templateColumns={{

@@ -1,39 +1,12 @@
-import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
-import type { Property } from "../lib/database.types";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProperties, propertyKeys } from "../lib/api";
 
-// Hook for fetching listed properties (public listings)
+// Hook for fetching listed properties (public listings) using TanStack Query
 export function useListedProperties() {
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchListedProperties = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("properties")
-        .select("*")
-        .eq("status", "active") // Only fetch active listings
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setProperties(data || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchListedProperties();
-  }, []);
-
-  return {
-    properties,
-    loading,
-    error,
-    refetch: fetchListedProperties,
-  };
+  return useQuery({
+    queryKey: propertyKeys.lists(),
+    queryFn: fetchProperties,
+    staleTime: 1000 * 60 * 3, // 3 minutes stale time for property lists
+    gcTime: 1000 * 60 * 10, // 10 minutes cache time
+  });
 }
