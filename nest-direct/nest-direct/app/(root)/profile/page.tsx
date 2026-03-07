@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -20,6 +20,7 @@ import {
   Separator,
   IconButton,
   Icon,
+  Spinner,
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
@@ -39,56 +40,17 @@ import {
   FaCircle,
 } from "react-icons/fa";
 
-//dummy data
-import { properties } from "../../../data/properties";
+//hooks
+import { useUser } from "../../../hooks/useAuthContext";
+import {
+  useUserProfile,
+  useUserMessages,
+  useUserFavorites,
+  useUserProperties,
+} from "../../../hooks/useProfile";
+import { formatTimeAgo, formatMemberSince } from "../../../lib/utils";
 
 type Section = "inbox" | "favourites" | "listings" | "settings";
-
-// Mock data
-const mockMessages = [
-  {
-    id: "1",
-    from: "Sarah Williams",
-    propertyTitle: "Skyline Penthouse with Panoramic Views",
-    propertyId: "skyline-penthouse",
-    preview:
-      "Hi! I'm very interested in your penthouse listing. Is the price negotiable? I'd love to schedule a viewing this weekend.",
-    time: "2h ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    from: "David Park",
-    propertyTitle: "Skyline Penthouse with Panoramic Views",
-    propertyId: "skyline-penthouse",
-    preview:
-      "Could you provide more details about the parking situation? Is the space in a covered garage?",
-    time: "1d ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    from: "Emily Chen",
-    propertyTitle: "Charming Family Home with Garden",
-    propertyId: "charming-family-home",
-    preview:
-      "We visited the neighborhood last weekend and loved it. Can we book a tour for next Tuesday?",
-    time: "3d ago",
-    unread: false,
-  },
-  {
-    id: "4",
-    from: "Michael Torres",
-    propertyTitle: "Charming Family Home with Garden",
-    propertyId: "charming-family-home",
-    preview: "Is the basement fully finished? Also, how old is the roof?",
-    time: "5d ago",
-    unread: false,
-  },
-];
-
-const mockFavourites = [properties[2], properties[4], properties[5]];
-const mockListings = [properties[0], properties[1]];
 
 interface SidebarItem {
   key: Section;
@@ -97,29 +59,87 @@ interface SidebarItem {
   badge?: number;
 }
 
-const sidebarItems: SidebarItem[] = [
-  { key: "inbox", label: "Inbox", icon: <MdInbox />, badge: 2 },
-  { key: "favourites", label: "Favourites", icon: <FaRegHeart /> },
-  { key: "listings", label: "My Listings", icon: <LuHouse /> },
-  { key: "settings", label: "Settings", icon: <MdSettings /> },
-];
-
 export default function Profile() {
+  const { user, isLoading: userLoading } = useUser();
+  const { profile, loading: profileLoading, updateProfile } = useUserProfile();
+  const {
+    messages,
+    loading: messagesLoading,
+    markAsRead,
+    sendReply,
+  } = useUserMessages();
+  const { properties: userProperties, loading: propertiesLoading } =
+    useUserProperties();
+  const { favorites, loading: favoritesLoading } = useUserFavorites();
+
   const [activeSection, setActiveSection] = useState<Section>("inbox");
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  // Settings state
-  const [email, setEmail] = useState("olivia.chen@email.com");
-  const [phone, setPhone] = useState("(212) 555-0147");
-  const [fullName, setFullName] = useState("Olivia Chen");
+  // Settings state - initialized from profile data
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveSettings = () => {
-    toaster.create({
-      title: "Settings saved",
-      description: "Your profile has been updated (demo mode).",
-      type: "success",
-    });
+  // Initialize settings form with profile data
+  useEffect(() => {
+    if (profile) {
+      setEmail(profile.email || "");
+      setPhone(profile.phone || "");
+      setFirstName(profile.first_name || "");
+      setLastName(profile.last_name || "");
+    }
+  }, [profile]);
+
+  // Calculate unread messages count
+  const unreadCount = messages.filter((msg) => !msg.is_read).length;
+
+  // Create sidebar items with dynamic badge
+  const sidebarItems: SidebarItem[] = [
+    {
+      key: "inbox",
+      label: "Inbox",
+      icon: <MdInbox />,
+      badge: unreadCount > 0 ? unreadCount : undefined,
+    },
+    { key: "favourites", label: "Favourites", icon: <FaRegHeart /> },
+    { key: "listings", label: "My Listings", icon: <LuHouse /> },
+    { key: "settings", label: "Settings", icon: <MdSettings /> },
+  ];
+
+  const handleSaveSettings = async () => {
+    if (!profile) return;
+
+    setIsSaving(true);
+    try {
+      const result = await updateProfile({
+        email: email,
+        phone: phone,
+        first_name: firstName,
+        last_name: lastName,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (result.success) {
+        toaster.create({
+          title: "Settings saved",
+          description: "Your profile has been updated successfully.",
+          type: "success",
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Save failed",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDeleteAccount = () => {
@@ -130,17 +150,83 @@ export default function Profile() {
     });
   };
 
-  const handleSendReply = () => {
-    if (!replyText.trim()) return;
-    toaster.create({
-      title: "Message sent",
-      description: "Your reply has been sent (demo mode).",
-      type: "success",
-    });
-    setReplyText("");
+  const handleSendReply = async () => {
+    if (!replyText.trim() || !selectedMessage) return;
+
+    try {
+      const result = await sendReply(selectedMessage, replyText);
+
+      if (result.success) {
+        toaster.create({
+          title: "Message sent",
+          description: "Your reply has been sent successfully.",
+          type: "success",
+        });
+        setReplyText("");
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Send failed",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    }
   };
 
-  const selectedMsg = mockMessages.find((m) => m.id === selectedMessage);
+  const selectedMsg = messages.find((m) => m.id === selectedMessage);
+
+  // Show loading state
+  if (userLoading || profileLoading) {
+    return (
+      <Box
+        minH="100vh"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        bg="#FCFAF8"
+      >
+        <VStack gap={4}>
+          <Spinner size="lg" color="hsl(35, 80%, 56%)" />
+          <Text>Loading profile...</Text>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // Show error state if user not found
+  if (!user) {
+    return (
+      <Box
+        minH="100vh"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        bg="#FCFAF8"
+      >
+        <VStack gap={4}>
+          <Text>Please sign in to view your profile.</Text>
+          <Button as={Link} href="/sign-in" colorPalette="gray" rounded="xl">
+            Sign In
+          </Button>
+        </VStack>
+      </Box>
+    );
+  }
+
+  // Get display name
+  const displayName =
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : profile?.first_name
+        ? profile.first_name
+        : user.email?.split("@")[0] || "User";
+
+  const memberSince = profile?.created_at
+    ? formatMemberSince(profile.created_at)
+    : "Member since 2024";
+  const listingsCount = userProperties.length;
 
   return (
     <Box minH="100vh" display="flex" flexDir="column" bg="#FCFAF8">
@@ -166,10 +252,10 @@ export default function Profile() {
                 fontWeight="medium"
                 color="foreground"
               >
-                Olivia Chen
+                {displayName}
               </Heading>
               <Text fontSize="sm" color="gray.500">
-                Member since 2023 · 2 active listings
+                {memberSince} · {listingsCount} active listings
               </Text>
             </VStack>
           </HStack>
@@ -255,73 +341,101 @@ export default function Profile() {
                     </Card.Description>
                   </Card.Header>
                   <Card.Body p={0}>
-                    <VStack gap={0} align="stretch">
-                      {mockMessages.map((msg, i) => (
-                        <Box key={msg.id}>
-                          <Button
-                            onClick={() => setSelectedMessage(msg.id)}
-                            variant="ghost"
-                            w="full"
-                            textAlign="left"
-                            px={6}
-                            py={4}
-                            h="auto"
-                            justifyContent="flex-start"
-                          >
-                            <HStack align="start" gap={3} w="full">
-                              <Box>
-                                <Icon size="xs">
-                                  <FaCircle
-                                    color={
-                                      msg.unread
-                                        ? "hsl(35, 80%, 56%)"
-                                        : "transparent"
-                                    }
-                                  />
-                                </Icon>
-                              </Box>
-                              <VStack flex={1} minW={0} align="start" gap={1}>
-                                <HStack justify="between" w="full">
+                    {messagesLoading ? (
+                      <Box p={6} textAlign="center">
+                        <Spinner color="hsl(35, 80%, 56%)" />
+                        <Text mt={2}>Loading messages...</Text>
+                      </Box>
+                    ) : messages.length === 0 ? (
+                      <Box p={12} textAlign="center">
+                        <VStack gap={3}>
+                          <MdInbox
+                            size={40}
+                            color="hsl(220, 10%, 46%)"
+                            opacity={0.4}
+                          />
+                          <Text color="gray.500">No messages yet.</Text>
+                        </VStack>
+                      </Box>
+                    ) : (
+                      <VStack gap={0} align="stretch">
+                        {messages.map((msg, i) => (
+                          <Box key={msg.id}>
+                            <Button
+                              onClick={() => {
+                                setSelectedMessage(msg.id);
+                                if (!msg.is_read) {
+                                  markAsRead(msg.id);
+                                }
+                              }}
+                              variant="ghost"
+                              w="full"
+                              textAlign="left"
+                              px={6}
+                              py={4}
+                              h="auto"
+                              justifyContent="flex-start"
+                            >
+                              <HStack align="start" gap={3} w="full">
+                                <Box>
+                                  <Icon size="xs">
+                                    <FaCircle
+                                      color={
+                                        !msg.is_read
+                                          ? "hsl(35, 80%, 56%)"
+                                          : "transparent"
+                                      }
+                                    />
+                                  </Icon>
+                                </Box>
+                                <VStack flex={1} minW={0} align="start" gap={1}>
+                                  <HStack justify="between" w="full">
+                                    <Text
+                                      fontSize="sm"
+                                      fontWeight={
+                                        !msg.is_read ? "semibold" : "medium"
+                                      }
+                                      color={
+                                        !msg.is_read ? "black" : "gray.500"
+                                      }
+                                    >
+                                      {msg.sender_name}
+                                    </Text>
+                                    <HStack fontSize="xs" gap={1}>
+                                      <Icon size="xs" color="gray.400">
+                                        <FaRegClock />
+                                      </Icon>
+                                      <Text color="gray.400">
+                                        {msg.created_at
+                                          ? formatTimeAgo(msg.created_at)
+                                          : "Unknown"}
+                                      </Text>
+                                    </HStack>
+                                  </HStack>
+                                  <Text fontSize="xs" color="gray.400" mb={1}>
+                                    Re: {msg.property?.title || "Property"}
+                                  </Text>
                                   <Text
                                     fontSize="sm"
-                                    fontWeight={
-                                      msg.unread ? "semibold" : "medium"
-                                    }
-                                    color={msg.unread ? "black" : "gray.500"}
+                                    color="black"
+                                    opacity={0.8}
+                                    lineClamp={{ base: "1", md: "none" }}
                                   >
-                                    {msg.from}
+                                    {msg.content}
                                   </Text>
-                                  <HStack fontSize="xs" gap={1}>
-                                    <Icon size="xs" color="gray.400">
-                                      <FaRegClock />
-                                    </Icon>
-
-                                    <Text color="gray.400">{msg.time}</Text>
-                                  </HStack>
-                                </HStack>
-                                <Text fontSize="xs" color="gray.400" mb={1}>
-                                  Re: {msg.propertyTitle}
-                                </Text>
-                                <Text
-                                  fontSize="sm"
-                                  color="black"
-                                  opacity={0.8}
-                                  lineClamp={{ base: "1", md: "none" }}
-                                >
-                                  {msg.preview}
-                                </Text>
-                              </VStack>
-                              <Box flexShrink={0} mt={2}>
-                                <Icon size="xs" color="gray.400">
-                                  <FaChevronRight />
-                                </Icon>
-                              </Box>
-                            </HStack>
-                          </Button>
-                          {i < mockMessages.length - 1 && <Separator />}
-                        </Box>
-                      ))}
-                    </VStack>
+                                </VStack>
+                                <Box flexShrink={0} mt={2}>
+                                  <Icon size="xs" color="gray.400">
+                                    <FaChevronRight />
+                                  </Icon>
+                                </Box>
+                              </HStack>
+                            </Button>
+                            {i < messages.length - 1 && <Separator />}
+                          </Box>
+                        ))}
+                      </VStack>
+                    )}
                   </Card.Body>
                 </Card.Root>
               )}
@@ -347,17 +461,17 @@ export default function Profile() {
                       fontSize="lg"
                       fontFamily="DM Serif Display, serif"
                     >
-                      {selectedMsg.from}
+                      {selectedMsg.sender_name}
                     </Card.Title>
                     <Card.Description>
                       Re:{" "}
-                      <Link href={`/property/${selectedMsg.propertyId}`}>
+                      <Link href={`/property/${selectedMsg.property_id}`}>
                         <Text
                           as="span"
                           color="hsl(35, 80%, 56%)"
                           _hover={{ textDecoration: "underline" }}
                         >
-                          {selectedMsg.propertyTitle}
+                          {selectedMsg.property?.title || "Property"}
                         </Text>
                       </Link>
                     </Card.Description>
@@ -365,10 +479,12 @@ export default function Profile() {
                   <Card.Body>
                     <Box bg="gray.100" rounded="xl" p={4} mb={6}>
                       <Text fontSize="sm" color="foreground">
-                        {selectedMsg.preview}
+                        {selectedMsg.content}
                       </Text>
                       <Text fontSize="xs" color="gray.500" mt={2}>
-                        {selectedMsg.time}
+                        {selectedMsg.created_at
+                          ? formatTimeAgo(selectedMsg.created_at)
+                          : "Unknown time"}
                       </Text>
                     </Box>
                     <HStack gap={2}>
@@ -406,7 +522,16 @@ export default function Profile() {
                   >
                     Favourites
                   </Heading>
-                  {mockFavourites.length === 0 ? (
+                  {favoritesLoading ? (
+                    <Card.Root>
+                      <Card.Body py={12} textAlign="center">
+                        <VStack gap={3}>
+                          <Spinner color="hsl(35, 80%, 56%)" />
+                          <Text>Loading favorites...</Text>
+                        </VStack>
+                      </Card.Body>
+                    </Card.Root>
+                  ) : favorites.length === 0 ? (
                     <Card.Root>
                       <Card.Body py={12} textAlign="center">
                         <VStack gap={3}>
@@ -424,8 +549,11 @@ export default function Profile() {
                     </Card.Root>
                   ) : (
                     <VStack gap={4} align="stretch">
-                      {mockFavourites.map((prop) => (
-                        <Link href={`/property/${prop.id}`} key={prop.id}>
+                      {favorites.map((fav) => (
+                        <Link
+                          href={`/property/${fav.property.id}`}
+                          key={fav.id}
+                        >
                           <Card.Root
                             overflow="hidden"
                             _hover={{
@@ -443,8 +571,8 @@ export default function Profile() {
                                 overflow="hidden"
                               >
                                 <Image
-                                  src={prop.image}
-                                  alt={prop.title}
+                                  src={fav.property.image}
+                                  alt={fav.property.title}
                                   width={192}
                                   height={144}
                                   style={{
@@ -462,7 +590,7 @@ export default function Profile() {
                                     fontFamily="DM Serif Display, serif"
                                     fontWeight="thin"
                                   >
-                                    {prop.title}
+                                    {fav.property.title}
                                   </Heading>
                                   <HStack
                                     fontSize="sm"
@@ -472,8 +600,7 @@ export default function Profile() {
                                     <Icon color="gray.500" strokeWidth={1}>
                                       <CiLocationOn />
                                     </Icon>
-
-                                    <Text>{prop.location}</Text>
+                                    <Text>{fav.property.location}</Text>
                                   </HStack>
                                   <HStack
                                     gap={4}
@@ -483,20 +610,20 @@ export default function Profile() {
                                   >
                                     <HStack gap={1}>
                                       <FaBed size={12} />
-                                      <Text>{prop.beds}</Text>
+                                      <Text>{fav.property.beds}</Text>
                                     </HStack>
                                     <HStack gap={1}>
                                       <FaBath size={12} />
-                                      <Text>{prop.baths}</Text>
+                                      <Text>{fav.property.baths}</Text>
                                     </HStack>
-                                    <Text>{prop.sqft}</Text>
+                                    <Text>{fav.property.sqft}</Text>
                                   </HStack>
                                   <Text
                                     fontSize="base"
                                     fontWeight="semibold"
                                     color="hsl(35, 80%, 56%)"
                                   >
-                                    {prop.price}
+                                    {fav.property.price}
                                   </Text>
                                 </VStack>
                               </Card.Body>
@@ -527,95 +654,129 @@ export default function Profile() {
                       </Button>
                     </Link>
                   </Flex>
-                  <VStack gap={4} align="stretch">
-                    {mockListings.map((prop) => (
-                      <Card.Root
-                        key={prop.id}
-                        rounded={"xl"}
-                        cursor="pointer"
-                        overflow="hidden"
-                        _hover={{
-                          shadow: "md",
-                          transform: "translateY(-1px)",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        <Flex direction={{ base: "column", sm: "row" }}>
-                          <Box
-                            w={{ base: "full", sm: 48 }}
-                            h={36}
-                            overflow="hidden"
+                  {propertiesLoading ? (
+                    <Card.Root>
+                      <Card.Body py={12} textAlign="center">
+                        <VStack gap={3}>
+                          <Spinner color="hsl(35, 80%, 56%)" />
+                          <Text>Loading properties...</Text>
+                        </VStack>
+                      </Card.Body>
+                    </Card.Root>
+                  ) : userProperties.length === 0 ? (
+                    <Card.Root>
+                      <Card.Body py={12} textAlign="center">
+                        <VStack gap={4}>
+                          <LuHouse
+                            size={40}
+                            color="hsl(220, 10%, 46%)"
+                            opacity={0.4}
+                          />
+                          <Text color="gray.500">No listings yet.</Text>
+                          <Button
+                            as={Link}
+                            href="/list-property"
+                            colorPalette="gray"
+                            rounded="xl"
                           >
-                            <Image
-                              src={prop.image}
-                              alt={prop.title}
-                              width={192}
-                              height={144}
-                              style={{
-                                objectFit: "cover",
-                                width: "100%",
-                                height: "100%",
-                              }}
-                            />
-                          </Box>
-                          <Card.Body flex={1} p={4}>
-                            <Flex align="start" justify="space-between">
-                              <VStack align="start" gap={1}>
-                                <Heading
-                                  as="h3"
-                                  size="md"
-                                  fontFamily={"DM Serif Display, serif"}
-                                  fontWeight="thin"
-                                  lineClamp={{ base: "1", md: "none" }}
-                                >
-                                  {prop.title}
-                                </Heading>
-                                <HStack fontSize="sm" gap={1}>
-                                  <Icon strokeWidth={1} color="gray.500">
-                                    <CiLocationOn />
-                                  </Icon>
+                            Create Your First Listing
+                          </Button>
+                        </VStack>
+                      </Card.Body>
+                    </Card.Root>
+                  ) : (
+                    <VStack gap={4} align="stretch">
+                      {userProperties.map((prop) => (
+                        <Card.Root
+                          key={prop.id}
+                          rounded={"xl"}
+                          cursor="pointer"
+                          overflow="hidden"
+                          _hover={{
+                            shadow: "md",
+                            transform: "translateY(-1px)",
+                            transition: "all 0.2s",
+                          }}
+                        >
+                          <Flex direction={{ base: "column", sm: "row" }}>
+                            <Box
+                              w={{ base: "full", sm: 48 }}
+                              h={36}
+                              overflow="hidden"
+                            >
+                              <Image
+                                src={prop.image}
+                                alt={prop.title}
+                                width={192}
+                                height={144}
+                                style={{
+                                  objectFit: "cover",
+                                  width: "100%",
+                                  height: "100%",
+                                }}
+                              />
+                            </Box>
+                            <Card.Body flex={1} p={4}>
+                              <Flex align="start" justify="space-between">
+                                <VStack align="start" gap={1}>
+                                  <Heading
+                                    as="h3"
+                                    size="md"
+                                    fontFamily={"DM Serif Display, serif"}
+                                    fontWeight="thin"
+                                    lineClamp={{ base: "1", md: "none" }}
+                                  >
+                                    {prop.title}
+                                  </Heading>
+                                  <HStack fontSize="sm" gap={1}>
+                                    <Icon strokeWidth={1} color="gray.500">
+                                      <CiLocationOn />
+                                    </Icon>
 
-                                  <Text color="gray.500">{prop.location}</Text>
-                                </HStack>
-                                <HStack
-                                  gap={4}
+                                    <Text color="gray.500">
+                                      {prop.location}
+                                    </Text>
+                                  </HStack>
+                                  <HStack
+                                    gap={4}
+                                    fontSize="xs"
+                                    color="gray.500"
+                                    mb={2}
+                                  >
+                                    <HStack gap={1}>
+                                      <FaBed size={12} />
+                                      <Text>{prop.beds}</Text>
+                                    </HStack>
+                                    <HStack gap={1}>
+                                      <FaBath size={12} />
+                                      <Text>{prop.baths}</Text>
+                                    </HStack>
+                                    <Text>{prop.sqft}</Text>
+                                  </HStack>
+                                  <Text
+                                    fontSize="base"
+                                    fontWeight="semibold"
+                                    color="hsl(35, 80%, 56%)"
+                                  >
+                                    {prop.price}
+                                  </Text>
+                                </VStack>
+                                <Badge
+                                  variant="outline"
+                                  rounded="xl"
+                                  flexShrink={0}
                                   fontSize="xs"
-                                  color="gray.500"
-                                  mb={2}
+                                  fontWeight="bold"
                                 >
-                                  <HStack gap={1}>
-                                    <FaBed size={12} />
-                                    <Text>{prop.beds}</Text>
-                                  </HStack>
-                                  <HStack gap={1}>
-                                    <FaBath size={12} />
-                                    <Text>{prop.baths}</Text>
-                                  </HStack>
-                                  <Text>{prop.sqft}</Text>
-                                </HStack>
-                                <Text
-                                  fontSize="base"
-                                  fontWeight="semibold"
-                                  color="hsl(35, 80%, 56%)"
-                                >
-                                  {prop.price}
-                                </Text>
-                              </VStack>
-                              <Badge
-                                variant="outline"
-                                rounded="xl"
-                                flexShrink={0}
-                                fontSize="xs"
-                                fontWeight="bold"
-                              >
-                                Active
-                              </Badge>
-                            </Flex>
-                          </Card.Body>
-                        </Flex>
-                      </Card.Root>
-                    ))}
-                  </VStack>
+                                  Active
+                                </Badge>
+                              </Flex>
+                            </Card.Body>
+                          </Flex>
+                        </Card.Root>
+                      ))}
+                    </VStack>
+                  )}
                 </VStack>
               )}
 
@@ -638,11 +799,21 @@ export default function Profile() {
                       <VStack gap={4} align="stretch">
                         <Box>
                           <Text fontSize="sm" fontWeight="medium" mb={1.5}>
-                            Full Name
+                            First Name
                           </Text>
                           <Input
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            bg="gray.100"
+                          />
+                        </Box>
+                        <Box>
+                          <Text fontSize="sm" fontWeight="medium" mb={1.5}>
+                            Last Name
+                          </Text>
+                          <Input
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
                             bg="gray.100"
                           />
                         </Box>
@@ -675,11 +846,12 @@ export default function Profile() {
                         </Box>
                         <Button
                           onClick={handleSaveSettings}
+                          disabled={isSaving}
                           colorPalette="gray"
                           alignSelf="start"
                           rounded="xl"
                         >
-                          Save Changes
+                          {isSaving ? "Saving..." : "Save Changes"}
                         </Button>
                       </VStack>
                     </Card.Body>

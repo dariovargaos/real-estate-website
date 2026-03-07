@@ -7,6 +7,11 @@ export type Json =
   | Json[];
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
       messages: {
@@ -148,6 +153,7 @@ export type Database = {
           tag: string | null;
           title: string;
           updated_at: string | null;
+          user_id: string | null;
         };
         Insert: {
           baths: number;
@@ -168,6 +174,7 @@ export type Database = {
           tag?: string | null;
           title: string;
           updated_at?: string | null;
+          user_id?: string | null;
         };
         Update: {
           baths?: number;
@@ -188,6 +195,7 @@ export type Database = {
           tag?: string | null;
           title?: string;
           updated_at?: string | null;
+          user_id?: string | null;
         };
         Relationships: [];
       };
@@ -198,6 +206,228 @@ export type Database = {
           is_return_visitor: boolean | null;
           page_source: string | null;
           property_id: string;
+          referrer: string | null;
+          session_id: string | null;
+          user_agent: string | null;
+          view_duration: number | null;
+          viewed_at: string | null;
+          viewer_id: string | null;
+          viewer_ip: unknown;
+        };
+        Insert: {
+          device_type?: string | null;
+          id?: string;
+          is_return_visitor?: boolean | null;
+          page_source?: string | null;
+          property_id: string;
+          referrer?: string | null;
+          session_id?: string | null;
+          user_agent?: string | null;
+          view_duration?: number | null;
+          viewed_at?: string | null;
+          viewer_id?: string | null;
+          viewer_ip?: unknown;
+        };
+        Update: {
+          device_type?: string | null;
+          id?: string;
+          is_return_visitor?: boolean | null;
+          page_source?: string | null;
+          property_id?: string;
+          referrer?: string | null;
+          session_id?: string | null;
+          user_agent?: string | null;
+          view_duration?: number | null;
+          viewed_at?: string | null;
+          viewer_id?: string | null;
+          viewer_ip?: unknown;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "property_views_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      user_favorites: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          property_id: string | null;
+          user_email: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          property_id?: string | null;
+          user_email?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          property_id?: string | null;
+          user_email?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_favorites_property_id_fkey";
+            columns: ["property_id"];
+            isOneToOne: false;
+            referencedRelation: "properties";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+};
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+// Type helpers for easier usage
+export type Property = Database["public"]["Tables"]["properties"]["Row"];
+export type PropertyInsert =
+  Database["public"]["Tables"]["properties"]["Insert"];
+export type PropertyUpdate =
+  Database["public"]["Tables"]["properties"]["Update"];
+
+export type Message = Database["public"]["Tables"]["messages"]["Row"];
+export type MessageInsert = Database["public"]["Tables"]["messages"]["Insert"];
+export type MessageUpdate = Database["public"]["Tables"]["messages"]["Update"];
+
+export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+export type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
+export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+
+export type UserFavorite =
+  Database["public"]["Tables"]["user_favorites"]["Row"];
+export type UserFavoriteInsert =
+  Database["public"]["Tables"]["user_favorites"]["Insert"];
+export type UserFavoriteUpdate =
+  Database["public"]["Tables"]["user_favorites"]["Update"];
+
+export type PropertyView =
+  Database["public"]["Tables"]["property_views"]["Row"];
+export type PropertyViewInsert =
+  Database["public"]["Tables"]["property_views"]["Insert"];
+export type PropertyViewUpdate =
+  Database["public"]["Tables"]["property_views"]["Update"];
           referrer: string | null;
           session_id: string | null;
           user_agent: string | null;
