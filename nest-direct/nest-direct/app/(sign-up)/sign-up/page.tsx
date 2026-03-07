@@ -23,11 +23,18 @@ import { supabase } from "../../../lib/supabase";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmedPassword, setConfirmedPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Check if passwords match
+  const passwordsMatch =
+    password && confirmedPassword && password === confirmedPassword;
+  const showPasswordError = confirmedPassword && !passwordsMatch;
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -35,12 +42,22 @@ const SignUp = () => {
 
     try {
       // Validate form
-      if (!fullName.trim() || !email.trim() || !password.trim()) {
+      if (
+        !firstName.trim() ||
+        !lastName.trim() ||
+        !email.trim() ||
+        !password.trim() ||
+        !confirmedPassword.trim()
+      ) {
         throw new Error("Please fill in all fields");
       }
 
       if (password.length < 6) {
         throw new Error("Password must be at least 6 characters long");
+      }
+
+      if (password !== confirmedPassword) {
+        throw new Error("Passwords do not match");
       }
 
       // Sign up with Supabase
@@ -49,7 +66,8 @@ const SignUp = () => {
         password,
         options: {
           data: {
-            full_name: fullName.trim(),
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
           },
         },
       });
@@ -69,9 +87,11 @@ const SignUp = () => {
         });
 
         // Clear form
-        setFullName("");
+        setFirstName("");
+        setLastName("");
         setEmail("");
         setPassword("");
+        setConfirmedPassword("");
 
         // Redirect to sign-in page after a delay
         setTimeout(() => {
@@ -217,12 +237,24 @@ const SignUp = () => {
             <Box as="form" onSubmit={handleSubmit}>
               <VStack gap={5}>
                 <Field.Root required>
-                  <Field.Label>Full name</Field.Label>
+                  <Field.Label>First name</Field.Label>
                   <Input
                     type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    size="lg"
+                    rounded="xl"
+                  />
+                </Field.Root>
+
+                <Field.Root required>
+                  <Field.Label>Last name</Field.Label>
+                  <Input
+                    type="text"
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     size="lg"
                     rounded="xl"
                   />
@@ -284,6 +316,50 @@ const SignUp = () => {
                       )}
                     </IconButton>
                   </Box>
+                </Field.Root>
+
+                <Field.Root required>
+                  <Field.Label>Confirm Password</Field.Label>
+                  <Box position="relative" w="100%">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={confirmedPassword}
+                      onChange={(e) => setConfirmedPassword(e.target.value)}
+                      size="lg"
+                      pr={12}
+                      rounded="xl"
+                      borderColor={showPasswordError ? "red.500" : undefined}
+                      _focus={{
+                        borderColor: showPasswordError ? "red.500" : "",
+                      }}
+                    />
+                    <IconButton
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      position="absolute"
+                      right={3}
+                      top="50%"
+                      transform="translateY(-50%)"
+                      variant="ghost"
+                      size="sm"
+                      color="gray.600"
+                      _hover={{ color: "gray.800" }}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <FaEyeSlash size={16} />
+                      ) : (
+                        <FaEye size={16} />
+                      )}
+                    </IconButton>
+                  </Box>
+                  {showPasswordError && (
+                    <Text color="red.500" fontSize="sm" mt={1}>
+                      Passwords do not match
+                    </Text>
+                  )}
                 </Field.Root>
 
                 <Button
