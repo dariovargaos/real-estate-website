@@ -18,6 +18,7 @@ import {
   createListCollection,
   Spinner,
 } from "@chakra-ui/react";
+import { Toaster } from "../../../components/ui/toaster";
 
 //icons
 import { CiSearch } from "react-icons/ci";
@@ -260,6 +261,7 @@ export default function Properties() {
           </>
         )}
       </Box>
+      <Toaster />
       {/* Chakra UI animation keyframes for fadeInUp */}
       <style jsx global>{`
         @keyframes fadeInUp {

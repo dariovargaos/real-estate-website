@@ -207,8 +207,8 @@ export default function Profile() {
       >
         <VStack gap={4}>
           <Text>Please sign in to view your profile.</Text>
-          <Button as={Link} href="/sign-in" colorPalette="gray" rounded="xl">
-            Sign In
+          <Button asChild colorPalette="gray" rounded="xl">
+            <Link href="/sign-in">Sign In</Link>
           </Button>
         </VStack>
       </Box>
@@ -673,13 +673,10 @@ export default function Profile() {
                             opacity={0.4}
                           />
                           <Text color="gray.500">No listings yet.</Text>
-                          <Button
-                            as={Link}
-                            href="/list-property"
-                            colorPalette="gray"
-                            rounded="xl"
-                          >
-                            Create Your First Listing
+                          <Button asChild colorPalette="gray" rounded="xl">
+                            <Link href="/list-property">
+                              Create Your First Listing
+                            </Link>
                           </Button>
                         </VStack>
                       </Card.Body>

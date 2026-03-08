@@ -97,6 +97,55 @@ export async function fetchUserMessages(
   return data || [];
 }
 
+// API function to mark message as read
+export async function markMessageAsRead(messageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("messages")
+    .update({ is_read: true, updated_at: new Date().toISOString() })
+    .eq("id", messageId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+// API function to send reply to message
+export async function sendMessageReply(
+  originalMessageId: string,
+  replyContent: string,
+): Promise<void> {
+  // First, get the original message to get sender info
+  const { data: originalMessage, error: fetchError } = await supabase
+    .from("messages")
+    .select("sender_id, sender_name, sender_email, property_id, recipient_id")
+    .eq("id", originalMessageId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  if (!originalMessage) {
+    throw new Error("Original message not found");
+  }
+
+  // Create reply message (swap sender and recipient)
+  const { error } = await supabase.from("messages").insert({
+    content: replyContent,
+    sender_id: originalMessage.recipient_id,
+    recipient_id: originalMessage.sender_id,
+    recipient_name: originalMessage.sender_name,
+    sender_email: null, // Will be populated by backend if needed
+    property_id: originalMessage.property_id,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // API function to fetch user properties
 export async function fetchUserProperties(userId: string): Promise<Property[]> {
   const { data, error } = await supabase

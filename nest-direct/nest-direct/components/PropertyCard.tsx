@@ -2,10 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 //icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
-import { FaRegHeart } from "react-icons/fa";
+import { FaRegHeart, FaHeart } from "react-icons/fa";
+
+//hooks
+import { useUser } from "../hooks/useAuthContext";
+import { useUserFavorites } from "../hooks/useProfile";
+
+//components
+import { toaster } from "./ui/toaster";
 
 import {
   Box,
@@ -42,6 +50,71 @@ const PropertyCard = ({
   sqft,
   tag,
 }: PropertyCardProps) => {
+  const { user } = useUser();
+  const { favorites, addToFavorites, removeFromFavorites } = useUserFavorites();
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
+
+  // Check if this property is in the user's favorites
+  useEffect(() => {
+    if (!user) {
+      // If user is not logged in, reset favorites state
+      setIsFavorited(false);
+    } else if (favorites) {
+      // If user is logged in and favorites are loaded, check if property is favorited
+      const favorited = favorites.some((fav) => fav.property.id === id);
+      setIsFavorited(favorited);
+    }
+    // Note: If user exists but favorites are still loading, we don't update the state
+  }, [favorites, id, user]);
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Stop event bubbling
+
+    if (!user) {
+      toaster.create({
+        title: "Sign in required",
+        description: "Please sign in to save properties to your favorites.",
+        type: "warning",
+      });
+      return;
+    }
+
+    setIsToggling(true);
+    try {
+      if (isFavorited) {
+        const result = await removeFromFavorites(id);
+        if (result.success) {
+          setIsFavorited(false);
+          toaster.create({
+            title: "Removed from favorites",
+            description: `${title} has been removed from your favorites.`,
+            type: "success",
+          });
+        }
+      } else {
+        const result = await addToFavorites(id);
+        if (result.success) {
+          setIsFavorited(true);
+          toaster.create({
+            title: "Added to favorites",
+            description: `${title} has been saved to your favorites.`,
+            type: "success",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      toaster.create({
+        title: "Something went wrong",
+        description: "Unable to update favorites. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setIsToggling(false);
+    }
+  };
   return (
     <ChakraLink
       as={Link}
@@ -81,21 +154,30 @@ const PropertyCard = ({
           />
         </Box>
         <Button
-          aria-label="Add to favorites"
+          aria-label={
+            isFavorited ? "Remove from favorites" : "Add to favorites"
+          }
           position="absolute"
           bg="white"
           top={3}
           right={3}
           h={9}
           w={9}
-          opacity={0.8}
+          opacity={0.9}
           borderRadius="full"
           backdropFilter="blur(4px)"
-          _hover={{ bg: "white", opacity: 1 }}
+          _hover={{ bg: "white", opacity: 1, transform: "scale(1.1)" }}
+          onClick={handleToggleFavorite}
+          disabled={isToggling}
+          transition="all 0.2s"
           role="group"
         >
           <Icon>
-            <FaRegHeart size={14} color="black" />
+            {isFavorited ? (
+              <FaHeart size={14} color="#E99E35" />
+            ) : (
+              <FaRegHeart size={14} color="black" />
+            )}
           </Icon>
         </Button>
         {tag && (

@@ -6,6 +6,8 @@ import {
   fetchUserProfile,
   updateUserProfile,
   fetchUserMessages,
+  markMessageAsRead,
+  sendMessageReply,
   fetchUserProperties,
   fetchUserFavorites,
   addToFavorites,
@@ -64,6 +66,7 @@ export function useUserProfile() {
 // Hook for user messages (inbox)
 export function useUserMessages() {
   const { user } = useUser();
+  const queryClient = useQueryClient();
 
   const messagesQuery = useQuery({
     queryKey: userKeys.messages(user?.id || ""),
@@ -77,15 +80,52 @@ export function useUserMessages() {
     refetchInterval: 1000 * 60 * 1, // Refetch every minute for new messages
   });
 
-  // Note: markAsRead and sendReply functions would need separate API endpoints
-  // For now, keeping them as they were but they should also be converted to mutations
+  const markAsReadMutation = useMutation({
+    mutationFn: (messageId: string) => markMessageAsRead(messageId),
+    onSuccess: () => {
+      // Invalidate messages to refetch updated data
+      queryClient.invalidateQueries({
+        queryKey: userKeys.messages(user?.id || ""),
+      });
+    },
+  });
+
+  const sendReplyMutation = useMutation({
+    mutationFn: ({ messageId, content }: { messageId: string; content: string }) => 
+      sendMessageReply(messageId, content),
+    onSuccess: () => {
+      // Invalidate messages to refetch updated data
+      queryClient.invalidateQueries({
+        queryKey: userKeys.messages(user?.id || ""),
+      });
+    },
+  });
+
+  const markAsRead = async (messageId: string) => {
+    try {
+      await markAsReadMutation.mutateAsync(messageId);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const sendReply = async (messageId: string, content: string) => {
+    try {
+      await sendReplyMutation.mutateAsync({ messageId, content });
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
 
   return {
     messages: messagesQuery.data || [],
     loading: messagesQuery.isLoading,
     error: messagesQuery.error?.message || null,
     refetch: messagesQuery.refetch,
-    // TODO: Convert markAsRead and sendReply to useMutation
+    markAsRead,
+    sendReply,
   };
 }
 
