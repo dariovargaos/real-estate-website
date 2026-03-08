@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 //components
 import { Button, Flex, Text, Icon } from "@chakra-ui/react";
@@ -16,6 +17,20 @@ import { FiUser, FiLogOut } from "react-icons/fi";
 
 export default function Navbar() {
   const { user, isLoading, signOut } = useUser();
+  const router = useRouter();
+
+  const handleListPropertyClick = () => {
+    if (!user) {
+      toaster.create({
+        title: "Sign in required",
+        description: "You need to sign in to list your property.",
+        type: "warning",
+        duration: 5000,
+      });
+      return;
+    }
+    router.push("/list-property");
+  };
 
   const handleLogout = async () => {
     try {
@@ -116,8 +131,13 @@ export default function Navbar() {
           Premium
         </ChakraLink>
 
-        <Button asChild colorPalette="gray" variant="solid" rounded="xl">
-          <Link href="/list-property">List Property</Link>
+        <Button
+          onClick={handleListPropertyClick}
+          colorPalette="gray"
+          variant="solid"
+          rounded="xl"
+        >
+          List Property
         </Button>
 
         {/* Authentication Buttons */}

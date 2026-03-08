@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
   Box,
@@ -20,6 +21,9 @@ import {
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
+//hooks
+import { useUser } from "../../../hooks/useAuthContext";
+
 //icons
 import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
 import { LuHouse, LuMapPin } from "react-icons/lu";
@@ -27,6 +31,15 @@ import { MdOutlineFileUpload } from "react-icons/md";
 
 export default function ListProperty() {
   const [submitted, setSubmitted] = useState(false);
+  const { user, isLoading } = useUser();
+  const router = useRouter();
+
+  // Redirect to home if user is not authenticated (client-side protection)
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/");
+    }
+  }, [user, isLoading, router]);
 
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -45,6 +58,20 @@ export default function ListProperty() {
       }
     }, 0);
   };
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
+        <Text>Loading...</Text>
+      </Box>
+    );
+  }
+
+  // Don't render anything if user is not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   if (submitted) {
     return (
@@ -80,7 +107,7 @@ export default function ListProperty() {
               once it&apos;s live on the marketplace.
             </Text>
             <Button colorPalette="gray" onClick={() => setSubmitted(false)}>
-              <Link href="/listproperty">List Another Property</Link>
+              <Link href="/list-property">List Another Property</Link>
             </Button>
           </Box>
         </Flex>
