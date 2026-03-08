@@ -353,7 +353,7 @@ const PropertyDetail = () => {
                   </HStack>
                   <HStack gap={2}>
                     <FaExpand size={20} color="gray" />
-                    <Text fontWeight="medium">{property.sqft}</Text>
+                    <Text fontWeight="medium">{property.size_m2}</Text>
                   </HStack>
                 </HStack>
 

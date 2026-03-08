@@ -242,7 +242,10 @@ export default function Properties() {
                         animation="fadeInUp 0.4s forwards"
                         style={{ animationDelay: `${index * 0.05}s` }}
                       >
-                        <PropertyCard {...property} />
+                        <PropertyCard 
+                          {...property} 
+                          size={property.size_m2}
+                        />
                       </Box>
                     ))}
                   </SimpleGrid>

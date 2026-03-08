@@ -616,7 +616,7 @@ export default function Profile() {
                                       <FaBath size={12} />
                                       <Text>{fav.property.baths}</Text>
                                     </HStack>
-                                    <Text>{fav.property.sqft}</Text>
+                                    <Text>{fav.property.size_m2}</Text>
                                   </HStack>
                                   <Text
                                     fontSize="base"
@@ -748,7 +748,7 @@ export default function Profile() {
                                       <FaBath size={12} />
                                       <Text>{prop.baths}</Text>
                                     </HStack>
-                                    <Text>{prop.sqft}</Text>
+                                    <Text>{prop.size_m2}</Text>
                                   </HStack>
                                   <Text
                                     fontSize="base"

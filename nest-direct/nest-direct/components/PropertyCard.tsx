@@ -35,7 +35,7 @@ interface PropertyCardProps {
   location: string;
   beds: number;
   baths: number;
-  sqft: string;
+  size: string;
   tag?: string | null;
 }
 
@@ -47,7 +47,7 @@ const PropertyCard = ({
   location,
   beds,
   baths,
-  sqft,
+  size,
   tag,
 }: PropertyCardProps) => {
   const { user } = useUser();
@@ -243,7 +243,7 @@ const PropertyCard = ({
             <Icon>
               <LuMaximize size={14} />
             </Icon>
-            <span>{sqft}</span>
+            <span>{size}</span>
           </Flex>
         </Flex>
       </Box>

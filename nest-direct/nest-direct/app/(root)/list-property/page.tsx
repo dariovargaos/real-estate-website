@@ -271,7 +271,7 @@ export default function ListProperty() {
                   <Field.Root required>
                     <Field.Label>Size (m²)</Field.Label>
                     <Input
-                      id="sqft"
+                      id="size_m2"
                       type="number"
                       placeholder="100"
                       rounded="xl"
