@@ -129,12 +129,51 @@ export async function sendMessageReply(
     throw new Error("Original message not found");
   }
 
+  // Check if we have valid sender and recipient IDs
+  if (!originalMessage.sender_id || !originalMessage.recipient_id) {
+    throw new Error("Invalid message data: missing sender or recipient ID");
+  }
+
+  // Get the recipient's name (original sender) from profiles
+  const { data: recipientProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", originalMessage.sender_id)
+    .single();
+
+  if (profileError) {
+    throw new Error("Could not find recipient profile");
+  }
+
+  // Get the sender's name (current user replying) from profiles
+  const { data: senderProfile, error: senderError } = await supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", originalMessage.recipient_id)
+    .single();
+
+  if (senderError) {
+    throw new Error("Could not find sender profile");
+  }
+
+  // Format names
+  const recipientName =
+    recipientProfile.first_name && recipientProfile.last_name
+      ? `${recipientProfile.first_name} ${recipientProfile.last_name}`
+      : recipientProfile.first_name || "Unknown User";
+
+  const senderName =
+    senderProfile.first_name && senderProfile.last_name
+      ? `${senderProfile.first_name} ${senderProfile.last_name}`
+      : senderProfile.first_name || "Unknown User";
+
   // Create reply message (swap sender and recipient)
   const { error } = await supabase.from("messages").insert({
     content: replyContent,
     sender_id: originalMessage.recipient_id,
     recipient_id: originalMessage.sender_id,
-    recipient_name: originalMessage.sender_name,
+    sender_name: senderName,
+    recipient_name: recipientName,
     sender_email: null, // Will be populated by backend if needed
     property_id: originalMessage.property_id,
     is_read: false,
