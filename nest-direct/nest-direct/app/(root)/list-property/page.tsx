@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import {
@@ -18,11 +19,15 @@ import {
   Field,
   NativeSelect,
   Separator,
+  Spinner,
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //hooks
 import { useUser } from "../../../hooks/useAuthContext";
+
+//api
+import { createProperty } from "../../../lib/api";
 
 //icons
 import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
@@ -31,8 +36,123 @@ import { MdOutlineFileUpload } from "react-icons/md";
 
 export default function ListProperty() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading } = useUser();
   const router = useRouter();
+
+  // Form state
+  const [formData, setFormData] = useState({
+    title: "",
+    price: "",
+    location: "",
+    property_type: "",
+    beds: "",
+    baths: "",
+    size_m2: "",
+    description: "",
+    seller_name: "",
+    seller_phone: "",
+  });
+
+  // File upload state
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Handle form field changes
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // File upload validation
+  const validateFiles = (
+    files: File[],
+  ): { valid: File[]; errors: string[] } => {
+    const valid: File[] = [];
+    const errors: string[] = [];
+    const maxFiles = 20;
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    if (uploadedFiles.length + files.length > maxFiles) {
+      errors.push(`Maximum ${maxFiles} photos allowed`);
+      return { valid, errors };
+    }
+
+    files.forEach((file) => {
+      if (!allowedTypes.includes(file.type)) {
+        errors.push(`${file.name}: Only JPG, PNG, and WebP files allowed`);
+      } else if (file.size > maxSize) {
+        errors.push(`${file.name}: File size must be less than 10MB`);
+      } else {
+        valid.push(file);
+      }
+    });
+
+    return { valid, errors };
+  };
+
+  // Handle file selection
+  const handleFiles = (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const { valid, errors } = validateFiles(fileArray);
+
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        toaster.create({
+          title: "File validation error",
+          description: error,
+          type: "error",
+          duration: 5000,
+          closable: true,
+        });
+      });
+    }
+
+    if (valid.length > 0) {
+      setUploadedFiles((prev) => [...prev, ...valid]);
+    }
+  };
+
+  // Handle drag events
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  // Handle drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  // Handle file input change
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  // Remove uploaded file
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Trigger file input
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
 
   // Redirect to home if user is not authenticated (client-side protection)
   useEffect(() => {
@@ -41,28 +161,114 @@ export default function ListProperty() {
     }
   }, [user, isLoading, router]);
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    toaster.create({
-      title: "Property submitted!",
-      description: "We'll review your listing and publish it shortly.",
-      type: "success",
-      duration: 7000,
-      closable: true,
-    });
-    setSubmitted(true);
 
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!user) {
+      toaster.create({
+        title: "Authentication required",
+        description: "Please sign in to list a property.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+      return;
+    }
+
+    // Validate required fields
+    const requiredFields = {
+      title: "Property Title",
+      price: "Asking Price",
+      location: "Location",
+      property_type: "Property Type",
+      beds: "Bedrooms",
+      baths: "Bathrooms",
+      size_m2: "Size",
+      description: "Description",
+      seller_name: "Full Name",
+      seller_phone: "Phone Number",
+    };
+
+    for (const [field, label] of Object.entries(requiredFields)) {
+      if (!formData[field as keyof typeof formData].trim()) {
+        toaster.create({
+          title: "Missing required field",
+          description: `Please fill in ${label}.`,
+          type: "error",
+          duration: 5000,
+          closable: true,
+        });
+        return;
       }
-    }, 0);
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      setIsUploading(true);
+
+      // Debug: Log user object
+      console.log("User object:", user);
+      console.log("User ID:", user?.id);
+
+      await createProperty({
+        title: formData.title,
+        price: formData.price,
+        location: formData.location,
+        beds: parseInt(formData.beds),
+        baths: parseInt(formData.baths),
+        size_m2: formData.size_m2,
+        description: formData.description,
+        seller_name: formData.seller_name,
+        seller_phone: formData.seller_phone,
+        user_id: user.id,
+        property_type: formData.property_type,
+        imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+      });
+
+      toaster.create({
+        title: "Property submitted!",
+        description: "We'll review your listing and publish it shortly.",
+        type: "success",
+        duration: 7000,
+        closable: true,
+      });
+
+      setSubmitted(true);
+
+      setTimeout(() => {
+        if (typeof window !== "undefined") {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error creating property:", error);
+      toaster.create({
+        title: "Submission failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred while submitting your property.",
+        type: "error",
+        duration: 7000,
+        closable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+      setIsUploading(false);
+    }
   };
 
   // Show loading while checking authentication
   if (isLoading) {
     return (
-      <Box minH="100vh" bg="gray.50" display="flex" alignItems="center" justifyContent="center">
+      <Box
+        minH="100vh"
+        bg="gray.50"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         <Text>Loading...</Text>
       </Box>
     );
@@ -106,7 +312,25 @@ export default function ListProperty() {
               Your property has been submitted for review. We&apos;ll notify you
               once it&apos;s live on the marketplace.
             </Text>
-            <Button colorPalette="gray" onClick={() => setSubmitted(false)}>
+            <Button
+              colorPalette="gray"
+              onClick={() => {
+                setSubmitted(false);
+                setFormData({
+                  title: "",
+                  price: "",
+                  location: "",
+                  property_type: "",
+                  beds: "",
+                  baths: "",
+                  size_m2: "",
+                  description: "",
+                  seller_name: "",
+                  seller_phone: "",
+                });
+                setUploadedFiles([]);
+              }}
+            >
               <Link href="/list-property">List Another Property</Link>
             </Button>
           </Box>
@@ -234,6 +458,10 @@ export default function ListProperty() {
                     <Field.Label>Property Title</Field.Label>
                     <Input
                       id="title"
+                      value={formData.title}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
                       placeholder="e.g. Modern Loft in Downtown"
                       rounded="xl"
                     />
@@ -243,6 +471,10 @@ export default function ListProperty() {
                     <Input
                       id="price"
                       type="number"
+                      value={formData.price}
+                      onChange={(e) =>
+                        handleInputChange("price", e.target.value)
+                      }
                       placeholder="500000"
                       rounded="xl"
                     />
@@ -255,7 +487,15 @@ export default function ListProperty() {
                 >
                   <Field.Root required>
                     <Field.Label>Location</Field.Label>
-                    <Input id="location" placeholder="City" rounded="xl" />
+                    <Input
+                      id="location"
+                      value={formData.location}
+                      onChange={(e) =>
+                        handleInputChange("location", e.target.value)
+                      }
+                      placeholder="City"
+                      rounded="xl"
+                    />
                   </Field.Root>
                   <Field.Root required>
                     <Field.Label>Property Type</Field.Label>
@@ -263,6 +503,10 @@ export default function ListProperty() {
                       <NativeSelect.Field
                         placeholder="Select type"
                         borderRadius="xl"
+                        value={formData.property_type}
+                        onChange={(e) =>
+                          handleInputChange("property_type", e.target.value)
+                        }
                       >
                         <option value="house">House</option>
                         <option value="apartment">Apartment</option>
@@ -282,6 +526,10 @@ export default function ListProperty() {
                     <Input
                       id="beds"
                       type="number"
+                      value={formData.beds}
+                      onChange={(e) =>
+                        handleInputChange("beds", e.target.value)
+                      }
                       placeholder="3"
                       rounded="xl"
                     />
@@ -291,6 +539,10 @@ export default function ListProperty() {
                     <Input
                       id="baths"
                       type="number"
+                      value={formData.baths}
+                      onChange={(e) =>
+                        handleInputChange("baths", e.target.value)
+                      }
                       placeholder="2"
                       rounded="xl"
                     />
@@ -300,6 +552,10 @@ export default function ListProperty() {
                     <Input
                       id="size_m2"
                       type="number"
+                      value={formData.size_m2}
+                      onChange={(e) =>
+                        handleInputChange("size_m2", e.target.value)
+                      }
                       placeholder="100"
                       rounded="xl"
                     />
@@ -310,6 +566,10 @@ export default function ListProperty() {
                   <Field.Label>Description</Field.Label>
                   <Textarea
                     id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleInputChange("description", e.target.value)
+                    }
                     placeholder="Describe your property — what makes it special?"
                     rows={5}
                     rounded="xl"
@@ -318,28 +578,141 @@ export default function ListProperty() {
 
                 <Field.Root>
                   <Field.Label>Photos</Field.Label>
-                  <Box
-                    border="1px dashed"
-                    borderColor="gray.200"
-                    rounded="xl"
-                    p={8}
-                    textAlign="center"
-                    cursor="pointer"
-                    _hover={{ borderColor: "orange.300" }}
-                    w="full"
-                  >
-                    <Icon
-                      as={MdOutlineFileUpload}
-                      boxSize={8}
-                      color="gray.400"
-                      mb={2}
+                  <Box position="relative" w="full">
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleFileInputChange}
+                      style={{ display: "none" }}
                     />
-                    <Text fontSize="sm" color="gray.500">
-                      Drag & drop photos here, or click to browse
-                    </Text>
-                    <Text fontSize="xs" color="gray.400" mt={1}>
-                      Up to 20 photos · JPG, PNG · Max 10MB each
-                    </Text>
+
+                    {/* Upload area */}
+                    <Box
+                      border="2px dashed"
+                      borderColor={dragActive ? "orange.400" : "gray.200"}
+                      rounded="xl"
+                      p={8}
+                      textAlign="center"
+                      cursor="pointer"
+                      bg={dragActive ? "orange.50" : "gray.50"}
+                      _hover={{ borderColor: "orange.300", bg: "orange.50" }}
+                      w="full"
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                      onClick={openFileDialog}
+                      transition="all 0.2s"
+                    >
+                      <Icon
+                        as={MdOutlineFileUpload}
+                        boxSize={8}
+                        color={dragActive ? "orange.400" : "gray.400"}
+                        mb={2}
+                      />
+                      <Text
+                        fontSize="sm"
+                        color={dragActive ? "orange.600" : "gray.500"}
+                      >
+                        {dragActive
+                          ? "Drop photos here..."
+                          : "Drag & drop photos here, or click to browse"}
+                      </Text>
+                      <Text fontSize="xs" color="gray.400" mt={1}>
+                        Up to 20 photos · JPG, PNG, WebP ·
+                      </Text>
+                    </Box>
+
+                    {/* File preview grid */}
+                    {uploadedFiles.length > 0 && (
+                      <Box mt={4}>
+                        <Text fontSize="sm" color="gray.600" mb={3}>
+                          {uploadedFiles.length} photo
+                          {uploadedFiles.length > 1 ? "s" : ""} selected
+                        </Text>
+                        <Grid
+                          templateColumns="repeat(auto-fill, minmax(120px, 1fr))"
+                          gap={3}
+                          maxH="300px"
+                          overflowY="auto"
+                        >
+                          {uploadedFiles.map((file, index) => (
+                            <Box
+                              key={index}
+                              position="relative"
+                              border="1px"
+                              borderColor="gray.200"
+                              rounded="lg"
+                              p={2}
+                              bg="white"
+                            >
+                              <Box
+                                bg="gray.100"
+                                rounded="md"
+                                p={2}
+                                textAlign="center"
+                                h="80px"
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="center"
+                                position="relative"
+                              >
+                                <Image
+                                  src={URL.createObjectURL(file)}
+                                  alt={file.name}
+                                  fill
+                                  style={{
+                                    objectFit: "cover",
+                                    borderRadius: "4px",
+                                  }}
+                                  sizes="120px"
+                                />
+                                {/* Remove button */}
+                                <Button
+                                  size="sm"
+                                  position="absolute"
+                                  top={-1}
+                                  right={-1}
+                                  bg="red.500"
+                                  color="white"
+                                  rounded="full"
+                                  w={6}
+                                  h={6}
+                                  minWidth="unset"
+                                  p={0}
+                                  fontSize="xs"
+                                  _hover={{ bg: "red.600" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeFile(index);
+                                  }}
+                                >
+                                  ×
+                                </Button>
+                              </Box>
+                              <Text
+                                fontSize="xs"
+                                color="gray.500"
+                                mt={1}
+                                textAlign="center"
+                              >
+                                {file.name}
+                              </Text>
+                              <Text
+                                fontSize="xs"
+                                color="gray.400"
+                                textAlign="center"
+                              >
+                                {(file.size / 1024 / 1024).toFixed(1)}MB
+                              </Text>
+                            </Box>
+                          ))}
+                        </Grid>
+                      </Box>
+                    )}
                   </Box>
                 </Field.Root>
 
@@ -362,6 +735,10 @@ export default function ListProperty() {
                       <Field.Label>Full Name</Field.Label>
                       <Input
                         id="name"
+                        value={formData.seller_name}
+                        onChange={(e) =>
+                          handleInputChange("seller_name", e.target.value)
+                        }
                         placeholder="Your name"
                         type="text"
                         rounded="xl"
@@ -371,6 +748,10 @@ export default function ListProperty() {
                       <Field.Label>Phone Number</Field.Label>
                       <Input
                         id="phone"
+                        value={formData.seller_phone}
+                        onChange={(e) =>
+                          handleInputChange("seller_phone", e.target.value)
+                        }
                         placeholder="0912345678"
                         type="tel"
                         rounded="xl"
@@ -384,8 +765,16 @@ export default function ListProperty() {
                   colorScheme="gray"
                   size="lg"
                   borderRadius="xl"
+                  disabled={isSubmitting || isUploading}
                 >
-                  Submit Listing
+                  {isSubmitting ? (
+                    <>
+                      <Spinner size="sm" mr={2} />
+                      {isUploading ? "Uploading photos..." : "Submitting..."}
+                    </>
+                  ) : (
+                    "Submit Listing"
+                  )}
                 </Button>
               </Stack>
             </Box>

@@ -648,7 +648,7 @@ export default function Profile() {
                     >
                       My Listings
                     </Heading>
-                    <Link href="/listproperty">
+                    <Link href="/list-property">
                       <Button size="xs" colorPalette="gray" rounded="xl">
                         + New Listing
                       </Button>

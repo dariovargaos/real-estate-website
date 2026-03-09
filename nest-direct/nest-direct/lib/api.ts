@@ -257,6 +257,132 @@ export async function removeFromFavorites(userId: string, propertyId: string) {
   }
 }
 
+// API function to upload images to Supabase Storage
+export async function uploadPropertyImages(
+  files: File[],
+  userId: string,
+): Promise<string[]> {
+  const uploadPromises = files.map(async (file, index) => {
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substring(2, 11);
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${userId}/${timestamp}_${index}_${randomId}.${fileExt}`;
+
+    // Upload file to property-images bucket
+    const { error } = await supabase.storage
+      .from("property-images")
+      .upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from("property-images")
+      .getPublicUrl(fileName);
+
+    return urlData.publicUrl;
+  });
+
+  try {
+    const imageUrls = await Promise.all(uploadPromises);
+    return imageUrls;
+  } catch (error) {
+    console.error("Error uploading images:", error);
+    throw new Error("Failed to upload one or more images");
+  }
+}
+
+// API function to create a new property listing
+export async function createProperty(propertyData: {
+  title: string;
+  price: string;
+  location: string;
+  beds: number;
+  baths: number;
+  size_m2: string;
+  description: string;
+  seller_name: string;
+  seller_phone: string;
+  user_id: string;
+  property_type?: string;
+  imageFiles?: File[]; // Add image files to the interface
+}): Promise<Property> {
+  // Upload images if provided
+  let imageUrls: string[] = ["/placeholder.jpg"];
+  let mainImage = "/placeholder.jpg";
+
+  if (propertyData.imageFiles && propertyData.imageFiles.length > 0) {
+    try {
+      imageUrls = await uploadPropertyImages(
+        propertyData.imageFiles,
+        propertyData.user_id,
+      );
+      mainImage = imageUrls[0]; // First image becomes the main image
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      // Continue with default images if upload fails
+    }
+  }
+
+  // Get user profile for seller_since date
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("created_at")
+    .eq("id", propertyData.user_id)
+    .single();
+
+  // Format as currency for display
+  const formattedPrice = `€${parseInt(propertyData.price).toLocaleString()}`;
+
+  // Debug: Log user ID
+  console.log("Creating property for user ID:", propertyData.user_id);
+
+  // Prepare features array
+  const features = [];
+  if (propertyData.property_type) {
+    features.push(propertyData.property_type);
+  }
+
+  const { data, error } = await supabase
+    .from("properties")
+    .insert({
+      title: propertyData.title,
+      price: formattedPrice,
+      location: propertyData.location,
+      beds: propertyData.beds,
+      baths: propertyData.baths,
+      size_m2: propertyData.size_m2,
+      description: propertyData.description,
+      seller_name: propertyData.seller_name,
+      seller_phone: propertyData.seller_phone,
+      user_id: propertyData.user_id,
+      seller_since: profile?.created_at || new Date().toISOString(),
+      image: mainImage, // Use uploaded image or placeholder
+      images: imageUrls, // Use uploaded images or placeholder
+      features,
+      status: "pending", // Properties start as pending for review
+      created_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Failed to create property");
+  }
+
+  return data;
+}
+
 // Query keys for consistent cache management
 export const propertyKeys = {
   all: ["properties"] as const,
