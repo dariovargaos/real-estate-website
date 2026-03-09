@@ -684,93 +684,94 @@ export default function Profile() {
                   ) : (
                     <VStack gap={4} align="stretch">
                       {userProperties.map((prop) => (
-                        <Card.Root
-                          key={prop.id}
-                          rounded={"xl"}
-                          cursor="pointer"
-                          overflow="hidden"
-                          _hover={{
-                            shadow: "md",
-                            transform: "translateY(-1px)",
-                            transition: "all 0.2s",
-                          }}
-                        >
-                          <Flex direction={{ base: "column", sm: "row" }}>
-                            <Box
-                              w={{ base: "full", sm: 48 }}
-                              h={36}
-                              overflow="hidden"
-                            >
-                              <Image
-                                src={prop.image}
-                                alt={prop.title}
-                                width={192}
-                                height={144}
-                                style={{
-                                  objectFit: "cover",
-                                  width: "100%",
-                                  height: "100%",
-                                }}
-                              />
-                            </Box>
-                            <Card.Body flex={1} p={4}>
-                              <Flex align="start" justify="space-between">
-                                <VStack align="start" gap={1}>
-                                  <Heading
-                                    as="h3"
-                                    size="md"
-                                    fontFamily={"DM Serif Display, serif"}
-                                    fontWeight="thin"
-                                    lineClamp={{ base: "1", md: "none" }}
-                                  >
-                                    {prop.title}
-                                  </Heading>
-                                  <HStack fontSize="sm" gap={1}>
-                                    <Icon strokeWidth={1} color="gray.500">
-                                      <CiLocationOn />
-                                    </Icon>
+                        <Link href={`/property/${prop.id}`} key={prop.id}>
+                          <Card.Root
+                            rounded={"xl"}
+                            cursor="pointer"
+                            overflow="hidden"
+                            _hover={{
+                              shadow: "md",
+                              transform: "translateY(-1px)",
+                              transition: "all 0.2s",
+                            }}
+                          >
+                            <Flex direction={{ base: "column", sm: "row" }}>
+                              <Box
+                                w={{ base: "full", sm: 48 }}
+                                h={36}
+                                overflow="hidden"
+                              >
+                                <Image
+                                  src={prop.image}
+                                  alt={prop.title}
+                                  width={192}
+                                  height={144}
+                                  style={{
+                                    objectFit: "cover",
+                                    width: "100%",
+                                    height: "100%",
+                                  }}
+                                />
+                              </Box>
+                              <Card.Body flex={1} p={4}>
+                                <Flex align="start" justify="space-between">
+                                  <VStack align="start" gap={1}>
+                                    <Heading
+                                      as="h3"
+                                      size="md"
+                                      fontFamily={"DM Serif Display, serif"}
+                                      fontWeight="thin"
+                                      lineClamp={{ base: "1", md: "none" }}
+                                    >
+                                      {prop.title}
+                                    </Heading>
+                                    <HStack fontSize="sm" gap={1}>
+                                      <Icon strokeWidth={1} color="gray.500">
+                                        <CiLocationOn />
+                                      </Icon>
 
-                                    <Text color="gray.500">
-                                      {prop.location}
+                                      <Text color="gray.500">
+                                        {prop.location}
+                                      </Text>
+                                    </HStack>
+                                    <HStack
+                                      gap={4}
+                                      fontSize="xs"
+                                      color="gray.500"
+                                      mb={2}
+                                    >
+                                      <HStack gap={1}>
+                                        <FaBed size={12} />
+                                        <Text>{prop.beds}</Text>
+                                      </HStack>
+                                      <HStack gap={1}>
+                                        <FaBath size={12} />
+                                        <Text>{prop.baths}</Text>
+                                      </HStack>
+                                      <Text>{prop.size_m2}</Text>
+                                    </HStack>
+                                    <Text
+                                      fontSize="base"
+                                      fontWeight="semibold"
+                                      color="hsl(35, 80%, 56%)"
+                                    >
+                                      {prop.price}
                                     </Text>
-                                  </HStack>
-                                  <HStack
-                                    gap={4}
+                                  </VStack>
+                                  <Badge
+                                    variant="outline"
+                                    rounded="xl"
+                                    flexShrink={0}
                                     fontSize="xs"
-                                    color="gray.500"
-                                    mb={2}
+                                    fontWeight="bold"
                                   >
-                                    <HStack gap={1}>
-                                      <FaBed size={12} />
-                                      <Text>{prop.beds}</Text>
-                                    </HStack>
-                                    <HStack gap={1}>
-                                      <FaBath size={12} />
-                                      <Text>{prop.baths}</Text>
-                                    </HStack>
-                                    <Text>{prop.size_m2}</Text>
-                                  </HStack>
-                                  <Text
-                                    fontSize="base"
-                                    fontWeight="semibold"
-                                    color="hsl(35, 80%, 56%)"
-                                  >
-                                    {prop.price}
-                                  </Text>
-                                </VStack>
-                                <Badge
-                                  variant="outline"
-                                  rounded="xl"
-                                  flexShrink={0}
-                                  fontSize="xs"
-                                  fontWeight="bold"
-                                >
-                                  Active
-                                </Badge>
-                              </Flex>
-                            </Card.Body>
-                          </Flex>
-                        </Card.Root>
+                                    Active
+                                  </Badge>
+                                </Flex>
+                              </Card.Body>
+                            </Flex>
+                          </Card.Root>
+                        </Link>
                       ))}
                     </VStack>
                   )}

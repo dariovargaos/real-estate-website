@@ -45,12 +45,14 @@ import {
 } from "react-icons/fa";
 
 import { useProperty } from "../../../../hooks/useProperty";
+import { useUser } from "../../../../hooks/useAuthContext";
 import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 const PropertyDetail = () => {
   const params = useParams();
   const id = params.id as string;
   const { data: property, isLoading: loading, error } = useProperty(id);
+  const { user } = useUser();
   const [activeImage, setActiveImage] = useState(0);
 
   if (loading) {
@@ -143,6 +145,9 @@ const PropertyDetail = () => {
     setActiveImage(
       (prev) => (prev - 1 + property.images.length) % property.images.length,
     );
+
+  // Check if current user is the property owner
+  const isOwner = user && property && user.id === property.user_id;
 
   return (
     <Box minH="100vh">
@@ -456,7 +461,7 @@ const PropertyDetail = () => {
                     fontWeight="medium"
                     mb={4}
                   >
-                    Listed by Owner
+                    {isOwner ? "Your Property" : "Listed by Owner"}
                   </Heading>
 
                   <HStack gap={3} mb={4}>
@@ -484,55 +489,111 @@ const PropertyDetail = () => {
                     <Text>{property.seller_phone}</Text>
                   </HStack>
 
-                  {/* Contact Form */}
-                  <Box as="form" onSubmit={handleContact}>
-                    <VStack gap={4}>
-                      <Field.Root required>
-                        <Field.Label fontSize="xs">
-                          Your Name
-                          <Field.RequiredIndicator />
-                        </Field.Label>
-                        <Input
-                          placeholder="John Doe"
-                          bg="gray.50"
-                          border="1px"
-                          borderColor="gray.200"
-                        />
-                      </Field.Root>
+                  {/* Conditional Content - Contact Form or Owner Actions */}
+                  {isOwner ? (
+                    <VStack gap={4} align="stretch">
+                      <Box
+                        bg="green.50"
+                        border="1px"
+                        borderColor="green.200"
+                        rounded="xl"
+                        p={4}
+                        textAlign="center"
+                      >
+                        <Text
+                          fontSize="sm"
+                          color="green.700"
+                          fontWeight="medium"
+                        >
+                          This is your property listing
+                        </Text>
+                        <Text fontSize="xs" color="green.600" mt={1}>
+                          You can edit or manage your listing
+                        </Text>
+                      </Box>
 
-                      <Field.Root required>
-                        <Field.Label fontSize="xs">
-                          Email
-                          <Field.RequiredIndicator />
-                        </Field.Label>
-                        <Input
-                          type="email"
-                          placeholder="john@example.com"
-                          bg="gray.50"
-                          border="1px"
-                          borderColor="gray.200"
-                        />
-                      </Field.Root>
+                      <VStack gap={2} align="stretch">
+                        <Button
+                          asChild
+                          w="full"
+                          colorPalette="orange"
+                          rounded="xl"
+                          bg="hsl(35, 80%, 56%)"
+                          color="white"
+                          _hover={{
+                            bg: "hsl(35, 80%, 50%)",
+                          }}
+                        >
+                          <Link href={`/list-property?edit=${property.id}`}>
+                            Edit Property
+                          </Link>
+                        </Button>
 
-                      <Field.Root required>
-                        <Field.Label fontSize="xs">
-                          Message
-                          <Field.RequiredIndicator />
-                        </Field.Label>
-                        <Textarea
-                          placeholder="I'm interested in this property…"
-                          bg="gray.50"
-                          border="1px"
-                          borderColor="gray.200"
-                          minH="100px"
-                        />
-                      </Field.Root>
-
-                      <Button type="submit" w="full" colorPalette="gray">
-                        {<FaPaperPlane />} Send Message
-                      </Button>
+                        <Button
+                          asChild
+                          w="full"
+                          colorPalette="gray"
+                          rounded="xl"
+                        >
+                          <Link href="/profile">View All Listings</Link>
+                        </Button>
+                      </VStack>
                     </VStack>
-                  </Box>
+                  ) : (
+                    <Box as="form" onSubmit={handleContact}>
+                      <VStack gap={4}>
+                        <Field.Root required>
+                          <Field.Label fontSize="xs">
+                            Your Name
+                            <Field.RequiredIndicator />
+                          </Field.Label>
+                          <Input
+                            placeholder="John Doe"
+                            bg="gray.50"
+                            border="1px"
+                            borderColor="gray.200"
+                          />
+                        </Field.Root>
+
+                        <Field.Root required>
+                          <Field.Label fontSize="xs">
+                            Email
+                            <Field.RequiredIndicator />
+                          </Field.Label>
+                          <Input
+                            type="email"
+                            placeholder="john@example.com"
+                            bg="gray.50"
+                            border="1px"
+                            borderColor="gray.200"
+                          />
+                        </Field.Root>
+
+                        <Field.Root required>
+                          <Field.Label fontSize="xs">
+                            Message
+                            <Field.RequiredIndicator />
+                          </Field.Label>
+                          <Textarea
+                            placeholder="I'm interested in this property…"
+                            bg="gray.50"
+                            border="1px"
+                            borderColor="gray.200"
+                            minH="100px"
+                          />
+                        </Field.Root>
+
+                        <Button
+                          type="submit"
+                          w="full"
+                          colorPalette="gray"
+                          rounded="xl"
+                        >
+                          {<FaPaperPlane />} Send Message
+                        </Button>
+                      </VStack>
+                    </Box>
+                  )}
                 </Box>
               </VStack>
             </GridItem>

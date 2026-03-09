@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   Box,
@@ -25,9 +26,10 @@ import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //hooks
 import { useUser } from "../../../hooks/useAuthContext";
+import { useProperty } from "../../../hooks/useProperty";
 
 //api
-import { createProperty } from "../../../lib/api";
+import { createProperty, updateProperty, propertyKeys } from "../../../lib/api";
 
 //icons
 import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
@@ -39,6 +41,15 @@ export default function ListProperty() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+  const editId = searchParams?.get("edit");
+  const isEditMode = !!editId;
+
+  // Fetch property data if editing
+  const { data: editProperty, isLoading: editLoading } = useProperty(
+    editId || undefined,
+  );
 
   // Form state
   const [formData, setFormData] = useState({
@@ -154,6 +165,24 @@ export default function ListProperty() {
     fileInputRef.current?.click();
   };
 
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (isEditMode && editProperty && !editLoading) {
+      setFormData({
+        title: editProperty.title || "",
+        price: editProperty.price?.replace(/[^0-9]/g, "") || "",
+        location: editProperty.location || "",
+        property_type: editProperty.tag || "",
+        beds: editProperty.beds?.toString() || "",
+        baths: editProperty.baths?.toString() || "",
+        size_m2: editProperty.size_m2?.toString() || "",
+        description: editProperty.description || "",
+        seller_name: editProperty.seller_name || "",
+        seller_phone: editProperty.seller_phone || "",
+      });
+    }
+  }, [isEditMode, editProperty, editLoading]);
+
   // Redirect to home if user is not authenticated (client-side protection)
   useEffect(() => {
     if (!isLoading && !user) {
@@ -211,28 +240,70 @@ export default function ListProperty() {
       console.log("User object:", user);
       console.log("User ID:", user?.id);
 
-      await createProperty({
-        title: formData.title,
-        price: formData.price,
-        location: formData.location,
-        beds: parseInt(formData.beds),
-        baths: parseInt(formData.baths),
-        size_m2: formData.size_m2,
-        description: formData.description,
-        seller_name: formData.seller_name,
-        seller_phone: formData.seller_phone,
-        user_id: user.id,
-        property_type: formData.property_type,
-        imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
-      });
+      if (isEditMode && editId) {
+        await updateProperty(
+          editId,
+          {
+            title: formData.title,
+            price: formData.price,
+            location: formData.location,
+            beds: parseInt(formData.beds),
+            baths: parseInt(formData.baths),
+            size_m2: formData.size_m2,
+            description: formData.description,
+            seller_name: formData.seller_name,
+            seller_phone: formData.seller_phone,
+            property_type: formData.property_type,
+            imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+          },
+          user.id,
+        );
 
-      toaster.create({
-        title: "Property submitted!",
-        description: "We'll review your listing and publish it shortly.",
-        type: "success",
-        duration: 7000,
-        closable: true,
-      });
+        toaster.create({
+          title: "Property updated!",
+          description: "Your listing has been updated successfully.",
+          type: "success",
+          duration: 7000,
+          closable: true,
+        });
+
+        // Invalidate and refetch property data to show changes immediately
+        await queryClient.invalidateQueries({
+          queryKey: propertyKeys.detail(editId),
+        });
+
+        // Also invalidate property lists to update them
+        await queryClient.invalidateQueries({
+          queryKey: propertyKeys.lists(),
+        });
+
+        // Redirect to property detail page
+        router.push(`/property/${editId}`);
+        return;
+      } else {
+        await createProperty({
+          title: formData.title,
+          price: formData.price,
+          location: formData.location,
+          beds: parseInt(formData.beds),
+          baths: parseInt(formData.baths),
+          size_m2: formData.size_m2,
+          description: formData.description,
+          seller_name: formData.seller_name,
+          seller_phone: formData.seller_phone,
+          user_id: user.id,
+          property_type: formData.property_type,
+          imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+        });
+
+        toaster.create({
+          title: "Property submitted!",
+          description: "We'll review your listing and publish it shortly.",
+          type: "success",
+          duration: 7000,
+          closable: true,
+        });
+      }
 
       setSubmitted(true);
 
@@ -259,8 +330,8 @@ export default function ListProperty() {
     }
   };
 
-  // Show loading while checking authentication
-  if (isLoading) {
+  // Show loading while checking authentication or loading edit data
+  if (isLoading || (isEditMode && editLoading)) {
     return (
       <Box
         minH="100vh"
@@ -269,7 +340,10 @@ export default function ListProperty() {
         alignItems="center"
         justifyContent="center"
       >
-        <Text>Loading...</Text>
+        <Stack align="center" gap={4}>
+          <Spinner size="lg" color="hsl(35, 80%, 56%)" />
+          <Text>{isEditMode ? "Loading property data..." : "Loading..."}</Text>
+        </Stack>
       </Box>
     );
   }
@@ -361,7 +435,7 @@ export default function ListProperty() {
               textTransform="uppercase"
               mb={2}
             >
-              Sell Direct
+              {isEditMode ? "Update Listing" : "Sell Direct"}
             </Text>
             <Heading
               as="h1"
@@ -370,11 +444,12 @@ export default function ListProperty() {
               mb={4}
               fontWeight="thin"
             >
-              List Your Property
+              {isEditMode ? "Edit Your Property" : "List Your Property"}
             </Heading>
             <Text color="gray.500" fontSize="lg">
-              Skip the agents. Reach buyers directly and save thousands in
-              commission fees.
+              {isEditMode
+                ? "Update your property details and photos to attract more buyers."
+                : "Skip the agents. Reach buyers directly and save thousands in commission fees."}
             </Text>
           </Flex>
         </Box>
@@ -439,15 +514,23 @@ export default function ListProperty() {
         {/* Form */}
         <Box py={16} bg="gray.50">
           <Box px={4} maxW="2xl" mx="auto">
-            <Heading
-              as="h2"
-              fontFamily="DM Serif Display"
-              fontSize="3xl"
-              mb={8}
-              fontWeight="thin"
-            >
-              Property Details
-            </Heading>
+            <Flex justify="space-between" align="center" mb={8}>
+              <Heading
+                as="h2"
+                fontFamily="DM Serif Display"
+                fontSize="3xl"
+                fontWeight="thin"
+              >
+                {isEditMode ? "Update Property Details" : "Property Details"}
+              </Heading>
+              {isEditMode && (
+                <Link href={`/property/${editId}`}>
+                  <Button variant="outline" size="sm" rounded="xl">
+                    View Listing
+                  </Button>
+                </Link>
+              )}
+            </Flex>
             <Box as="form" onSubmit={handleSubmit}>
               <Stack gap={6}>
                 <Grid
@@ -760,22 +843,42 @@ export default function ListProperty() {
                   </Grid>
                 </Box>
 
-                <Button
-                  type="submit"
-                  colorScheme="gray"
-                  size="lg"
-                  borderRadius="xl"
-                  disabled={isSubmitting || isUploading}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Spinner size="sm" mr={2} />
-                      {isUploading ? "Uploading photos..." : "Submitting..."}
-                    </>
-                  ) : (
-                    "Submit Listing"
+                <Flex gap={4}>
+                  <Button
+                    type="submit"
+                    colorScheme="gray"
+                    size="lg"
+                    borderRadius="xl"
+                    disabled={isSubmitting || isUploading}
+                    flex={1}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Spinner size="sm" mr={2} />
+                        {isUploading
+                          ? "Uploading photos..."
+                          : isEditMode
+                            ? "Updating..."
+                            : "Submitting..."}
+                      </>
+                    ) : isEditMode ? (
+                      "Update Listing"
+                    ) : (
+                      "Submit Listing"
+                    )}
+                  </Button>
+                  {isEditMode && (
+                    <Button
+                      colorPalette="red"
+                      size="lg"
+                      borderRadius="xl"
+                      onClick={() => router.push(`/property/${editId}`)}
+                      disabled={isSubmitting}
+                    >
+                      Cancel
+                    </Button>
                   )}
-                </Button>
+                </Flex>
               </Stack>
             </Box>
           </Box>

@@ -366,6 +366,7 @@ export async function createProperty(propertyData: {
       image: mainImage, // Use uploaded image or placeholder
       images: imageUrls, // Use uploaded images or placeholder
       features,
+      tag: propertyData.property_type, // Store property_type as tag
       status: "pending", // Properties start as pending for review
       created_at: new Date().toISOString(),
     })
@@ -378,6 +379,106 @@ export async function createProperty(propertyData: {
 
   if (!data) {
     throw new Error("Failed to create property");
+  }
+
+  return data;
+}
+
+// API function to update an existing property listing
+export async function updateProperty(
+  propertyId: string,
+  propertyData: {
+    title: string;
+    price: string;
+    location: string;
+    beds: number;
+    baths: number;
+    size_m2: string;
+    description: string;
+    seller_name: string;
+    seller_phone: string;
+    property_type?: string;
+    imageFiles?: File[];
+  },
+  userId: string,
+): Promise<Property> {
+  // First, verify the user owns this property
+  const { data: existingProperty, error: fetchError } = await supabase
+    .from("properties")
+    .select("user_id, images")
+    .eq("id", propertyId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  if (!existingProperty) {
+    throw new Error("Property not found");
+  }
+
+  if (existingProperty.user_id !== userId) {
+    throw new Error("Unauthorized: You can only update your own properties");
+  }
+
+  // Handle image uploads if new images provided
+  let imageUrls: string[] = existingProperty.images || ["/placeholder.jpg"];
+  let mainImage = existingProperty.images?.[0] || "/placeholder.jpg";
+
+  if (propertyData.imageFiles && propertyData.imageFiles.length > 0) {
+    try {
+      const newImageUrls = await uploadPropertyImages(
+        propertyData.imageFiles,
+        userId,
+      );
+      // Add new images to existing ones
+      imageUrls = [...imageUrls, ...newImageUrls];
+      mainImage = imageUrls[0];
+    } catch (error) {
+      console.error("Error uploading new images:", error);
+      // Continue with existing images if upload fails
+    }
+  }
+
+  // Format as currency for display
+  const formattedPrice = `€${parseInt(propertyData.price).toLocaleString()}`;
+
+  // Prepare features array
+  const features = [];
+  if (propertyData.property_type) {
+    features.push(propertyData.property_type);
+  }
+
+  // Update the property
+  const { data, error } = await supabase
+    .from("properties")
+    .update({
+      title: propertyData.title,
+      price: formattedPrice,
+      location: propertyData.location,
+      beds: propertyData.beds,
+      baths: propertyData.baths,
+      size_m2: propertyData.size_m2,
+      description: propertyData.description,
+      seller_name: propertyData.seller_name,
+      seller_phone: propertyData.seller_phone,
+      image: mainImage,
+      images: imageUrls,
+      features,
+      tag: propertyData.property_type, // Store property_type as tag
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", propertyId)
+    .eq("user_id", userId) // Double-check user ownership
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Failed to update property");
   }
 
   return data;
