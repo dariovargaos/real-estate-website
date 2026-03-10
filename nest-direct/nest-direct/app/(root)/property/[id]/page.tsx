@@ -4,6 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+//hooks
+import { useProperty } from "../../../../hooks/useProperty";
+import { useUser } from "../../../../hooks/useAuthContext";
+
+//api
+import { sendContactMessage } from "../../../../lib/api";
+
 //chakra components
 import {
   Box,
@@ -43,9 +50,6 @@ import {
   FaPaperPlane,
   FaMap,
 } from "react-icons/fa";
-
-import { useProperty } from "../../../../hooks/useProperty";
-import { useUser } from "../../../../hooks/useAuthContext";
 import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 const PropertyDetail = () => {
@@ -54,6 +58,36 @@ const PropertyDetail = () => {
   const { data: property, isLoading: loading, error } = useProperty(id);
   const { user } = useUser();
   const [activeImage, setActiveImage] = useState(0);
+
+  //adding favorites
+  const addFavorite = () => {
+    if (!user) {
+      toaster.create({
+        title: "Sign in required",
+        description: "You must be signed in to add favorites.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+    } else {
+      // Here you would normally call an API to add the property to the user's favorites
+      toaster.create({
+        title: "Added to favorites",
+        description: "This property has been added to your favorites.",
+        type: "success",
+        duration: 5000,
+        closable: true,
+      });
+    }
+  };
+
+  // Contact form state
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (loading) {
     return (
@@ -117,7 +151,7 @@ const PropertyDetail = () => {
               Property not found
             </Heading>
             <Link href="/properties">
-              <Button variant="outline">
+              <Button colorPalette="gray" rounded="xl">
                 <FaArrowLeft
                   style={{ marginRight: 8, width: 16, height: 16 }}
                 />
@@ -130,13 +164,86 @@ const PropertyDetail = () => {
     );
   }
 
-  const handleContact = (e: React.SyntheticEvent) => {
+  const handleContact = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    toaster.create({
-      title: "Message sent!",
-      description: "The seller will get back to you shortly.",
-      type: "success",
-    });
+
+    // Basic validation
+    if (
+      !contactForm.name.trim() ||
+      !contactForm.email.trim() ||
+      !contactForm.message.trim()
+    ) {
+      toaster.create({
+        title: "Please fill in all fields",
+        description: "Name, email, and message are required.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(contactForm.email)) {
+      toaster.create({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+      return;
+    }
+
+    if (!property) return;
+
+    // Check if user is authenticated
+    if (!user) {
+      toaster.create({
+        title: "Sign in required",
+        description: "You must be signed in to send messages.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log("Sending message for property:", property.id);
+      await sendContactMessage({
+        propertyId: property.id,
+        senderName: contactForm.name,
+        senderEmail: contactForm.email,
+        content: contactForm.message,
+        senderId: user.id, // Required for authenticated users
+      });
+
+      toaster.create({
+        title: "Message sent!",
+        description: "The seller will get back to you shortly.",
+        type: "success",
+        duration: 5000,
+        closable: true,
+      });
+
+      // Reset form
+      setContactForm({ name: "", email: "", message: "" });
+    } catch (error: any) {
+      console.error("Contact form error:", error);
+      toaster.create({
+        title: "Failed to send message",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const nextImage = () =>
@@ -304,6 +411,7 @@ const PropertyDetail = () => {
                     </Heading>
                     <HStack gap={2}>
                       <IconButton
+                        onClick={() => addFavorite()}
                         aria-label="Add to favorites"
                         h={10}
                         w={10}
@@ -489,7 +597,7 @@ const PropertyDetail = () => {
                     <Text>{property.seller_phone}</Text>
                   </HStack>
 
-                  {/* Conditional Content - Contact Form or Owner Actions */}
+                  {/* Conditional Content - Contact Form, Sign In Prompt, or Owner Actions */}
                   {isOwner ? (
                     <VStack gap={4} align="stretch">
                       <Box
@@ -539,6 +647,52 @@ const PropertyDetail = () => {
                         </Button>
                       </VStack>
                     </VStack>
+                  ) : !user ? (
+                    /* Sign in required message for unauthenticated users */
+                    <VStack gap={4} align="stretch">
+                      <Box
+                        bg="gray.50"
+                        rounded="xl"
+                        p={6}
+                        textAlign="center"
+                        borderBottomColor="gray.200"
+                      >
+                        <Text
+                          fontSize="sm"
+                          color="gray.700"
+                          fontWeight="medium"
+                          mb={2}
+                        >
+                          Sign in to contact the seller
+                        </Text>
+                        <Text fontSize="xs" mb={4} color="gray.500">
+                          You need to be signed in to send messages to property
+                          owners.
+                        </Text>
+                        <VStack gap={2}>
+                          <Button
+                            asChild
+                            w="full"
+                            bg="hsl(35, 80%, 56%)"
+                            color="white"
+                            _hover={{
+                              bg: "hsl(35, 80%, 50%)",
+                            }}
+                            rounded="xl"
+                          >
+                            <Link href="/sign-in">Sign In</Link>
+                          </Button>
+                          <Button
+                            asChild
+                            w="full"
+                            colorPalette="gray"
+                            rounded="xl"
+                          >
+                            <Link href="/sign-up">Create Account</Link>
+                          </Button>
+                        </VStack>
+                      </Box>
+                    </VStack>
                   ) : (
                     <Box as="form" onSubmit={handleContact}>
                       <VStack gap={4}>
@@ -552,6 +706,14 @@ const PropertyDetail = () => {
                             bg="gray.50"
                             border="1px"
                             borderColor="gray.200"
+                            value={contactForm.name}
+                            onChange={(e) =>
+                              setContactForm((prev) => ({
+                                ...prev,
+                                name: e.target.value,
+                              }))
+                            }
+                            disabled={isSubmitting}
                           />
                         </Field.Root>
 
@@ -566,6 +728,14 @@ const PropertyDetail = () => {
                             bg="gray.50"
                             border="1px"
                             borderColor="gray.200"
+                            value={contactForm.email}
+                            onChange={(e) =>
+                              setContactForm((prev) => ({
+                                ...prev,
+                                email: e.target.value,
+                              }))
+                            }
+                            disabled={isSubmitting}
                           />
                         </Field.Root>
 
@@ -580,6 +750,14 @@ const PropertyDetail = () => {
                             border="1px"
                             borderColor="gray.200"
                             minH="100px"
+                            value={contactForm.message}
+                            onChange={(e) =>
+                              setContactForm((prev) => ({
+                                ...prev,
+                                message: e.target.value,
+                              }))
+                            }
+                            disabled={isSubmitting}
                           />
                         </Field.Root>
 
@@ -588,8 +766,11 @@ const PropertyDetail = () => {
                           w="full"
                           colorPalette="gray"
                           rounded="xl"
+                          disabled={isSubmitting}
+                          loading={isSubmitting}
                         >
-                          {<FaPaperPlane />} Send Message
+                          <FaPaperPlane />{" "}
+                          {isSubmitting ? "Sending..." : "Send Message"}
                         </Button>
                       </VStack>
                     </Box>

@@ -257,6 +257,83 @@ export async function removeFromFavorites(userId: string, propertyId: string) {
   }
 }
 
+// API function to send a new message to property owner
+export async function sendContactMessage(messageData: {
+  propertyId: string;
+  senderName: string;
+  senderEmail: string;
+  content: string;
+  senderId: string; // Required - only authenticated users can send messages
+}): Promise<void> {
+  // Verify user is authenticated
+  if (!messageData.senderId) {
+    throw new Error("You must be signed in to send messages");
+  }
+
+  // Get property info first
+  const { data: property, error: propertyError } = await supabase
+    .from("properties")
+    .select("id, title, user_id")
+    .eq("id", messageData.propertyId)
+    .eq("status", "active")
+    .single();
+
+  if (propertyError) {
+    console.error("Property lookup error:", propertyError);
+    throw new Error("Property not found");
+  }
+
+  if (!property) {
+    throw new Error("Property not found");
+  }
+
+  // Check if property has an owner
+  if (!property.user_id) {
+    throw new Error(
+      "This property does not have an assigned owner and cannot receive messages",
+    );
+  }
+
+  // Prevent messaging yourself
+  if (property.user_id === messageData.senderId) {
+    throw new Error("You cannot send messages to your own properties");
+  }
+
+  // Get owner profile info
+  let recipientName = "Property Owner";
+  const { data: ownerProfile } = await supabase
+    .from("profiles")
+    .select("first_name, last_name")
+    .eq("id", property.user_id)
+    .single();
+
+  if (ownerProfile) {
+    const { first_name, last_name } = ownerProfile;
+    recipientName =
+      first_name && last_name
+        ? `${first_name} ${last_name}`
+        : first_name || "Property Owner";
+  }
+
+  // Insert the message
+  const { error } = await supabase.from("messages").insert({
+    content: messageData.content,
+    sender_id: messageData.senderId,
+    recipient_id: property.user_id,
+    sender_name: messageData.senderName,
+    recipient_name: recipientName,
+    sender_email: messageData.senderEmail,
+    property_id: messageData.propertyId,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  });
+
+  if (error) {
+    console.error("Message insert error:", error);
+    throw new Error("Failed to send message. Please try again.");
+  }
+}
+
 // API function to upload images to Supabase Storage
 export async function uploadPropertyImages(
   files: File[],
