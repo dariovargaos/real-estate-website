@@ -109,6 +109,18 @@ export async function markMessageAsRead(messageId: string): Promise<void> {
   }
 }
 
+// API function to delete a message
+export async function deleteMessage(messageId: string): Promise<void> {
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", messageId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // API function to send reply to message
 export async function sendMessageReply(
   originalMessageId: string,

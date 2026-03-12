@@ -32,12 +32,12 @@ import { IoPaperPlaneOutline } from "react-icons/io5";
 import { CiLocationOn } from "react-icons/ci";
 import {
   FaRegHeart,
-  FaTrash,
   FaBed,
   FaBath,
   FaChevronRight,
   FaRegClock,
   FaCircle,
+  FaTrashAlt,
 } from "react-icons/fa";
 
 //hooks
@@ -67,6 +67,7 @@ export default function Profile() {
     loading: messagesLoading,
     markAsRead,
     sendReply,
+    deleteMessage,
   } = useUserMessages();
   const { properties: userProperties, loading: propertiesLoading } =
     useUserProperties();
@@ -169,6 +170,32 @@ export default function Profile() {
     } catch (error: any) {
       toaster.create({
         title: "Send failed",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const result = await deleteMessage(messageId);
+
+      if (result.success) {
+        toaster.create({
+          title: "Message deleted",
+          description: "The message has been deleted successfully.",
+          type: "success",
+        });
+        // Clear selected message if it was the one deleted
+        if (selectedMessage === messageId) {
+          setSelectedMessage(null);
+        }
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Delete failed",
         description: error.message || "Something went wrong.",
         type: "error",
       });
@@ -361,20 +388,21 @@ export default function Profile() {
                       <VStack gap={0} align="stretch">
                         {messages.map((msg, i) => (
                           <Box key={msg.id}>
-                            <Button
+                            <Box
                               onClick={() => {
                                 setSelectedMessage(msg.id);
                                 if (!msg.is_read) {
                                   markAsRead(msg.id);
                                 }
                               }}
-                              variant="ghost"
+                              cursor="pointer"
                               w="full"
-                              textAlign="left"
                               px={6}
                               py={4}
-                              h="auto"
-                              justifyContent="flex-start"
+                              _hover={{
+                                bg: "gray.50",
+                              }}
+                              transition="background 0.2s"
                             >
                               <HStack align="start" gap={3} w="full">
                                 <Box>
@@ -424,13 +452,29 @@ export default function Profile() {
                                     {msg.content}
                                   </Text>
                                 </VStack>
-                                <Box flexShrink={0} mt={2}>
+                                <HStack flexShrink={0} mt={2} gap={1}>
+                                  <IconButton
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteMessage(msg.id);
+                                    }}
+                                    variant="ghost"
+                                    size="xs"
+                                    color="red.500"
+                                    _hover={{
+                                      bg: "red.100",
+                                      color: "red.600",
+                                    }}
+                                    title="Delete message"
+                                  >
+                                    <FaTrashAlt />
+                                  </IconButton>
                                   <Icon size="xs" color="gray.400">
                                     <FaChevronRight />
                                   </Icon>
-                                </Box>
+                                </HStack>
                               </HStack>
-                            </Button>
+                            </Box>
                             {i < messages.length - 1 && <Separator />}
                           </Box>
                         ))}
@@ -443,38 +487,55 @@ export default function Profile() {
               {activeSection === "inbox" && selectedMessage && selectedMsg && (
                 <Card.Root>
                   <Card.Header>
-                    <Button
-                      onClick={() => setSelectedMessage(null)}
-                      variant="plain"
-                      fontSize="sm"
-                      color="hsl(35, 80%, 56%)"
-                      alignSelf="flex-start"
-                      mb={2}
-                      _hover={{
-                        textDecoration: "underline",
-                      }}
-                    >
-                      ← Back to Inbox
-                    </Button>
-                    <Card.Title
-                      as="h2"
-                      fontSize="lg"
-                      fontFamily="DM Serif Display, serif"
-                    >
-                      {selectedMsg.sender_name}
-                    </Card.Title>
-                    <Card.Description>
-                      Re:{" "}
-                      <Link href={`/property/${selectedMsg.property_id}`}>
-                        <Text
-                          as="span"
+                    <Flex justify="space-between" align="start">
+                      <Box>
+                        <Button
+                          onClick={() => setSelectedMessage(null)}
+                          variant="plain"
+                          fontSize="sm"
                           color="hsl(35, 80%, 56%)"
-                          _hover={{ textDecoration: "underline" }}
+                          alignSelf="flex-start"
+                          mb={2}
+                          _hover={{
+                            textDecoration: "underline",
+                          }}
                         >
-                          {selectedMsg.property?.title || "Property"}
-                        </Text>
-                      </Link>
-                    </Card.Description>
+                          ← Back to Inbox
+                        </Button>
+                        <Card.Title
+                          as="h2"
+                          fontSize="lg"
+                          fontFamily="DM Serif Display, serif"
+                        >
+                          {selectedMsg.sender_name}
+                        </Card.Title>
+                        <Card.Description>
+                          Re:{" "}
+                          <Link href={`/property/${selectedMsg.property_id}`}>
+                            <Text
+                              as="span"
+                              color="hsl(35, 80%, 56%)"
+                              _hover={{ textDecoration: "underline" }}
+                            >
+                              {selectedMsg.property?.title || "Property"}
+                            </Text>
+                          </Link>
+                        </Card.Description>
+                      </Box>
+                      <IconButton
+                        onClick={() => handleDeleteMessage(selectedMsg.id)}
+                        variant="ghost"
+                        size="sm"
+                        color="red.500"
+                        _hover={{
+                          bg: "red.100",
+                          color: "red.600",
+                        }}
+                        title="Delete message"
+                      >
+                        <FaTrashAlt />
+                      </IconButton>
+                    </Flex>
                   </Card.Header>
                   <Card.Body>
                     <Box bg="gray.100" rounded="xl" p={4} mb={6}>
@@ -875,7 +936,7 @@ export default function Profile() {
                         onClick={handleDeleteAccount}
                         rounded="xl"
                       >
-                        <FaTrash />
+                        <FaTrashAlt />
                         Delete Account
                       </Button>
                     </Card.Body>

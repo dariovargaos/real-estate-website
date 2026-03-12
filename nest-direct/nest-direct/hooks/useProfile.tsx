@@ -8,6 +8,7 @@ import {
   fetchUserMessages,
   markMessageAsRead,
   sendMessageReply,
+  deleteMessage,
   fetchUserProperties,
   fetchUserFavorites,
   addToFavorites,
@@ -101,6 +102,16 @@ export function useUserMessages() {
     },
   });
 
+  const deleteMessageMutation = useMutation({
+    mutationFn: (messageId: string) => deleteMessage(messageId),
+    onSuccess: () => {
+      // Invalidate messages to refetch updated data
+      queryClient.invalidateQueries({
+        queryKey: userKeys.messages(user?.id || ""),
+      });
+    },
+  });
+
   const markAsRead = async (messageId: string) => {
     try {
       await markAsReadMutation.mutateAsync(messageId);
@@ -119,6 +130,15 @@ export function useUserMessages() {
     }
   };
 
+  const deleteUserMessage = async (messageId: string) => {
+    try {
+      await deleteMessageMutation.mutateAsync(messageId);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     messages: messagesQuery.data || [],
     loading: messagesQuery.isLoading,
@@ -126,6 +146,7 @@ export function useUserMessages() {
     refetch: messagesQuery.refetch,
     markAsRead,
     sendReply,
+    deleteMessage: deleteUserMessage,
   };
 }
 
