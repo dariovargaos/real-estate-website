@@ -88,7 +88,34 @@ export async function fetchUserMessages(
     `,
     )
     .eq("recipient_id", userId)
+    .not("deleted_by", "cs", `{${userId}}`)
     .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || [];
+}
+
+// API function to fetch conversation between two users about a property
+export async function fetchConversation(
+  userId: string,
+  otherUserId: string,
+  propertyId: string,
+): Promise<(Message & { property: Property | null })[]> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select(
+      `
+      *,
+      property:properties(*)
+    `,
+    )
+    .eq("property_id", propertyId)
+    .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`)
+    .not("deleted_by", "cs", `{${userId}}`)
+    .order("created_at", { ascending: true });
 
   if (error) {
     throw new Error(error.message);
@@ -109,12 +136,73 @@ export async function markMessageAsRead(messageId: string): Promise<void> {
   }
 }
 
-// API function to delete a message
-export async function deleteMessage(messageId: string): Promise<void> {
+// API function to delete a message (soft delete)
+export async function deleteMessage(messageId: string, userId: string): Promise<void> {
+  // First get the current deleted_by array
+  const { data: currentMessage, error: fetchError } = await supabase
+    .from("messages")
+    .select("deleted_by")
+    .eq("id", messageId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  // Add current user to deleted_by array if not already present
+  const currentDeletedBy = currentMessage.deleted_by || [];
+  const updatedDeletedBy = currentDeletedBy.includes(userId) 
+    ? currentDeletedBy 
+    : [...currentDeletedBy, userId];
+
   const { error } = await supabase
     .from("messages")
-    .delete()
+    .update({ deleted_by: updatedDeletedBy })
     .eq("id", messageId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+// API function to delete entire conversation (soft delete all messages)
+export async function deleteConversation(
+  userId: string,
+  otherUserId: string,
+  propertyId: string,
+): Promise<void> {
+  // Get all messages in the conversation
+  const { data: messages, error: fetchError } = await supabase
+    .from("messages")
+    .select("id, deleted_by")
+    .eq("property_id", propertyId)
+    .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`);
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  if (!messages || messages.length === 0) {
+    return; // No messages to delete
+  }
+
+  // Update all messages to include the user in deleted_by array
+  const updates = messages.map((message) => {
+    const currentDeletedBy = message.deleted_by || [];
+    const updatedDeletedBy = currentDeletedBy.includes(userId) 
+      ? currentDeletedBy 
+      : [...currentDeletedBy, userId];
+    
+    return {
+      id: message.id,
+      deleted_by: updatedDeletedBy,
+    };
+  });
+
+  // Batch update all messages
+  const { error } = await supabase
+    .from("messages")
+    .upsert(updates, { onConflict: "id" });
 
   if (error) {
     throw new Error(error.message);

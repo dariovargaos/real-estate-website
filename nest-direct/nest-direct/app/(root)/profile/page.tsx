@@ -3,6 +3,7 @@
 import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 //chakra components
 import {
@@ -38,6 +39,7 @@ import {
   FaRegClock,
   FaCircle,
   FaTrashAlt,
+  FaTrash,
 } from "react-icons/fa";
 
 //hooks
@@ -60,6 +62,7 @@ interface SidebarItem {
 }
 
 export default function Profile() {
+  const router = useRouter();
   const { user, isLoading: userLoading } = useUser();
   const { profile, loading: profileLoading, updateProfile } = useUserProfile();
   const {
@@ -68,6 +71,8 @@ export default function Profile() {
     markAsRead,
     sendReply,
     deleteMessage,
+    deleteConversation,
+    useConversation,
   } = useUserMessages();
   const { properties: userProperties, loading: propertiesLoading } =
     useUserProperties();
@@ -93,6 +98,13 @@ export default function Profile() {
       setLastName(profile.last_name || "");
     }
   }, [profile]);
+
+  // Redirect to home page when user logs out
+  useEffect(() => {
+    if (!userLoading && !user) {
+      router.push("/");
+    }
+  }, [user, userLoading, router]);
 
   // Calculate unread messages count
   const unreadCount = messages.filter((msg) => !msg.is_read).length;
@@ -202,7 +214,53 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteConversation = async () => {
+    if (!selectedMsg || !user?.id) return;
+
+    try {
+      // Determine the other user in the conversation
+      const otherUserId =
+        selectedMsg.sender_id === user.id
+          ? selectedMsg.recipient_id || ""
+          : selectedMsg.sender_id || "";
+
+      const result = await deleteConversation(
+        user.id,
+        otherUserId,
+        selectedMsg.property_id || "",
+      );
+
+      if (result.success) {
+        toaster.create({
+          title: "Conversation deleted",
+          description:
+            "The entire conversation has been deleted from your view.",
+          type: "success",
+        });
+        setSelectedMessage(null);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Delete failed",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    }
+  };
+
   const selectedMsg = messages.find((m) => m.id === selectedMessage);
+
+  // Get conversation messages for selected message
+  const {
+    data: conversationMessages,
+    isLoading: conversationLoading,
+    error: conversationError,
+  } = useConversation(
+    selectedMsg?.sender_id || undefined,
+    selectedMsg?.property_id || undefined,
+  );
 
   // Show loading state
   if (userLoading || profileLoading) {
@@ -522,32 +580,110 @@ export default function Profile() {
                           </Link>
                         </Card.Description>
                       </Box>
-                      <IconButton
-                        onClick={() => handleDeleteMessage(selectedMsg.id)}
-                        variant="ghost"
-                        size="sm"
-                        color="red.500"
-                        _hover={{
-                          bg: "red.100",
-                          color: "red.600",
-                        }}
-                        title="Delete message"
-                      >
-                        <FaTrashAlt />
-                      </IconButton>
+                      <HStack gap={2}>
+                        <IconButton
+                          onClick={() => handleDeleteConversation()}
+                          variant="outline"
+                          size="sm"
+                          color="red.600"
+                          borderColor="red.300"
+                          _hover={{
+                            bg: "red.50",
+                            borderColor: "red.400",
+                            color: "red.700",
+                          }}
+                          title="Delete entire conversation"
+                        >
+                          <FaTrashAlt />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => handleDeleteMessage(selectedMsg.id)}
+                          variant="ghost"
+                          size="sm"
+                          color="red.500"
+                          _hover={{
+                            bg: "red.100",
+                            color: "red.600",
+                          }}
+                          title="Delete this message only"
+                        >
+                          <FaTrash />
+                        </IconButton>
+                      </HStack>
                     </Flex>
                   </Card.Header>
                   <Card.Body>
-                    <Box bg="gray.100" rounded="xl" p={4} mb={6}>
-                      <Text fontSize="sm" color="foreground">
-                        {selectedMsg.content}
-                      </Text>
-                      <Text fontSize="xs" color="gray.500" mt={2}>
-                        {selectedMsg.created_at
-                          ? formatTimeAgo(selectedMsg.created_at)
-                          : "Unknown time"}
-                      </Text>
+                    {/* Conversation Messages */}
+                    <Box
+                      h="400px"
+                      overflowY="auto"
+                      bg="gray.50"
+                      rounded="xl"
+                      p={4}
+                      mb={4}
+                    >
+                      {conversationLoading ? (
+                        <VStack gap={3} justify="center" h="full">
+                          <Spinner color="hsl(35, 80%, 56%)" />
+                          <Text fontSize="sm" color="gray.500">
+                            Loading conversation...
+                          </Text>
+                        </VStack>
+                      ) : conversationError ? (
+                        <VStack gap={3} justify="center" h="full">
+                          <Text fontSize="sm" color="red.500">
+                            Failed to load conversation
+                          </Text>
+                        </VStack>
+                      ) : (
+                        <VStack gap={4} align="stretch">
+                          {conversationMessages?.map((msg) => (
+                            <Flex
+                              key={msg.id}
+                              direction={
+                                msg.sender_id === user?.id
+                                  ? "row-reverse"
+                                  : "row"
+                              }
+                            >
+                              <Box
+                                maxW="70%"
+                                bg={
+                                  msg.sender_id === user?.id
+                                    ? "hsl(35, 80%, 56%)"
+                                    : "white"
+                                }
+                                color={
+                                  msg.sender_id === user?.id ? "white" : "black"
+                                }
+                                p={3}
+                                rounded="lg"
+                                shadow="sm"
+                              >
+                                <Text fontSize="sm" mb={1}>
+                                  {msg.content}
+                                </Text>
+                                <Text
+                                  fontSize="xs"
+                                  opacity={0.7}
+                                  textAlign={
+                                    msg.sender_id === user?.id
+                                      ? "right"
+                                      : "left"
+                                  }
+                                >
+                                  {msg.created_at
+                                    ? formatTimeAgo(msg.created_at)
+                                    : "Unknown time"}
+                                </Text>
+                              </Box>
+                            </Flex>
+                          ))}
+                        </VStack>
+                      )}
                     </Box>
+
+                    {/* Reply Input */}
                     <HStack gap={2}>
                       <Input
                         placeholder="Write a reply..."
@@ -564,6 +700,7 @@ export default function Profile() {
                         onClick={handleSendReply}
                         colorPalette="gray"
                         rounded="xl"
+                        disabled={!replyText.trim()}
                       >
                         <IoPaperPlaneOutline />
                       </IconButton>

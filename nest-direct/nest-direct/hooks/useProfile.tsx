@@ -6,9 +6,11 @@ import {
   fetchUserProfile,
   updateUserProfile,
   fetchUserMessages,
+  fetchConversation,
   markMessageAsRead,
   sendMessageReply,
   deleteMessage,
+  deleteConversation,
   fetchUserProperties,
   fetchUserFavorites,
   addToFavorites,
@@ -81,12 +83,31 @@ export function useUserMessages() {
     refetchInterval: 1000 * 60 * 1, // Refetch every minute for new messages
   });
 
+  // Hook for conversation messages
+  const useConversation = (otherUserId?: string, propertyId?: string) => {
+    return useQuery({
+      queryKey: ["conversation", user?.id, otherUserId, propertyId],
+      queryFn: () => {
+        if (!user?.id || !otherUserId || !propertyId) throw new Error("Missing required data");
+        return fetchConversation(user.id, otherUserId, propertyId);
+      },
+      enabled: !!(user?.id && otherUserId && propertyId),
+      staleTime: 1000 * 30, // 30 seconds
+      gcTime: 1000 * 60 * 5, // 5 minutes
+      refetchInterval: 1000 * 15, // Refetch every 15 seconds for real-time feel
+    });
+  };
+
   const markAsReadMutation = useMutation({
     mutationFn: (messageId: string) => markMessageAsRead(messageId),
     onSuccess: () => {
       // Invalidate messages to refetch updated data
       queryClient.invalidateQueries({
         queryKey: userKeys.messages(user?.id || ""),
+      });
+      // Also invalidate conversation queries
+      queryClient.invalidateQueries({
+        queryKey: ["conversation"],
       });
     },
   });
@@ -99,15 +120,42 @@ export function useUserMessages() {
       queryClient.invalidateQueries({
         queryKey: userKeys.messages(user?.id || ""),
       });
+      // Also invalidate conversation queries
+      queryClient.invalidateQueries({
+        queryKey: ["conversation"],
+      });
     },
   });
 
   const deleteMessageMutation = useMutation({
-    mutationFn: (messageId: string) => deleteMessage(messageId),
+    mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) => 
+      deleteMessage(messageId, userId),
     onSuccess: () => {
       // Invalidate messages to refetch updated data
       queryClient.invalidateQueries({
         queryKey: userKeys.messages(user?.id || ""),
+      });
+      // Also invalidate conversation queries
+      queryClient.invalidateQueries({
+        queryKey: ["conversation"],
+      });
+    },
+  });
+
+  const deleteConversationMutation = useMutation({
+    mutationFn: ({ userId, otherUserId, propertyId }: { 
+      userId: string; 
+      otherUserId: string; 
+      propertyId: string; 
+    }) => deleteConversation(userId, otherUserId, propertyId),
+    onSuccess: () => {
+      // Invalidate messages to refetch updated data
+      queryClient.invalidateQueries({
+        queryKey: userKeys.messages(user?.id || ""),
+      });
+      // Also invalidate conversation queries
+      queryClient.invalidateQueries({
+        queryKey: ["conversation"],
       });
     },
   });
@@ -132,7 +180,22 @@ export function useUserMessages() {
 
   const deleteUserMessage = async (messageId: string) => {
     try {
-      await deleteMessageMutation.mutateAsync(messageId);
+      if (!user?.id) throw new Error("User ID is required");
+      await deleteMessageMutation.mutateAsync({ messageId, userId: user.id });
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const deleteUserConversation = async (otherUserId: string, propertyId: string) => {
+    try {
+      if (!user?.id) throw new Error("User ID is required");
+      await deleteConversationMutation.mutateAsync({ 
+        userId: user.id, 
+        otherUserId, 
+        propertyId 
+      });
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message };
@@ -147,6 +210,8 @@ export function useUserMessages() {
     markAsRead,
     sendReply,
     deleteMessage: deleteUserMessage,
+    deleteConversation: deleteUserConversation,
+    useConversation,
   };
 }
 
