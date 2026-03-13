@@ -188,32 +188,6 @@ export default function Profile() {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    try {
-      const result = await deleteMessage(messageId);
-
-      if (result.success) {
-        toaster.create({
-          title: "Message deleted",
-          description: "The message has been deleted successfully.",
-          type: "success",
-        });
-        // Clear selected message if it was the one deleted
-        if (selectedMessage === messageId) {
-          setSelectedMessage(null);
-        }
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error: any) {
-      toaster.create({
-        title: "Delete failed",
-        description: error.message || "Something went wrong.",
-        type: "error",
-      });
-    }
-  };
-
   const handleDeleteConversation = async () => {
     if (!selectedMsg || !user?.id) return;
 
@@ -225,7 +199,6 @@ export default function Profile() {
           : selectedMsg.sender_id || "";
 
       const result = await deleteConversation(
-        user.id,
         otherUserId,
         selectedMsg.property_id || "",
       );
@@ -234,8 +207,9 @@ export default function Profile() {
         toaster.create({
           title: "Conversation deleted",
           description:
-            "The entire conversation has been deleted from your view.",
+            "The conversation has been deleted. The other person can still see the messages.",
           type: "success",
+          duration: 5000,
         });
         setSelectedMessage(null);
       } else {
@@ -511,22 +485,6 @@ export default function Profile() {
                                   </Text>
                                 </VStack>
                                 <HStack flexShrink={0} mt={2} gap={1}>
-                                  <IconButton
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteMessage(msg.id);
-                                    }}
-                                    variant="ghost"
-                                    size="xs"
-                                    color="red.500"
-                                    _hover={{
-                                      bg: "red.100",
-                                      color: "red.600",
-                                    }}
-                                    title="Delete message"
-                                  >
-                                    <FaTrashAlt />
-                                  </IconButton>
                                   <Icon size="xs" color="gray.400">
                                     <FaChevronRight />
                                   </Icon>
@@ -580,36 +538,21 @@ export default function Profile() {
                           </Link>
                         </Card.Description>
                       </Box>
-                      <HStack gap={2}>
-                        <IconButton
-                          onClick={() => handleDeleteConversation()}
-                          variant="outline"
-                          size="sm"
-                          color="red.600"
-                          borderColor="red.300"
-                          _hover={{
-                            bg: "red.50",
-                            borderColor: "red.400",
-                            color: "red.700",
-                          }}
-                          title="Delete entire conversation"
-                        >
-                          <FaTrashAlt />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => handleDeleteMessage(selectedMsg.id)}
-                          variant="ghost"
-                          size="sm"
-                          color="red.500"
-                          _hover={{
-                            bg: "red.100",
-                            color: "red.600",
-                          }}
-                          title="Delete this message only"
-                        >
-                          <FaTrash />
-                        </IconButton>
-                      </HStack>
+                      <IconButton
+                        onClick={() => handleDeleteConversation()}
+                        variant="outline"
+                        size="sm"
+                        color="red.600"
+                        borderColor="red.300"
+                        _hover={{
+                          bg: "red.50",
+                          borderColor: "red.400",
+                          color: "red.700",
+                        }}
+                        title="Delete conversation"
+                      >
+                        <FaTrashAlt />
+                      </IconButton>
                     </Flex>
                   </Card.Header>
                   <Card.Body>

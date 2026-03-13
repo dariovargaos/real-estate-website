@@ -186,26 +186,26 @@ export async function deleteConversation(
     return; // No messages to delete
   }
 
-  // Update all messages to include the user in deleted_by array
-  const updates = messages.map((message) => {
+  // Update each message to include the user in deleted_by array
+  const updatePromises = messages.map(async (message) => {
     const currentDeletedBy = message.deleted_by || [];
     const updatedDeletedBy = currentDeletedBy.includes(userId) 
       ? currentDeletedBy 
       : [...currentDeletedBy, userId];
     
-    return {
-      id: message.id,
-      deleted_by: updatedDeletedBy,
-    };
+    return supabase
+      .from("messages")
+      .update({ deleted_by: updatedDeletedBy })
+      .eq("id", message.id);
   });
 
-  // Batch update all messages
-  const { error } = await supabase
-    .from("messages")
-    .upsert(updates, { onConflict: "id" });
-
-  if (error) {
-    throw new Error(error.message);
+  // Execute all updates in parallel
+  const results = await Promise.all(updatePromises);
+  
+  // Check for any errors
+  const errors = results.filter(result => result.error);
+  if (errors.length > 0) {
+    throw new Error(`Failed to update ${errors.length} messages`);
   }
 }
 
