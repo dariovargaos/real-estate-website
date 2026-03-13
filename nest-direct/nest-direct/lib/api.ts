@@ -113,7 +113,9 @@ export async function fetchConversation(
     `,
     )
     .eq("property_id", propertyId)
-    .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`)
+    .or(
+      `and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`,
+    )
     .not("deleted_by", "cs", `{${userId}}`)
     .order("created_at", { ascending: true });
 
@@ -137,7 +139,10 @@ export async function markMessageAsRead(messageId: string): Promise<void> {
 }
 
 // API function to delete a message (soft delete)
-export async function deleteMessage(messageId: string, userId: string): Promise<void> {
+export async function deleteMessage(
+  messageId: string,
+  userId: string,
+): Promise<void> {
   // First get the current deleted_by array
   const { data: currentMessage, error: fetchError } = await supabase
     .from("messages")
@@ -151,8 +156,8 @@ export async function deleteMessage(messageId: string, userId: string): Promise<
 
   // Add current user to deleted_by array if not already present
   const currentDeletedBy = currentMessage.deleted_by || [];
-  const updatedDeletedBy = currentDeletedBy.includes(userId) 
-    ? currentDeletedBy 
+  const updatedDeletedBy = currentDeletedBy.includes(userId)
+    ? currentDeletedBy
     : [...currentDeletedBy, userId];
 
   const { error } = await supabase
@@ -176,7 +181,9 @@ export async function deleteConversation(
     .from("messages")
     .select("id, deleted_by")
     .eq("property_id", propertyId)
-    .or(`and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`);
+    .or(
+      `and(sender_id.eq.${userId},recipient_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},recipient_id.eq.${userId})`,
+    );
 
   if (fetchError) {
     throw new Error(fetchError.message);
@@ -189,10 +196,10 @@ export async function deleteConversation(
   // Update each message to include the user in deleted_by array
   const updatePromises = messages.map(async (message) => {
     const currentDeletedBy = message.deleted_by || [];
-    const updatedDeletedBy = currentDeletedBy.includes(userId) 
-      ? currentDeletedBy 
+    const updatedDeletedBy = currentDeletedBy.includes(userId)
+      ? currentDeletedBy
       : [...currentDeletedBy, userId];
-    
+
     return supabase
       .from("messages")
       .update({ deleted_by: updatedDeletedBy })
@@ -201,9 +208,9 @@ export async function deleteConversation(
 
   // Execute all updates in parallel
   const results = await Promise.all(updatePromises);
-  
+
   // Check for any errors
-  const errors = results.filter(result => result.error);
+  const errors = results.filter((result) => result.error);
   if (errors.length > 0) {
     throw new Error(`Failed to update ${errors.length} messages`);
   }
@@ -360,8 +367,8 @@ export async function removeFromFavorites(userId: string, propertyId: string) {
 // API function to send a new message to property owner
 export async function sendContactMessage(messageData: {
   propertyId: string;
-  senderName: string;
-  senderEmail: string;
+  senderName: string; // Will be overridden with data from profile
+  senderEmail: string; // Not used anymore
   content: string;
   senderId: string; // Required - only authenticated users can send messages
 }): Promise<void> {
@@ -370,7 +377,26 @@ export async function sendContactMessage(messageData: {
     throw new Error("You must be signed in to send messages");
   }
 
-  // Get property info first
+  // Get sender profile info
+  const { data: senderProfile, error: senderError } = await supabase
+    .from("profiles")
+    .select("first_name, last_name, email")
+    .eq("id", messageData.senderId)
+    .single();
+
+  if (senderError) {
+    throw new Error("Could not find your profile information");
+  }
+
+  // Format sender name from profile
+  const senderName =
+    senderProfile?.first_name && senderProfile?.last_name
+      ? `${senderProfile.first_name} ${senderProfile.last_name}`
+      : senderProfile?.first_name || "Unknown User";
+
+  const senderEmail = senderProfile?.email || "";
+
+  // Get property info
   const { data: property, error: propertyError } = await supabase
     .from("properties")
     .select("id, title, user_id")
@@ -420,9 +446,9 @@ export async function sendContactMessage(messageData: {
     content: messageData.content,
     sender_id: messageData.senderId,
     recipient_id: property.user_id,
-    sender_name: messageData.senderName,
+    sender_name: senderName, // Use name from profile
     recipient_name: recipientName,
-    sender_email: messageData.senderEmail,
+    sender_email: senderEmail, // Use email from profile
     property_id: messageData.propertyId,
     is_read: false,
     created_at: new Date().toISOString(),

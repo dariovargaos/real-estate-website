@@ -6,7 +6,7 @@ export function formatTimeAgo(timestamp: string): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return 'Just now';
+    return "Just now";
   } else if (diffInSeconds < 3600) {
     const minutes = Math.floor(diffInSeconds / 60);
     return `${minutes}m ago`;
@@ -26,5 +26,9 @@ export function formatTimeAgo(timestamp: string): string {
 
 export function formatMemberSince(timestamp: string): string {
   const date = new Date(timestamp);
-  return `Member since ${date.getFullYear()}`;
+  // Use European date format - Month Year
+  return `Member since ${date.toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+  })}`;
 }

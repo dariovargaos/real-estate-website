@@ -10,6 +10,7 @@ import { useUser } from "../../../../hooks/useAuthContext";
 
 //api
 import { sendContactMessage } from "../../../../lib/api";
+import { formatMemberSince } from "../../../../lib/utils";
 
 //chakra components
 import {
@@ -22,7 +23,6 @@ import {
   Heading,
   Image,
   IconButton,
-  Input,
   Textarea,
   VStack,
   HStack,
@@ -82,11 +82,7 @@ const PropertyDetail = () => {
   };
 
   // Contact form state
-  const [contactForm, setContactForm] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
+  const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (loading) {
@@ -168,27 +164,10 @@ const PropertyDetail = () => {
     e.preventDefault();
 
     // Basic validation
-    if (
-      !contactForm.name.trim() ||
-      !contactForm.email.trim() ||
-      !contactForm.message.trim()
-    ) {
+    if (!message.trim()) {
       toaster.create({
-        title: "Please fill in all fields",
-        description: "Name, email, and message are required.",
-        type: "error",
-        duration: 5000,
-        closable: true,
-      });
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(contactForm.email)) {
-      toaster.create({
-        title: "Invalid email",
-        description: "Please enter a valid email address.",
+        title: "Please enter a message",
+        description: "Message is required to contact the seller.",
         type: "error",
         duration: 5000,
         closable: true,
@@ -216,9 +195,9 @@ const PropertyDetail = () => {
       console.log("Sending message for property:", property.id);
       await sendContactMessage({
         propertyId: property.id,
-        senderName: contactForm.name,
-        senderEmail: contactForm.email,
-        content: contactForm.message,
+        senderName: "", // Will be filled by API from user profile
+        senderEmail: "", // Not needed anymore
+        content: message,
         senderId: user.id, // Required for authenticated users
       });
 
@@ -231,7 +210,7 @@ const PropertyDetail = () => {
       });
 
       // Reset form
-      setContactForm({ name: "", email: "", message: "" });
+      setMessage("");
     } catch (error: any) {
       console.error("Contact form error:", error);
       toaster.create({
@@ -587,7 +566,7 @@ const PropertyDetail = () => {
                       <Text fontWeight="semibold">{property.seller_name}</Text>
                       <HStack gap={1} fontSize="xs" color="gray.600">
                         <FaCalendarAlt size={12} />
-                        <Text>Member since {property.seller_since}</Text>
+                        <Text>{formatMemberSince(property.seller_since)}</Text>
                       </HStack>
                     </Box>
                   </HStack>
@@ -698,65 +677,17 @@ const PropertyDetail = () => {
                       <VStack gap={4}>
                         <Field.Root required>
                           <Field.Label fontSize="xs">
-                            Your Name
-                            <Field.RequiredIndicator />
-                          </Field.Label>
-                          <Input
-                            placeholder="John Doe"
-                            bg="gray.50"
-                            border="1px"
-                            borderColor="gray.200"
-                            value={contactForm.name}
-                            onChange={(e) =>
-                              setContactForm((prev) => ({
-                                ...prev,
-                                name: e.target.value,
-                              }))
-                            }
-                            disabled={isSubmitting}
-                          />
-                        </Field.Root>
-
-                        <Field.Root required>
-                          <Field.Label fontSize="xs">
-                            Email
-                            <Field.RequiredIndicator />
-                          </Field.Label>
-                          <Input
-                            type="email"
-                            placeholder="john@example.com"
-                            bg="gray.50"
-                            border="1px"
-                            borderColor="gray.200"
-                            value={contactForm.email}
-                            onChange={(e) =>
-                              setContactForm((prev) => ({
-                                ...prev,
-                                email: e.target.value,
-                              }))
-                            }
-                            disabled={isSubmitting}
-                          />
-                        </Field.Root>
-
-                        <Field.Root required>
-                          <Field.Label fontSize="xs">
                             Message
                             <Field.RequiredIndicator />
                           </Field.Label>
                           <Textarea
-                            placeholder="I'm interested in this property…"
+                            placeholder="Hi, I'm interested in this property. Could you tell me more about..."
                             bg="gray.50"
                             border="1px"
                             borderColor="gray.200"
-                            minH="100px"
-                            value={contactForm.message}
-                            onChange={(e) =>
-                              setContactForm((prev) => ({
-                                ...prev,
-                                message: e.target.value,
-                              }))
-                            }
+                            minH="120px"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
                             disabled={isSubmitting}
                           />
                         </Field.Root>
