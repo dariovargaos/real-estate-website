@@ -265,10 +265,8 @@ export default function Profile() {
         bg="#FCFAF8"
       >
         <VStack gap={4}>
-          <Text>Please sign in to view your profile.</Text>
-          <Button asChild colorPalette="gray" rounded="xl">
-            <Link href="/sign-in">Sign In</Link>
-          </Button>
+          <Spinner size="lg" color="hsl(35, 80%, 56%)" />
+          <Text>Redirecting to home page</Text>
         </VStack>
       </Box>
     );
