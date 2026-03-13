@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
+
+//lightbox imports
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 //hooks
 import { useProperty } from "../../../../hooks/useProperty";
 import { useUser } from "../../../../hooks/useAuthContext";
+import { useUserFavorites } from "../../../../hooks/useProfile";
 
-//api
+//api and utils
 import { sendContactMessage } from "../../../../lib/api";
 import { formatMemberSince } from "../../../../lib/utils";
 
@@ -21,7 +27,6 @@ import {
   GridItem,
   Text,
   Heading,
-  Image,
   IconButton,
   Textarea,
   VStack,
@@ -41,9 +46,8 @@ import {
   FaExpand,
   FaMapMarkerAlt,
   FaRegHeart,
+  FaHeart,
   FaShare,
-  FaChevronLeft,
-  FaChevronRight,
   FaUser,
   FaPhone,
   FaCalendarAlt,
@@ -57,10 +61,27 @@ const PropertyDetail = () => {
   const id = params.id as string;
   const { data: property, isLoading: loading, error } = useProperty(id);
   const { user } = useUser();
-  const [activeImage, setActiveImage] = useState(0);
+  const { favorites, addToFavorites, removeFromFavorites } = useUserFavorites();
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
-  //adding favorites
-  const addFavorite = () => {
+  // Sync favorites state with the hook data
+  useEffect(() => {
+    if (!user) {
+      // If user is not logged in, reset favorites state
+      setIsFavorited(false);
+    } else if (favorites && property) {
+      // If user is logged in and favorites are loaded, check if property is favorited
+      const favorited = favorites.some((fav) => fav.property?.id === property.id);
+      setIsFavorited(favorited);
+    }
+    // Note: If user exists but favorites are still loading, we don't update the state
+  }, [favorites, property?.id, user]);
+
+  // Handle favorites toggle with immediate UI feedback
+  const handleFavoriteToggle = async () => {
     if (!user) {
       toaster.create({
         title: "Sign in required",
@@ -69,15 +90,66 @@ const PropertyDetail = () => {
         duration: 5000,
         closable: true,
       });
-    } else {
-      // Here you would normally call an API to add the property to the user's favorites
+      return;
+    }
+
+    if (!property) return;
+
+    setIsToggling(true);
+    try {
+      if (isFavorited) {
+        const result = await removeFromFavorites(property.id);
+        if (result.success) {
+          setIsFavorited(false);
+          toaster.create({
+            title: "Removed from favorites",
+            description: "This property has been removed from your favorites.",
+            type: "success",
+            duration: 3000,
+            closable: true,
+          });
+        } else {
+          toaster.create({
+            title: "Failed to remove favorite",
+            description:
+              result.error || "Something went wrong. Please try again.",
+            type: "error",
+            duration: 5000,
+            closable: true,
+          });
+        }
+      } else {
+        const result = await addToFavorites(property.id);
+        if (result.success) {
+          setIsFavorited(true);
+          toaster.create({
+            title: "Added to favorites",
+            description: "This property has been added to your favorites.",
+            type: "success",
+            duration: 3000,
+            closable: true,
+          });
+        } else {
+          toaster.create({
+            title: "Failed to add favorite",
+            description:
+              result.error || "Something went wrong. Please try again.",
+            type: "error",
+            duration: 5000,
+            closable: true,
+          });
+        }
+      }
+    } catch (error: any) {
       toaster.create({
-        title: "Added to favorites",
-        description: "This property has been added to your favorites.",
-        type: "success",
+        title: "Error",
+        description: error.message || "Something went wrong. Please try again.",
+        type: "error",
         duration: 5000,
         closable: true,
       });
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -225,12 +297,8 @@ const PropertyDetail = () => {
     }
   };
 
-  const nextImage = () =>
-    setActiveImage((prev) => (prev + 1) % property.images.length);
-  const prevImage = () =>
-    setActiveImage(
-      (prev) => (prev - 1 + property.images.length) % property.images.length,
-    );
+  // Convert property images to lightbox slides format
+  const slides = property ? property.images.map((img) => ({ src: img })) : [];
 
   // Check if current user is the property owner
   const isOwner = user && property && user.id === property.user_id;
@@ -258,71 +326,28 @@ const PropertyDetail = () => {
         <Box maxW="container.xl" mx="auto" px={4} mb={10}>
           <Box position="relative" rounded="2xl" overflow="hidden">
             <AspectRatio ratio={{ base: 16 / 9, md: 2.2 / 1 }}>
-              <Image
-                src={property.images[activeImage]}
-                alt={`${property.title} - image ${activeImage + 1}`}
-                objectFit="cover"
-                transition="opacity 0.3s"
-              />
-            </AspectRatio>
-
-            <IconButton
-              aria-label="Previous image"
-              position="absolute"
-              left={4}
-              top="50%"
-              transform="translateY(-50%)"
-              h={10}
-              w={10}
-              rounded="full"
-              bg="whiteAlpha.800"
-              backdropFilter="blur(4px)"
-              _hover={{ bg: "white" }}
-              onClick={prevImage}
-            >
-              <FaChevronLeft size={20} />
-            </IconButton>
-
-            <IconButton
-              aria-label="Next image"
-              position="absolute"
-              right={4}
-              top="50%"
-              transform="translateY(-50%)"
-              h={10}
-              w={10}
-              rounded="full"
-              bg="whiteAlpha.800"
-              backdropFilter="blur(4px)"
-              _hover={{ bg: "white" }}
-              onClick={nextImage}
-            >
-              <FaChevronRight size={20} />
-            </IconButton>
-
-            {/* Dots */}
-            <HStack
-              position="absolute"
-              bottom={4}
-              left="50%"
-              transform="translateX(-50%)"
-              gap={2}
-            >
-              {property.images.map((_, i) => (
-                <Box
-                  key={i}
-                  as="button"
-                  h={2}
-                  w={i === activeImage ? 6 : 2}
-                  rounded="full"
-                  bg={
-                    i === activeImage ? "hsl(35, 80%, 56%)" : "whiteAlpha.600"
-                  }
-                  transition="all 0.2s"
-                  onClick={() => setActiveImage(i)}
+              <Box
+                position="relative"
+                cursor="pointer"
+                onClick={() => {
+                  setLightboxIndex(0);
+                  setLightboxOpen(true);
+                }}
+                _hover={{ opacity: 0.9 }}
+                transition="opacity 0.2s"
+                w="full"
+                h="full"
+              >
+                <Image
+                  src={property.images[0]}
+                  alt={`${property.title} - main image`}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                  priority
                 />
-              ))}
-            </HStack>
+              </Box>
+            </AspectRatio>
 
             {property.tag && (
               <Badge
@@ -341,7 +366,7 @@ const PropertyDetail = () => {
           </Box>
 
           {/* Thumbnails */}
-          <HStack gap={3} mt={3}>
+          <HStack gap={3} mt={3} overflowX="auto" py={2}>
             {property.images.map((img, i) => (
               <Box
                 key={i}
@@ -351,16 +376,24 @@ const PropertyDetail = () => {
                 overflow="hidden"
                 w={{ base: 24, md: 32 }}
                 h={{ base: 16, md: 20 }}
+                flexShrink={0}
                 border="2px"
-                borderColor={
-                  i === activeImage ? "hsl(35, 80%, 56%)" : "transparent"
-                }
-                opacity={i === activeImage ? 1 : 0.6}
-                _hover={{ opacity: 1 }}
+                borderColor="transparent"
+                opacity={0.9}
+                _hover={{ opacity: 1, borderColor: "hsl(35, 80%, 56%)" }}
                 transition="all 0.2s"
-                onClick={() => setActiveImage(i)}
+                onClick={() => {
+                  setLightboxIndex(i);
+                  setLightboxOpen(true);
+                }}
               >
-                <Image src={img} alt="" w="full" h="full" objectFit="cover" />
+                <Image
+                  src={img}
+                  alt={`${property.title} - image ${i + 1}`}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  sizes="(max-width: 768px) 96px, 128px"
+                />
               </Box>
             ))}
           </HStack>
@@ -390,15 +423,31 @@ const PropertyDetail = () => {
                     </Heading>
                     <HStack gap={2}>
                       <IconButton
-                        onClick={() => addFavorite()}
-                        aria-label="Add to favorites"
+                        onClick={handleFavoriteToggle}
+                        aria-label={
+                          isFavorited
+                            ? "Remove from favorites"
+                            : "Add to favorites"
+                        }
                         h={10}
                         w={10}
                         rounded="full"
                         variant="outline"
-                        _hover={{ bg: "gray.50" }}
+                        bg="white"
+                        color={isFavorited ? "#E99E35" : "gray.600"}
+                        disabled={isToggling}
+                        _hover={{
+                          bg: "gray.50",
+                          transform: isToggling ? "none" : "scale(1.05)",
+                        }}
+                        transition="all 0.2s"
+                        opacity={isToggling ? 0.7 : 1}
                       >
-                        <FaRegHeart size={16} />
+                        {isFavorited ? (
+                          <FaHeart size={16} />
+                        ) : (
+                          <FaRegHeart size={16} />
+                        )}
                       </IconButton>
                       <IconButton
                         aria-label="Share property"
@@ -712,6 +761,15 @@ const PropertyDetail = () => {
           </Grid>
         </Box>
       </Box>
+
+      {/* Lightbox */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={slides}
+        index={lightboxIndex}
+      />
+
       <Toaster />
     </Box>
   );
