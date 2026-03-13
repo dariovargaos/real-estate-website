@@ -21,25 +21,27 @@ import {
   NativeSelect,
   Separator,
   Spinner,
+  FileUpload,
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //hooks
 import { useUser } from "../../../hooks/useAuthContext";
 import { useProperty } from "../../../hooks/useProperty";
+import { useUserProfile } from "../../../hooks/useProfile";
 
 //api
 import { createProperty, updateProperty, propertyKeys } from "../../../lib/api";
 
 //icons
 import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
-import { LuHouse, LuMapPin } from "react-icons/lu";
-import { MdOutlineFileUpload } from "react-icons/md";
+import { LuHouse, LuMapPin, LuUpload, LuX } from "react-icons/lu";
 
 export default function ListProperty() {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading } = useUser();
+  const { profile } = useUserProfile();
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -61,108 +63,15 @@ export default function ListProperty() {
     baths: "",
     size_m2: "",
     description: "",
-    seller_name: "",
     seller_phone: "",
   });
 
   // File upload state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [dragActive, setDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle form field changes
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // File upload validation
-  const validateFiles = (
-    files: File[],
-  ): { valid: File[]; errors: string[] } => {
-    const valid: File[] = [];
-    const errors: string[] = [];
-    const maxFiles = 20;
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
-    if (uploadedFiles.length + files.length > maxFiles) {
-      errors.push(`Maximum ${maxFiles} photos allowed`);
-      return { valid, errors };
-    }
-
-    files.forEach((file) => {
-      if (!allowedTypes.includes(file.type)) {
-        errors.push(`${file.name}: Only JPG, PNG, and WebP files allowed`);
-      } else if (file.size > maxSize) {
-        errors.push(`${file.name}: File size must be less than 10MB`);
-      } else {
-        valid.push(file);
-      }
-    });
-
-    return { valid, errors };
-  };
-
-  // Handle file selection
-  const handleFiles = (files: FileList | File[]) => {
-    const fileArray = Array.from(files);
-    const { valid, errors } = validateFiles(fileArray);
-
-    if (errors.length > 0) {
-      errors.forEach((error) => {
-        toaster.create({
-          title: "File validation error",
-          description: error,
-          type: "error",
-          duration: 5000,
-          closable: true,
-        });
-      });
-    }
-
-    if (valid.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...valid]);
-    }
-  };
-
-  // Handle drag events
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  // Handle drop
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  };
-
-  // Handle file input change
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files);
-    }
-  };
-
-  // Remove uploaded file
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Trigger file input
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
   };
 
   // Pre-populate form when editing
@@ -177,7 +86,6 @@ export default function ListProperty() {
         baths: editProperty.baths?.toString() || "",
         size_m2: editProperty.size_m2?.toString() || "",
         description: editProperty.description || "",
-        seller_name: editProperty.seller_name || "",
         seller_phone: editProperty.seller_phone || "",
       });
     }
@@ -214,7 +122,6 @@ export default function ListProperty() {
       baths: "Bathrooms",
       size_m2: "Size",
       description: "Description",
-      seller_name: "Full Name",
       seller_phone: "Phone Number",
     };
 
@@ -234,8 +141,6 @@ export default function ListProperty() {
     setIsSubmitting(true);
 
     try {
-      setIsUploading(true);
-
       // Debug: Log user object
       console.log("User object:", user);
       console.log("User ID:", user?.id);
@@ -251,7 +156,10 @@ export default function ListProperty() {
             baths: parseInt(formData.baths),
             size_m2: formData.size_m2,
             description: formData.description,
-            seller_name: formData.seller_name,
+            seller_name:
+              `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+              user?.user_metadata?.full_name ||
+              "Unknown",
             seller_phone: formData.seller_phone,
             property_type: formData.property_type,
             imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
@@ -289,7 +197,10 @@ export default function ListProperty() {
           baths: parseInt(formData.baths),
           size_m2: formData.size_m2,
           description: formData.description,
-          seller_name: formData.seller_name,
+          seller_name:
+            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
+            user?.user_metadata?.full_name ||
+            "Unknown",
           seller_phone: formData.seller_phone,
           user_id: user.id,
           property_type: formData.property_type,
@@ -326,7 +237,6 @@ export default function ListProperty() {
       });
     } finally {
       setIsSubmitting(false);
-      setIsUploading(false);
     }
   };
 
@@ -399,7 +309,6 @@ export default function ListProperty() {
                   baths: "",
                   size_m2: "",
                   description: "",
-                  seller_name: "",
                   seller_phone: "",
                 });
                 setUploadedFiles([]);
@@ -661,142 +570,149 @@ export default function ListProperty() {
 
                 <Field.Root>
                   <Field.Label>Photos</Field.Label>
-                  <Box position="relative" w="full">
-                    {/* Hidden file input */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/jpeg,image/jpg,image/png,image/webp"
-                      onChange={handleFileInputChange}
-                      style={{ display: "none" }}
-                    />
+                  <FileUpload.Root
+                    maxFiles={10}
+                    maxFileSize={1 * 1024 * 1024} // 1MB
+                    accept={[
+                      "image/jpeg",
+                      "image/jpg",
+                      "image/png",
+                      "image/webp",
+                    ]}
+                    onFileAccept={(details) => {
+                      setUploadedFiles(details.files);
+                    }}
+                    onFileReject={(details) => {
+                      details.files.forEach((fileRejection) => {
+                        const fileName = fileRejection.file.name;
+                        const errorMessages = fileRejection.errors.map(
+                          (error) => {
+                            // Convert error to readable message
+                            if (typeof error === "string") return error;
+                            return String(error);
+                          },
+                        );
 
-                    {/* Upload area */}
-                    <Box
+                        toaster.create({
+                          title: "File validation error",
+                          description: `${fileName}: ${errorMessages.join(", ")}`,
+                          type: "error",
+                          duration: 5000,
+                          closable: true,
+                        });
+                      });
+                    }}
+                  >
+                    <FileUpload.HiddenInput />
+                    <FileUpload.Dropzone
                       border="2px dashed"
-                      borderColor={dragActive ? "orange.400" : "gray.200"}
+                      borderColor="gray.200"
                       rounded="xl"
                       p={8}
                       textAlign="center"
                       cursor="pointer"
-                      bg={dragActive ? "orange.50" : "gray.50"}
+                      bg="gray.50"
                       _hover={{ borderColor: "orange.300", bg: "orange.50" }}
                       w="full"
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                      onClick={openFileDialog}
                       transition="all 0.2s"
                     >
-                      <Icon
-                        as={MdOutlineFileUpload}
-                        boxSize={8}
-                        color={dragActive ? "orange.400" : "gray.400"}
-                        mb={2}
-                      />
-                      <Text
-                        fontSize="sm"
-                        color={dragActive ? "orange.600" : "gray.500"}
-                      >
-                        {dragActive
-                          ? "Drop photos here..."
-                          : "Drag & drop photos here, or click to browse"}
-                      </Text>
-                      <Text fontSize="xs" color="gray.400" mt={1}>
-                        Up to 20 photos · JPG, PNG, WebP ·
-                      </Text>
-                    </Box>
-
-                    {/* File preview grid */}
-                    {uploadedFiles.length > 0 && (
-                      <Box mt={4}>
-                        <Text fontSize="sm" color="gray.600" mb={3}>
-                          {uploadedFiles.length} photo
-                          {uploadedFiles.length > 1 ? "s" : ""} selected
+                      <Icon fontSize="xl" color="gray.400" mb={2}>
+                        <LuUpload />
+                      </Icon>
+                      <FileUpload.DropzoneContent>
+                        <Text fontSize="sm" color="gray.500">
+                          Drag & drop photos here, or click to browse
                         </Text>
-                        <Grid
-                          templateColumns="repeat(auto-fill, minmax(120px, 1fr))"
-                          gap={3}
-                          maxH="300px"
-                          overflowY="auto"
-                        >
-                          {uploadedFiles.map((file, index) => (
-                            <Box
-                              key={index}
-                              position="relative"
-                              border="1px"
-                              borderColor="gray.200"
-                              rounded="lg"
-                              p={2}
-                              bg="white"
-                            >
-                              <Box
-                                bg="gray.100"
-                                rounded="md"
-                                p={2}
-                                textAlign="center"
-                                h="80px"
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="center"
-                                position="relative"
+                        <Text fontSize="xs" color="gray.400" mt={1}>
+                          Up to 10 photos · JPG, PNG, WebP · Max 1MB each
+                        </Text>
+                      </FileUpload.DropzoneContent>
+                    </FileUpload.Dropzone>
+
+                    <FileUpload.Context>
+                      {({ acceptedFiles }) =>
+                        acceptedFiles.length > 0 && (
+                          <Box mt={4}>
+                            <Text fontSize="sm" color="gray.600" mb={3}>
+                              {acceptedFiles.length} photo
+                              {acceptedFiles.length > 1 ? "s" : ""} selected
+                            </Text>
+                            <FileUpload.ItemGroup>
+                              <Grid
+                                templateColumns="repeat(auto-fill, minmax(120px, 1fr))"
+                                gap={3}
+                                maxH="300px"
+                                overflowY="auto"
                               >
-                                <Image
-                                  src={URL.createObjectURL(file)}
-                                  alt={file.name}
-                                  fill
-                                  style={{
-                                    objectFit: "cover",
-                                    borderRadius: "4px",
-                                  }}
-                                  sizes="120px"
-                                />
-                                {/* Remove button */}
-                                <Button
-                                  size="sm"
-                                  position="absolute"
-                                  top={-1}
-                                  right={-1}
-                                  bg="red.500"
-                                  color="white"
-                                  rounded="full"
-                                  w={6}
-                                  h={6}
-                                  minWidth="unset"
-                                  p={0}
-                                  fontSize="xs"
-                                  _hover={{ bg: "red.600" }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeFile(index);
-                                  }}
-                                >
-                                  ×
-                                </Button>
-                              </Box>
-                              <Text
-                                fontSize="xs"
-                                color="gray.500"
-                                mt={1}
-                                textAlign="center"
-                              >
-                                {file.name}
-                              </Text>
-                              <Text
-                                fontSize="xs"
-                                color="gray.400"
-                                textAlign="center"
-                              >
-                                {(file.size / 1024 / 1024).toFixed(1)}MB
-                              </Text>
-                            </Box>
-                          ))}
-                        </Grid>
-                      </Box>
-                    )}
-                  </Box>
+                                {acceptedFiles.map((file) => (
+                                  <FileUpload.Item
+                                    key={file.name}
+                                    file={file}
+                                    position="relative"
+                                    border="1px"
+                                    borderColor="gray.200"
+                                    rounded="lg"
+                                    p={2}
+                                    bg="white"
+                                  >
+                                    <Box
+                                      bg="gray.100"
+                                      rounded="md"
+                                      p={2}
+                                      textAlign="center"
+                                      display="flex"
+                                      alignItems="center"
+                                      justifyContent="center"
+                                      position="relative"
+                                    >
+                                      <FileUpload.ItemPreviewImage
+                                        style={{
+                                          objectFit: "cover",
+                                          borderRadius: "4px",
+                                          width: "100%",
+                                          height: "100%",
+                                        }}
+                                      />
+                                      <FileUpload.ItemDeleteTrigger asChild>
+                                        <Button
+                                          size="sm"
+                                          position="absolute"
+                                          top={-1}
+                                          right={-1}
+                                          bg="red.500"
+                                          color="white"
+                                          rounded="full"
+                                          w={6}
+                                          h={6}
+                                          minWidth="unset"
+                                          p={0}
+                                          fontSize="xs"
+                                          _hover={{ bg: "red.600" }}
+                                        >
+                                          <LuX />
+                                        </Button>
+                                      </FileUpload.ItemDeleteTrigger>
+                                    </Box>
+                                    <FileUpload.ItemName
+                                      fontSize="xs"
+                                      color="gray.500"
+                                      mt={1}
+                                      textAlign="center"
+                                    />
+                                    <FileUpload.ItemSizeText
+                                      fontSize="xs"
+                                      color="gray.400"
+                                      textAlign="center"
+                                    />
+                                  </FileUpload.Item>
+                                ))}
+                              </Grid>
+                            </FileUpload.ItemGroup>
+                          </Box>
+                        )
+                      }
+                    </FileUpload.Context>
+                  </FileUpload.Root>
                 </Field.Root>
 
                 <Separator />
@@ -810,37 +726,19 @@ export default function ListProperty() {
                   >
                     Your Contact Info
                   </Heading>
-                  <Grid
-                    templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
-                    gap={4}
-                  >
-                    <Field.Root required>
-                      <Field.Label>Full Name</Field.Label>
-                      <Input
-                        id="name"
-                        value={formData.seller_name}
-                        onChange={(e) =>
-                          handleInputChange("seller_name", e.target.value)
-                        }
-                        placeholder="Your name"
-                        type="text"
-                        rounded="xl"
-                      />
-                    </Field.Root>
-                    <Field.Root required>
-                      <Field.Label>Phone Number</Field.Label>
-                      <Input
-                        id="phone"
-                        value={formData.seller_phone}
-                        onChange={(e) =>
-                          handleInputChange("seller_phone", e.target.value)
-                        }
-                        placeholder="0912345678"
-                        type="tel"
-                        rounded="xl"
-                      />
-                    </Field.Root>
-                  </Grid>
+                  <Field.Root required>
+                    <Field.Label>Phone Number</Field.Label>
+                    <Input
+                      id="phone"
+                      value={formData.seller_phone}
+                      onChange={(e) =>
+                        handleInputChange("seller_phone", e.target.value)
+                      }
+                      placeholder="0912345678"
+                      type="tel"
+                      rounded="xl"
+                    />
+                  </Field.Root>
                 </Box>
 
                 <Flex gap={4}>
@@ -849,17 +747,13 @@ export default function ListProperty() {
                     colorScheme="gray"
                     size="lg"
                     borderRadius="xl"
-                    disabled={isSubmitting || isUploading}
+                    disabled={isSubmitting}
                     flex={1}
                   >
                     {isSubmitting ? (
                       <>
                         <Spinner size="sm" mr={2} />
-                        {isUploading
-                          ? "Uploading photos..."
-                          : isEditMode
-                            ? "Updating..."
-                            : "Submitting..."}
+                        {isEditMode ? "Updating..." : "Submitting..."}
                       </>
                     ) : isEditMode ? (
                       "Update Listing"
