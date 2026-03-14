@@ -508,7 +508,7 @@ const PropertyDetail = () => {
                     </HStack>
                     <HStack gap={2}>
                       <FaExpand size={20} color="gray" />
-                      <Text fontWeight="medium">{property.size_m2}</Text>
+                      <Text fontWeight="medium">{property.size_m2} m²</Text>
                     </HStack>
                   </HStack>
                 </Box>
@@ -585,6 +585,40 @@ const PropertyDetail = () => {
                       </Text>
                     </Flex>
                   </AspectRatio>
+                </Box>
+
+                {/* Created at */}
+                <Box>
+                  <Heading
+                    as="h2"
+                    fontFamily="DM Serif Display, serif"
+                    fontSize="2xl"
+                    fontWeight="medium"
+                    mb={4}
+                  >
+                    Created At
+                  </Heading>
+                  <HStack gap={2}>
+                    <Box
+                      h={1.5}
+                      w={1.5}
+                      rounded="full"
+                      bg="hsl(35, 80%, 56%)"
+                      flexShrink={0}
+                    />
+                    <Text fontSize="sm" color="gray.600">
+                      {property.created_at
+                        ? new Date(property.created_at).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            },
+                          )
+                        : "Date not available"}
+                    </Text>
+                  </HStack>
                 </Box>
               </VStack>
             </GridItem>

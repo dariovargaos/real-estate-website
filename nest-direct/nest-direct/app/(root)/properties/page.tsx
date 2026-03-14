@@ -27,15 +27,27 @@ export default function Properties() {
   const { data: properties, isLoading: loading, error } = useListedProperties();
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
-  const [bedsFilter, setBedsFilter] = useState<string[]>(["any"]);
+  const [tagsFilter, setTagsFilter] = useState<string[]>(["any"]);
+  const [typeFilter, setTypeFilter] = useState<string[]>(["any"]);
 
   // Collection data for Select components
-  const bedsCollection = createListCollection({
+  const tagsCollection = createListCollection({
     items: [
-      { label: "Any Beds", value: "any" },
-      { label: "2+ Beds", value: "2" },
-      { label: "3+ Beds", value: "3" },
-      { label: "4+ Beds", value: "4" },
+      { label: "All Properties", value: "any" },
+      { label: "New", value: "new" },
+      { label: "Featured", value: "featured" },
+      { label: "Premium", value: "premium" },
+      { label: "Elite", value: "elite" },
+    ],
+  });
+
+  const typeCollection = createListCollection({
+    items: [
+      { label: "All Types", value: "any" },
+      { label: "Apartment", value: "apartment" },
+      { label: "House", value: "house" },
+      { label: "Land", value: "land" },
+      { label: "Office Space", value: "office" },
     ],
   });
 
@@ -56,9 +68,12 @@ export default function Properties() {
         p.location.toLowerCase().includes(search.toLowerCase()),
     );
 
-    if (bedsFilter[0] !== "any") {
-      const min = parseInt(bedsFilter[0]);
-      result = result.filter((p) => p.beds >= min);
+    if (tagsFilter[0] !== "any") {
+      result = result.filter((p) => p.tag?.toLowerCase() === tagsFilter[0]);
+    }
+
+    if (typeFilter[0] !== "any") {
+      result = result.filter((p) => p.type?.toLowerCase() === typeFilter[0]);
     }
 
     if (sortBy[0] === "price-asc") {
@@ -76,7 +91,7 @@ export default function Properties() {
     }
 
     return result;
-  }, [properties, search, sortBy, bedsFilter]);
+  }, [properties, search, sortBy, tagsFilter, typeFilter]);
 
   return (
     <Box minH="100vh" bg="gray.50">
@@ -169,15 +184,15 @@ export default function Properties() {
                   </Box>
                   <Box w={{ base: "full", md: 40 }}>
                     <Select.Root
-                      collection={bedsCollection}
-                      value={bedsFilter}
-                      onValueChange={(e) => setBedsFilter(e.value)}
+                      collection={tagsCollection}
+                      value={tagsFilter}
+                      onValueChange={(e) => setTagsFilter(e.value)}
                     >
                       <Select.HiddenSelect />
 
                       <Select.Control>
                         <Select.Trigger borderRadius="xl">
-                          <Select.ValueText placeholder="Any Beds" />
+                          <Select.ValueText placeholder="All Properties" />
                         </Select.Trigger>
                         <Select.IndicatorGroup>
                           <Select.Indicator />
@@ -185,7 +200,35 @@ export default function Properties() {
                       </Select.Control>
                       <Select.Positioner>
                         <Select.Content>
-                          {bedsCollection.items.map((item) => (
+                          {tagsCollection.items.map((item) => (
+                            <Select.Item item={item} key={item.value}>
+                              {item.label}
+                              <Select.ItemIndicator />
+                            </Select.Item>
+                          ))}
+                        </Select.Content>
+                      </Select.Positioner>
+                    </Select.Root>
+                  </Box>
+                  <Box w={{ base: "full", md: 40 }}>
+                    <Select.Root
+                      collection={typeCollection}
+                      value={typeFilter}
+                      onValueChange={(e) => setTypeFilter(e.value)}
+                    >
+                      <Select.HiddenSelect />
+
+                      <Select.Control>
+                        <Select.Trigger borderRadius="xl">
+                          <Select.ValueText placeholder="All Types" />
+                        </Select.Trigger>
+                        <Select.IndicatorGroup>
+                          <Select.Indicator />
+                        </Select.IndicatorGroup>
+                      </Select.Control>
+                      <Select.Positioner>
+                        <Select.Content>
+                          {typeCollection.items.map((item) => (
                             <Select.Item item={item} key={item.value}>
                               {item.label}
                               <Select.ItemIndicator />
@@ -242,10 +285,7 @@ export default function Properties() {
                         animation="fadeInUp 0.4s forwards"
                         style={{ animationDelay: `${index * 0.05}s` }}
                       >
-                        <PropertyCard 
-                          {...property} 
-                          size={property.size_m2}
-                        />
+                        <PropertyCard {...property} />
                       </Box>
                     ))}
                   </SimpleGrid>

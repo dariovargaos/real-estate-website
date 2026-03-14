@@ -233,13 +233,13 @@ const PropertyCard = ({
             <Icon>
               <LuBedDouble size={14} />
             </Icon>
-            <span>{beds} Beds</span>
+            <span>{beds} Bedrooms</span>
           </Flex>
           <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
             <Icon>
               <LuBath size={14} />
             </Icon>
-            <span>{baths} Baths</span>
+            <span>{baths} Bathrooms</span>
           </Flex>
           <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
             <Icon>
