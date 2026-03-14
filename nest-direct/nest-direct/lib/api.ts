@@ -569,7 +569,8 @@ export async function createProperty(propertyData: {
       image: mainImage, // Use uploaded image or placeholder
       images: imageUrls, // Use uploaded images or placeholder
       features,
-      tag: propertyData.property_type, // Store property_type as tag
+      type: propertyData.property_type, // Store property_type in type column
+      tag: "New", // Mark new properties with "New" tag
       status: "pending", // Properties start as pending for review
       created_at: new Date().toISOString(),
     })
@@ -668,7 +669,7 @@ export async function updateProperty(
       image: mainImage,
       images: imageUrls,
       features,
-      tag: propertyData.property_type, // Store property_type as tag
+      type: propertyData.property_type, // Store property_type in type column
       updated_at: new Date().toISOString(),
     })
     .eq("id", propertyId)

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -81,7 +80,7 @@ export default function ListProperty() {
         title: editProperty.title || "",
         price: editProperty.price?.replace(/[^0-9]/g, "") || "",
         location: editProperty.location || "",
-        property_type: editProperty.tag || "",
+        property_type: editProperty.type || "",
         beds: editProperty.beds?.toString() || "",
         baths: editProperty.baths?.toString() || "",
         size_m2: editProperty.size_m2?.toString() || "",
@@ -500,9 +499,10 @@ export default function ListProperty() {
                           handleInputChange("property_type", e.target.value)
                         }
                       >
-                        <option value="house">House</option>
                         <option value="apartment">Apartment</option>
+                        <option value="house">House</option>
                         <option value="land">Land</option>
+                        <option value="office">Office space</option>
                       </NativeSelect.Field>
                       <NativeSelect.Indicator />
                     </NativeSelect.Root>

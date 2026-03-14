@@ -36,6 +36,7 @@ interface PropertyCardProps {
   beds: number;
   baths: number;
   size_m2: string;
+  type?: string | null;
   tag?: string | null;
 }
 
@@ -48,6 +49,7 @@ const PropertyCard = ({
   beds,
   baths,
   size_m2,
+  // type, // Keep for future use but not currently displayed
   tag,
 }: PropertyCardProps) => {
   const { user } = useUser();

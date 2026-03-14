@@ -74,7 +74,9 @@ const PropertyDetail = () => {
       setIsFavorited(false);
     } else if (favorites && property) {
       // If user is logged in and favorites are loaded, check if property is favorited
-      const favorited = favorites.some((fav) => fav.property?.id === property.id);
+      const favorited = favorites.some(
+        (fav) => fav.property?.id === property.id,
+      );
       setIsFavorited(favorited);
     }
     // Note: If user exists but favorites are still loading, we don't update the state
@@ -477,26 +479,39 @@ const PropertyDetail = () => {
                 </Box>
 
                 {/* Stats */}
-                <HStack
-                  gap={6}
-                  py={5}
-                  borderTop="1px"
-                  borderBottom="1px"
-                  borderColor="gray.200"
-                >
-                  <HStack gap={2}>
-                    <FaBed size={20} color="gray" />
-                    <Text fontWeight="medium">{property.beds} Beds</Text>
+                <Box>
+                  <Heading
+                    as="h2"
+                    fontFamily="DM Serif Display, serif"
+                    fontSize="2xl"
+                    fontWeight="medium"
+                    mb={3}
+                  >
+                    Features & Details
+                  </Heading>
+                  <HStack
+                    gap={6}
+                    py={5}
+                    borderTop="1px"
+                    borderBottom="1px"
+                    borderColor="gray.200"
+                  >
+                    <HStack gap={2}>
+                      <FaBed size={20} color="gray" />
+                      <Text fontWeight="medium">{property.beds} Bedrooms</Text>
+                    </HStack>
+                    <HStack gap={2}>
+                      <FaBath size={20} color="gray" />
+                      <Text fontWeight="medium">
+                        {property.baths} Bathrooms
+                      </Text>
+                    </HStack>
+                    <HStack gap={2}>
+                      <FaExpand size={20} color="gray" />
+                      <Text fontWeight="medium">{property.size_m2}</Text>
+                    </HStack>
                   </HStack>
-                  <HStack gap={2}>
-                    <FaBath size={20} color="gray" />
-                    <Text fontWeight="medium">{property.baths} Baths</Text>
-                  </HStack>
-                  <HStack gap={2}>
-                    <FaExpand size={20} color="gray" />
-                    <Text fontWeight="medium">{property.size_m2}</Text>
-                  </HStack>
-                </HStack>
+                </Box>
 
                 {/* Description */}
                 <Box>
@@ -514,7 +529,7 @@ const PropertyDetail = () => {
                   </Text>
                 </Box>
 
-                {/* Features */}
+                {/*Property type*/}
                 <Box>
                   <Heading
                     as="h2"
@@ -523,24 +538,20 @@ const PropertyDetail = () => {
                     fontWeight="medium"
                     mb={4}
                   >
-                    Features & Amenities
+                    Type
                   </Heading>
-                  <SimpleGrid columns={{ base: 1, sm: 2 }} gap={3}>
-                    {property.features.map((feature) => (
-                      <HStack key={feature} gap={2}>
-                        <Box
-                          h={1.5}
-                          w={1.5}
-                          rounded="full"
-                          bg="hsl(35, 80%, 56%)"
-                          flexShrink={0}
-                        />
-                        <Text fontSize="sm" color="gray.600">
-                          {feature}
-                        </Text>
-                      </HStack>
-                    ))}
-                  </SimpleGrid>
+                  <HStack gap={2}>
+                    <Box
+                      h={1.5}
+                      w={1.5}
+                      rounded="full"
+                      bg="hsl(35, 80%, 56%)"
+                      flexShrink={0}
+                    />
+                    <Text fontSize="sm" color="gray.600">
+                      {property.type}
+                    </Text>
+                  </HStack>
                 </Box>
 
                 {/* Map Placeholder */}
