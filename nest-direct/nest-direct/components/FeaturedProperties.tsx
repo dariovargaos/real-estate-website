@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   Box,
@@ -25,9 +27,57 @@ import { useListedProperties } from "../hooks/useListedProperties";
 
 export default function FeaturedProperties() {
   const { data: properties, isLoading: loading, error } = useListedProperties();
+  //mozda poslije dodati da vuce iz baze samo premium i elite a ne sve i onda samo shuffle tih,
+  // ali ovo je ok za sada jer se ionako vrti svake 3 minute i nema puno podataka,
+  // a kasnije kad bude bilo vise onda optimizirati sa queryem koji vuce samo premium i elite
 
-  // Show only first 6 properties or featured ones
-  const featuredProperties = properties?.slice(0, 6) || [];
+  // Filter premium and elite properties
+  const premiumEliteProperties = useMemo(() => {
+    return (
+      properties?.filter(
+        (property) =>
+          property.tag?.toLowerCase() === "premium" ||
+          property.tag?.toLowerCase() === "elite",
+      ) || []
+    );
+  }, [properties]);
+
+  // Use TanStack Query to manage featured properties rotation
+  const { data: featuredProperties } = useQuery({
+    queryKey: ["featured-properties"],
+    queryFn: () => {
+      if (premiumEliteProperties.length === 0) return [];
+
+      // Calculate current rotation slot inside queryFn (allowed here)
+      const currentRotationSlot = Math.floor(Date.now() / (3 * 60 * 1000));
+
+      // Shuffle properties based on the rotation slot for deterministic randomness
+      const shuffledProperties = premiumEliteProperties
+        .map((property, index) => ({
+          property,
+          sortKey: Math.sin((index + currentRotationSlot) * 2.5), // Deterministic shuffle
+        }))
+        .sort((a, b) => a.sortKey - b.sortKey)
+        .map((item) => item.property);
+
+      // Remove duplicates and take first 9
+      const uniqueProperties = [];
+      const usedIds = new Set();
+
+      for (const property of shuffledProperties) {
+        if (!usedIds.has(property.id) && uniqueProperties.length < 9) {
+          uniqueProperties.push(property);
+          usedIds.add(property.id);
+        }
+      }
+
+      return uniqueProperties;
+    },
+    enabled: !!premiumEliteProperties.length, // Only run when we have properties
+    staleTime: 3 * 60 * 1000, // Consider data stale after 3 minutes
+    refetchInterval: 3 * 60 * 1000, // Auto-refetch every 3 minutes
+    refetchIntervalInBackground: true, // Continue rotation even when tab is not active
+  });
 
   if (loading) {
     return (
@@ -101,7 +151,7 @@ export default function FeaturedProperties() {
           </ChakraLink>
         </Flex>
 
-        {featuredProperties.length > 0 ? (
+        {featuredProperties && featuredProperties.length > 0 ? (
           <Grid
             templateColumns={{
               base: "1fr",
@@ -125,10 +175,10 @@ export default function FeaturedProperties() {
         ) : (
           <VStack textAlign="center" py={12}>
             <Text color="gray.600" fontSize="lg">
-              No properties available
+              No premium or elite properties available
             </Text>
             <Text color="gray.500" fontSize="sm">
-              Check back later for new listings
+              Check back later for premium listings
             </Text>
           </VStack>
         )}
