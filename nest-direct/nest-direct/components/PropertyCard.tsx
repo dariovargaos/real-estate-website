@@ -124,11 +124,31 @@ const PropertyCard = ({
       borderRadius="2xl"
       overflow="hidden"
       boxShadow="md"
+      border={
+        tag?.toLowerCase() === "elite"
+          ? "4px solid #FFD400" // Gold border for Elite
+          : tag?.toLowerCase() === "premium"
+            ? "2px solid #E85D04" // Dark orange border for Premium
+            : tag?.toLowerCase() === "featured"
+              ? "2px solid #F77F00" // Orange border for Featured
+              : "1px solid transparent" // Default transparent border
+      }
       transition="all 0.3s"
       _hover={{
-        boxShadow: "xl",
+        boxShadow:
+          tag?.toLowerCase() === "elite"
+            ? "0 0 100px rgba(232, 218, 13, 0.3)"
+            : "xl",
         transform: "translateY(-4px)",
         textDecoration: "none",
+        borderColor:
+          tag?.toLowerCase() === "elite"
+            ? "#FFD400"
+            : tag?.toLowerCase() === "premium"
+              ? "#E85D04"
+              : tag?.toLowerCase() === "featured"
+                ? "#F77F00"
+                : "gray.200",
       }}
       cursor="pointer"
       display="block"
@@ -176,7 +196,7 @@ const PropertyCard = ({
         >
           <Icon>
             {isFavorited ? (
-              <FaHeart size={14} color="#E99E35" />
+              <FaHeart size={14} color="red" />
             ) : (
               <FaRegHeart size={14} color="black" />
             )}
@@ -187,11 +207,23 @@ const PropertyCard = ({
             position="absolute"
             top={3}
             left={3}
-            bg="#E99E35"
+            bg={
+              tag.toLowerCase() === "elite"
+                ? "#FFD400"
+                : tag.toLowerCase() === "premium"
+                  ? "#E85D04"
+                  : tag.toLowerCase() === "featured"
+                    ? "#F77F00"
+                    : "#E99E35"
+            }
             color="white"
-            border="none"
             fontWeight="medium"
             fontSize="xs"
+            px={2}
+            py={1}
+            borderRadius="md"
+            textTransform="uppercase"
+            letterSpacing="wider"
             zIndex={1}
           >
             {tag}
@@ -200,7 +232,7 @@ const PropertyCard = ({
       </Box>
 
       {/* Content */}
-      <Box p={5}>
+      <Box p={5} bg={tag?.toLowerCase() === "elite" ? "#f1eac7" : "white"}>
         <Flex align="start" justify="space-between" mb={2}>
           <Text
             fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
