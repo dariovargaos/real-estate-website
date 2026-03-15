@@ -6,8 +6,28 @@ import type {
   UserFavorite,
 } from "./database.types";
 
+// API function to clean up old "New" tags (removes "New" tag from properties older than 7 days)
+export async function cleanupOldNewTags(): Promise<void> {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const { error } = await supabase
+    .from("properties")
+    .update({ tag: null })
+    .eq("tag", "New")
+    .lt("created_at", sevenDaysAgo.toISOString());
+
+  if (error) {
+    console.error("Error cleaning up old New tags:", error.message);
+    // Don't throw error - this should fail silently to not break the UI
+  }
+}
+
 // API function to fetch all active properties
 export async function fetchProperties(): Promise<Property[]> {
+  // Clean up old "New" tags before fetching properties
+  await cleanupOldNewTags();
+
   const { data, error } = await supabase
     .from("properties")
     .select("*")

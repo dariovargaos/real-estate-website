@@ -1,9 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
+
+//components
 import PropertyCard from "../../../components/PropertyCard";
+
+//hooks
 import { useListedProperties } from "../../../hooks/useListedProperties";
 
+//chakra ui components
 import {
   Box,
   Container,
