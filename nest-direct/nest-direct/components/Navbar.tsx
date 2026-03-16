@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 //components
 import { Button, Flex, Text, Icon } from "@chakra-ui/react";
 import { Link as ChakraLink } from "@chakra-ui/react";
-import { toaster, Toaster } from "./ui/toaster";
+import { toaster } from "./ui/toaster";
 
 //hooks
 import { useUser } from "../hooks/useAuthContext";
@@ -16,7 +16,7 @@ import { LuHouse } from "react-icons/lu";
 import { FiUser, FiLogOut } from "react-icons/fi";
 
 export default function Navbar() {
-  const { user, isLoading, signOut } = useUser();
+  const { user, signOut } = useUser();
   const router = useRouter();
 
   const handleListPropertyClick = () => {
@@ -105,20 +105,6 @@ export default function Navbar() {
 
         <ChakraLink
           as={Link}
-          href="/sell"
-          color="gray.500"
-          _hover={{
-            color: "black",
-            textDecoration: "none",
-          }}
-          _focus={{ boxShadow: "none", outline: "none" }}
-          _active={{ boxShadow: "none", outline: "none" }}
-        >
-          Sell
-        </ChakraLink>
-
-        <ChakraLink
-          as={Link}
           href="/premium"
           color="gray.500"
           _hover={{
@@ -133,7 +119,9 @@ export default function Navbar() {
 
         <Button
           onClick={handleListPropertyClick}
-          colorPalette="gray"
+          bg="#E99E35"
+          color="white"
+          _hover={{ bg: "#e2a856" }}
           variant="solid"
           rounded="xl"
         >
@@ -141,12 +129,7 @@ export default function Navbar() {
         </Button>
 
         {/* Authentication Buttons */}
-        {isLoading ? (
-          // Loading state
-          <Button disabled variant="outline" rounded="xl" bg="white">
-            Loading...
-          </Button>
-        ) : user ? (
+        {user ? (
           // Logged in state
           <Flex gap={3} alignItems="center">
             <Text fontSize="sm" color="gray.600">
@@ -182,34 +165,11 @@ export default function Navbar() {
           </Flex>
         ) : (
           // Logged out state
-          <Flex gap={3} alignItems="center">
-            <Button
-              asChild
-              variant="outline"
-              rounded="xl"
-              bg="white"
-              _hover={{
-                color: "white",
-                bg: "#E99E35",
-              }}
-            >
-              <Link href="/sign-in">Sign In</Link>
-            </Button>
-            <Button
-              asChild
-              variant="plain"
-              rounded="full"
-              _hover={{
-                color: "white",
-                bg: "#E99E35",
-              }}
-            >
-              <Link href="/sign-up">Sign Up</Link>
-            </Button>
-          </Flex>
+          <Button asChild rounded="xl" colorPalette="gray">
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
         )}
       </Flex>
-      <Toaster />
     </Flex>
   );
 }
