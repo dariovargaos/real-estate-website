@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import {
@@ -26,6 +26,11 @@ import PropertyCard from "./PropertyCard";
 import { useListedProperties } from "../hooks/useListedProperties";
 
 export default function FeaturedProperties() {
+  const sectionRef = useRef<HTMLDivElement | null>(null);
+  const [hasEnteredView, setHasEnteredView] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !("IntersectionObserver" in window);
+  });
   const { data: properties, isLoading: loading, error } = useListedProperties();
   //mozda poslije dodati da vuce iz baze samo premium i elite a ne sve i onda samo shuffle tih,
   // ali ovo je ok za sada jer se ionako vrti svake 3 minute i nema puno podataka,
@@ -79,6 +84,30 @@ export default function FeaturedProperties() {
     refetchIntervalInBackground: true, // Continue rotation even when tab is not active
   });
 
+  useEffect(() => {
+    const sectionElement = sectionRef.current;
+    if (!sectionElement || hasEnteredView) return;
+
+    if (typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasEnteredView(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.05,
+        rootMargin: "0px 0px -10% 0px",
+      },
+    );
+
+    observer.observe(sectionElement);
+
+    return () => observer.disconnect();
+  }, [hasEnteredView]);
+
   if (loading) {
     return (
       <Box as="section" id="properties" py={{ base: 24 }} bg="#FCFAF8">
@@ -108,7 +137,13 @@ export default function FeaturedProperties() {
   }
 
   return (
-    <Box as="section" id="properties" py={{ base: 24 }} bg="#FCFAF8">
+    <Box
+      ref={sectionRef}
+      as="section"
+      id="properties"
+      py={{ base: 24 }}
+      bg="#FCFAF8"
+    >
       <Container maxW="container.xl" px={4}>
         <Flex
           align="flex-end"
@@ -163,9 +198,10 @@ export default function FeaturedProperties() {
             {featuredProperties.map((property, index) => (
               <Box
                 key={property.id}
+                opacity={0}
+                animation={hasEnteredView ? "fadeInUp 0.7s forwards" : "none"}
                 style={{
-                  animationDelay: `${index * 0.1}s`,
-                  animationFillMode: "forwards",
+                  animationDelay: `${index * 0.08}s`,
                 }}
               >
                 <PropertyCard {...property} />
@@ -183,6 +219,18 @@ export default function FeaturedProperties() {
           </VStack>
         )}
       </Container>
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </Box>
   );
 }

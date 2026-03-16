@@ -84,6 +84,9 @@ export default function Hero() {
             letterSpacing="widest"
             textTransform="uppercase"
             mb={4}
+            opacity={0}
+            animation="fadeInUpHero 0.5s forwards"
+            style={{ animationDelay: "0.05s" }}
           >
             Peer-to-Peer Real Estate
           </Text>
@@ -98,6 +101,9 @@ export default function Hero() {
             flexDirection="column"
             gap={7}
             fontWeight="medium"
+            opacity={0}
+            animation="fadeInUpHero 0.55s forwards"
+            style={{ animationDelay: "0.12s" }}
           >
             <Box as="div" color="white" w="100%">
               Find Your
@@ -114,60 +120,75 @@ export default function Hero() {
             fontSize={{ base: "lg", md: "xl" }}
             mb={10}
             maxW="lg"
+            opacity={0}
+            animation="fadeInUpHero 0.55s forwards"
+            style={{ animationDelay: "0.2s" }}
           >
             Connect with property owners — no agents, no hidden fees. Buy and
             sell real estate the way it should be.
           </Text>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit}>
-            <Box
-              bg="whiteAlpha.900"
-              opacity={0.95}
-              borderRadius="2xl"
-              p={2}
-              boxShadow="lg"
-              maxW="xl"
-            >
-              <Flex align="center" gap={2}>
-                <Flex align="center" gap={2} flex={1} px={4}>
-                  <InputGroup startElement={<LuMapPin color="gray.500" />}>
-                    <Input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      color="gray.500"
-                      placeholder="Search by city, neighborhood, or address..."
-                      _placeholder={{ color: "gray.500" }}
-                      py={3}
-                      fontSize="sm"
-                      border="none"
-                      _focus={{
-                        border: "none",
-                        boxShadow: "none",
-                        outline: "none",
-                      }}
-                    />
-                  </InputGroup>
+          <Box
+            opacity={0}
+            animation="fadeInUpHero 0.55s forwards"
+            style={{ animationDelay: "0.3s" }}
+          >
+            <form onSubmit={handleSearchSubmit}>
+              <Box
+                bg="whiteAlpha.900"
+                opacity={0.95}
+                borderRadius="2xl"
+                p={2}
+                boxShadow="lg"
+                maxW="xl"
+              >
+                <Flex align="center" gap={2}>
+                  <Flex align="center" gap={2} flex={1} px={4}>
+                    <InputGroup startElement={<LuMapPin color="gray.500" />}>
+                      <Input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        color="gray.500"
+                        placeholder="Search by city, neighborhood, or address..."
+                        _placeholder={{ color: "gray.500" }}
+                        py={3}
+                        fontSize="sm"
+                        border="none"
+                        _focus={{
+                          border: "none",
+                          boxShadow: "none",
+                          outline: "none",
+                        }}
+                      />
+                    </InputGroup>
+                  </Flex>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    borderRadius="xl"
+                    flexShrink={0}
+                    bg="#E99E35"
+                    color="white"
+                    _hover={{ bg: "#e2a856" }}
+                  >
+                    <CiSearch />
+                    Search
+                  </Button>
                 </Flex>
-                <Button
-                  type="submit"
-                  size="lg"
-                  borderRadius="xl"
-                  flexShrink={0}
-                  bg="#E99E35"
-                  color="white"
-                  _hover={{ bg: "#e2a856" }}
-                >
-                  <CiSearch />
-                  Search
-                </Button>
-              </Flex>
-            </Box>
-          </form>
+              </Box>
+            </form>
+          </Box>
 
           {/* Stats */}
-          <Flex gap={8} mt={10}>
+          <Flex
+            gap={8}
+            mt={10}
+            opacity={0}
+            animation="fadeInUpHero 0.55s forwards"
+            style={{ animationDelay: "0.4s" }}
+          >
             {[
               { value: "12K+", label: "Active Listings" },
               { value: "$0", label: "Agent Fees" },
@@ -185,6 +206,18 @@ export default function Hero() {
           </Flex>
         </Flex>
       </Container>
+      <style jsx global>{`
+        @keyframes fadeInUpHero {
+          0% {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </Box>
   );
 }
