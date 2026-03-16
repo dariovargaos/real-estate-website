@@ -1,3 +1,8 @@
+"use client";
+
+import { useState, type SubmitEventHandler } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   Box,
   Flex,
@@ -14,6 +19,20 @@ import { CiSearch } from "react-icons/ci";
 import { LuMapPin } from "react-icons/lu";
 
 export default function Hero() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearchSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
+    e.preventDefault();
+
+    const query = searchQuery.trim();
+    if (!query) {
+      return;
+    }
+
+    router.push(`/properties?search=${encodeURIComponent(query)}`);
+  };
+
   return (
     <Box
       position="relative"
@@ -101,46 +120,51 @@ export default function Hero() {
           </Text>
 
           {/* Search Bar */}
-          <Box
-            bg="whiteAlpha.900"
-            opacity={0.95}
-            borderRadius="2xl"
-            p={2}
-            boxShadow="lg"
-            maxW="xl"
-          >
-            <Flex align="center" gap={2}>
-              <Flex align="center" gap={2} flex={1} px={4}>
-                <InputGroup startElement={<LuMapPin color="gray.500" />}>
-                  <Input
-                    type="text"
-                    color="gray.500"
-                    placeholder="Search by city, neighborhood, or address..."
-                    _placeholder={{ color: "gray.500" }}
-                    py={3}
-                    fontSize="sm"
-                    border="none"
-                    _focus={{
-                      border: "none",
-                      boxShadow: "none",
-                      outline: "none",
-                    }}
-                  />
-                </InputGroup>
+          <form onSubmit={handleSearchSubmit}>
+            <Box
+              bg="whiteAlpha.900"
+              opacity={0.95}
+              borderRadius="2xl"
+              p={2}
+              boxShadow="lg"
+              maxW="xl"
+            >
+              <Flex align="center" gap={2}>
+                <Flex align="center" gap={2} flex={1} px={4}>
+                  <InputGroup startElement={<LuMapPin color="gray.500" />}>
+                    <Input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      color="gray.500"
+                      placeholder="Search by city, neighborhood, or address..."
+                      _placeholder={{ color: "gray.500" }}
+                      py={3}
+                      fontSize="sm"
+                      border="none"
+                      _focus={{
+                        border: "none",
+                        boxShadow: "none",
+                        outline: "none",
+                      }}
+                    />
+                  </InputGroup>
+                </Flex>
+                <Button
+                  type="submit"
+                  size="lg"
+                  borderRadius="xl"
+                  flexShrink={0}
+                  bg="#E99E35"
+                  color="white"
+                  _hover={{ bg: "#e2a856" }}
+                >
+                  <CiSearch />
+                  Search
+                </Button>
               </Flex>
-              <Button
-                size="lg"
-                borderRadius="xl"
-                flexShrink={0}
-                bg="#E99E35"
-                color="white"
-                _hover={{ bg: "#e2a856" }}
-              >
-                <CiSearch />
-                Search
-              </Button>
-            </Flex>
-          </Box>
+            </Box>
+          </form>
 
           {/* Stats */}
           <Flex gap={8} mt={10}>

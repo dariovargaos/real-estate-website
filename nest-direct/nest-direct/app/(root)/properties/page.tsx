@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 
 //components
 import PropertyCard from "../../../components/PropertyCard";
@@ -29,11 +30,18 @@ import { Toaster } from "../../../components/ui/toaster";
 import { CiSearch } from "react-icons/ci";
 
 export default function Properties() {
+  const searchParams = useSearchParams();
+  const searchFromUrl = searchParams.get("search") ?? "";
+
   const { data: properties, isLoading: loading, error } = useListedProperties();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchFromUrl);
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
   const [tagsFilter, setTagsFilter] = useState<string[]>(["any"]);
   const [typeFilter, setTypeFilter] = useState<string[]>(["any"]);
+
+  useEffect(() => {
+    setSearch(searchFromUrl);
+  }, [searchFromUrl]);
 
   // Collection data for Select components
   const tagsCollection = createListCollection({
