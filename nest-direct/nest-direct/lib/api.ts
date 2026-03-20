@@ -708,11 +708,28 @@ export async function updateProperty(
   return data;
 }
 
+// API function to fetch only Premium and Elite properties
+export async function fetchFeaturedProperties(): Promise<Property[]> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("status", "active")
+    .in("tag", ["Premium", "Elite"])
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || [];
+}
+
 // Query keys for consistent cache management
 export const propertyKeys = {
   all: ["properties"] as const,
   lists: () => [...propertyKeys.all, "list"] as const,
   list: (filters: string) => [...propertyKeys.lists(), { filters }] as const,
+  featured: () => [...propertyKeys.all, "featured"] as const,
   details: () => [...propertyKeys.all, "detail"] as const,
   detail: (id: string) => [...propertyKeys.details(), id] as const,
 };
