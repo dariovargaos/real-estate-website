@@ -4,15 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 
-//icons
+// icons
 import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
 import { FaRegHeart, FaHeart } from "react-icons/fa";
 
-//hooks
+// hooks
 import { useUser } from "../hooks/useAuthContext";
 import { useUserFavorites } from "../hooks/useProfile";
 
-//components
+// components
 import { toaster } from "./ui/toaster";
 
 import {
@@ -23,7 +23,7 @@ import {
   Badge,
   Icon,
   Button,
-  Link as ChakraLink,
+  Card,
   Separator,
 } from "@chakra-ui/react";
 
@@ -57,22 +57,17 @@ const PropertyCard = ({
   const [isFavorited, setIsFavorited] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
 
-  // Check if this property is in the user's favorites
   useEffect(() => {
     if (!user) {
-      // If user is not logged in, reset favorites state
       setIsFavorited(false);
     } else if (favorites) {
-      // If user is logged in and favorites are loaded, check if property is favorited
-      const favorited = favorites.some((fav) => fav.property.id === id);
-      setIsFavorited(favorited);
+      setIsFavorited(favorites.some((fav) => fav.property.id === id));
     }
-    // Note: If user exists but favorites are still loading, we don't update the state
   }, [favorites, id, user]);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
-    e.stopPropagation(); // Stop event bubbling
+    e.preventDefault();
+    e.stopPropagation();
 
     if (!user) {
       toaster.create({
@@ -117,172 +112,143 @@ const PropertyCard = ({
       setIsToggling(false);
     }
   };
+
+  const isElite = tag?.toLowerCase() === "elite";
+  const isPremium = tag?.toLowerCase() === "premium";
+  const isFeatured = tag?.toLowerCase() === "featured";
+
+  const tagBorderColor = isElite
+    ? "#FFD400"
+    : isPremium
+      ? "#E85D04"
+      : isFeatured
+        ? "#F77F00"
+        : "gray.500";
+
+  const tagBadgeColor = isElite
+    ? "#FFD400"
+    : isPremium
+      ? "#E85D04"
+      : isFeatured
+        ? "#F77F00"
+        : "#E99E35";
+
   return (
-    <ChakraLink
-      as={Link}
-      href={`/property/${id}`}
-      borderRadius="2xl"
+    <Card.Root
+      asChild
       overflow="hidden"
-      boxShadow="md"
-      border={
-        tag?.toLowerCase() === "elite"
-          ? "4px solid #FFD400" // Gold border for Elite
-          : tag?.toLowerCase() === "premium"
-            ? "2px solid #E85D04" // Dark orange border for Premium
-            : tag?.toLowerCase() === "featured"
-              ? "2px solid #F77F00" // Orange border for Featured
-              : "1px solid transparent" // Default transparent border
-      }
+      border={`${isElite ? "4px" : isPremium || isFeatured ? "2px" : "1px"} solid ${tagBorderColor}`}
       transition="all 0.3s"
       _hover={{
-        boxShadow:
-          tag?.toLowerCase() === "elite"
-            ? "0 0 100px rgba(232, 218, 13, 0.3)"
-            : "xl",
+        boxShadow: isElite ? "0 0 100px rgba(232, 218, 13, 0.3)" : "xl",
         transform: "translateY(-4px)",
-        textDecoration: "none",
-        borderColor:
-          tag?.toLowerCase() === "elite"
-            ? "#FFD400"
-            : tag?.toLowerCase() === "premium"
-              ? "#E85D04"
-              : tag?.toLowerCase() === "featured"
-                ? "#F77F00"
-                : "gray.200",
       }}
       cursor="pointer"
-      display="block"
-      p={0}
+      textDecoration="none"
       _focus={{ boxShadow: "xl" }}
     >
-      {/* Image */}
-      <Box position="relative" pb="75%" overflow="hidden">
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          w="100%"
-          h="100%"
-          transition="transform 0.5s"
-          _groupHover={{ transform: "scale(1.05)" }}
-        >
+      <Link href={`/property/${id}`}>
+        {/* Image */}
+        <Box position="relative" pb="75%" overflow="hidden">
           <Image
             src={image}
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            style={{
-              objectFit: "cover",
-            }}
+            style={{ objectFit: "cover" }}
           />
-        </Box>
-        <Button
-          aria-label={
-            isFavorited ? "Remove from favorites" : "Add to favorites"
-          }
-          position="absolute"
-          bg="white"
-          top={3}
-          right={3}
-          h={9}
-          w={9}
-          opacity={0.9}
-          borderRadius="full"
-          backdropFilter="blur(4px)"
-          _hover={{ bg: "white", opacity: 1, transform: "scale(1.1)" }}
-          onClick={handleToggleFavorite}
-          disabled={isToggling}
-          transition="all 0.2s"
-          role="group"
-        >
-          <Icon>
-            {isFavorited ? (
-              <FaHeart size={14} color="red" />
-            ) : (
-              <FaRegHeart size={14} color="black" />
-            )}
-          </Icon>
-        </Button>
-        {tag && (
-          <Badge
-            position="absolute"
-            top={3}
-            left={3}
-            bg={
-              tag.toLowerCase() === "elite"
-                ? "#FFD400"
-                : tag.toLowerCase() === "premium"
-                  ? "#E85D04"
-                  : tag.toLowerCase() === "featured"
-                    ? "#F77F00"
-                    : "#E99E35"
+          <Button
+            aria-label={
+              isFavorited ? "Remove from favorites" : "Add to favorites"
             }
-            color="white"
-            fontWeight="medium"
-            fontSize="xs"
-            px={2}
-            py={1}
-            borderRadius="md"
-            textTransform="uppercase"
-            letterSpacing="wider"
-            zIndex={1}
+            position="absolute"
+            bg="white"
+            top={3}
+            right={3}
+            h={9}
+            w={9}
+            opacity={0.9}
+            borderRadius="full"
+            backdropFilter="blur(4px)"
+            _hover={{ bg: "white", opacity: 1, transform: "scale(1.1)" }}
+            onClick={handleToggleFavorite}
+            disabled={isToggling}
+            transition="all 0.2s"
           >
-            {tag}
-          </Badge>
-        )}
-      </Box>
+            <Icon>
+              {isFavorited ? (
+                <FaHeart size={14} color="red" />
+              ) : (
+                <FaRegHeart size={14} color="black" />
+              )}
+            </Icon>
+          </Button>
+          {tag && (
+            <Badge
+              position="absolute"
+              top={3}
+              left={3}
+              bg={tagBadgeColor}
+              color="white"
+              fontWeight="medium"
+              fontSize="xs"
+              px={2}
+              py={1}
+              borderRadius="md"
+              textTransform="uppercase"
+              letterSpacing="wider"
+              zIndex={1}
+            >
+              {tag}
+            </Badge>
+          )}
+        </Box>
 
-      {/* Content */}
-      <Box p={5} bg={tag?.toLowerCase() === "elite" ? "#f1eac7" : "white"}>
-        <Flex align="start" justify="space-between" mb={2}>
+        {/* Content */}
+        <Card.Body bg={isElite ? "#f1eac7" : "white"} gap={0}>
           <Text
             fontFamily="ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif"
             fontSize="2xl"
+            mb={2}
           >
             {price}
           </Text>
-        </Flex>
-        <Heading as="h3" fontWeight="semibold" fontSize="sm" mb={1}>
-          {title}
-        </Heading>
-        <Flex align="center" gap={1} color="gray.500" fontSize="xs" mb={4}>
-          <Icon>
-            <LuMapPin size={14} />
-          </Icon>
-          <span>{location}</span>
-        </Flex>
+          <Heading as="h3" fontWeight="semibold" fontSize="sm" mb={1}>
+            {title}
+          </Heading>
+          <Flex align="center" gap={1} color="gray.500" fontSize="xs" mb={4}>
+            <Icon>
+              <LuMapPin size={14} />
+            </Icon>
+            <span>{location}</span>
+          </Flex>
 
-        <Separator />
+          <Separator />
 
-        {/* Features */}
-        <Flex
-          align="center"
-          gap={4}
-          pt={4}
-          borderTop="1px"
-          borderColor="gray.200"
-        >
-          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
-            <Icon>
-              <LuBedDouble size={14} />
-            </Icon>
-            <span>{beds} Bedrooms</span>
+          {/* Features */}
+          <Flex align="center" gap={4} pt={4}>
+            <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
+              <Icon>
+                <LuBedDouble size={14} />
+              </Icon>
+              <span>{beds} Bedrooms</span>
+            </Flex>
+            <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
+              <Icon>
+                <LuBath size={14} />
+              </Icon>
+              <span>{baths} Bathrooms</span>
+            </Flex>
+            <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
+              <Icon>
+                <LuMaximize size={14} />
+              </Icon>
+              <span>{size_m2} m²</span>
+            </Flex>
           </Flex>
-          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
-            <Icon>
-              <LuBath size={14} />
-            </Icon>
-            <span>{baths} Bathrooms</span>
-          </Flex>
-          <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
-            <Icon>
-              <LuMaximize size={14} />
-            </Icon>
-            <span>{size_m2} m²</span>
-          </Flex>
-        </Flex>
-      </Box>
-    </ChakraLink>
+        </Card.Body>
+      </Link>
+    </Card.Root>
   );
 };
 
