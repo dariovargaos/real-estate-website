@@ -3,6 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+//form validation
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+import { supabase } from "../../../lib/supabase";
+
+//chakra components
 import {
   Box,
   Button,
@@ -17,12 +26,10 @@ import {
   Field,
   IconButton,
 } from "@chakra-ui/react";
-import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Toaster, toaster } from "../../../components/ui/toaster";
-import { supabase } from "../../../lib/supabase";
+
+//icons
+import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
 
 const signUpSchema = z
   .object({

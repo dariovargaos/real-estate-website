@@ -133,7 +133,11 @@ export default function Navbar() {
           // Logged in state
           <Flex gap={3} alignItems="center">
             <Text fontSize="sm" color="gray.600">
-              Welcome, {user.user_metadata?.first_name || user.email}
+              Welcome,{" "}
+              {user.user_metadata?.first_name ||
+                user.user_metadata?.full_name ||
+                user.user_metadata?.name ||
+                user.email}
             </Text>
             <Button
               asChild
