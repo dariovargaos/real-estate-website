@@ -18,82 +18,70 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 import { supabase } from "../../../lib/supabase";
 
+const signUpSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    email: z.email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmedPassword: z.string().min(6, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmedPassword, {
+    message: "Passwords do not match",
+    path: ["confirmedPassword"],
+  });
+
+type SignUpFormData = z.infer<typeof signUpSchema>;
+
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmedPassword, setConfirmedPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Check if passwords match
-  const passwordsMatch =
-    password && confirmedPassword && password === confirmedPassword;
-  const showPasswordError = confirmedPassword && !passwordsMatch;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+  });
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignUpFormData) => {
     setIsLoading(true);
 
     try {
-      // Validate form
-      if (
-        !firstName.trim() ||
-        !lastName.trim() ||
-        !email.trim() ||
-        !password.trim() ||
-        !confirmedPassword.trim()
-      ) {
-        throw new Error("Please fill in all fields");
-      }
-
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters long");
-      }
-
-      if (password !== confirmedPassword) {
-        throw new Error("Passwords do not match");
-      }
-
-      // Sign up with Supabase
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
         options: {
           data: {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
+            first_name: data.firstName,
+            last_name: data.lastName,
           },
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data.user) {
+      if (authData.user) {
         toaster.create({
           title: "Account created successfully!",
-          description: data.user.email_confirmed_at
+          description: authData.user.email_confirmed_at
             ? "You can now sign in to your account."
             : "Please check your email to verify your account before signing in.",
           type: "success",
           duration: 6000,
         });
 
-        // Clear form
-        setFirstName("");
-        setLastName("");
-        setEmail("");
-        setPassword("");
-        setConfirmedPassword("");
+        reset();
 
-        // Redirect to sign-in page after a delay
         setTimeout(() => {
           router.push("/sign-in");
         }, 2000);
@@ -118,9 +106,7 @@ const SignUp = () => {
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
     } catch (error: any) {
       toaster.create({
         title: "Google sign-up failed",
@@ -234,45 +220,45 @@ const SignUp = () => {
               </Text>
             </Box>
 
-            <Box as="form" onSubmit={handleSubmit}>
+            <Box as="form" onSubmit={handleSubmit(onSubmit)}>
               <VStack gap={5}>
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.firstName}>
                   <Field.Label>First name</Field.Label>
                   <Input
+                    {...register("firstName")}
                     type="text"
                     placeholder="John"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
                     size="lg"
                     rounded="xl"
                   />
+                  <Field.ErrorText>{errors.firstName?.message}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.lastName}>
                   <Field.Label>Last name</Field.Label>
                   <Input
+                    {...register("lastName")}
                     type="text"
                     placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
                     size="lg"
                     rounded="xl"
                   />
+                  <Field.ErrorText>{errors.lastName?.message}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.email}>
                   <Field.Label>Email address</Field.Label>
                   <Input
+                    {...register("email")}
                     type="email"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     size="lg"
                     rounded="xl"
                   />
+                  <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.password}>
                   <Flex justify="space-between" w="100%" mb={2}>
                     <Field.Label>Password</Field.Label>
                     <Button
@@ -287,10 +273,9 @@ const SignUp = () => {
                   </Flex>
                   <Box position="relative" w="100%">
                     <Input
+                      {...register("password")}
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
                       size="lg"
                       pr={12}
                       rounded="xl"
@@ -316,23 +301,19 @@ const SignUp = () => {
                       )}
                     </IconButton>
                   </Box>
+                  <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.confirmedPassword}>
                   <Field.Label>Confirm Password</Field.Label>
                   <Box position="relative" w="100%">
                     <Input
+                      {...register("confirmedPassword")}
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      value={confirmedPassword}
-                      onChange={(e) => setConfirmedPassword(e.target.value)}
                       size="lg"
                       pr={12}
                       rounded="xl"
-                      borderColor={showPasswordError ? "red.500" : undefined}
-                      _focus={{
-                        borderColor: showPasswordError ? "red.500" : "",
-                      }}
                     />
                     <IconButton
                       aria-label={
@@ -355,11 +336,9 @@ const SignUp = () => {
                       )}
                     </IconButton>
                   </Box>
-                  {showPasswordError && (
-                    <Text color="red.500" fontSize="sm" mt={1}>
-                      Passwords do not match
-                    </Text>
-                  )}
+                  <Field.ErrorText>
+                    {errors.confirmedPassword?.message}
+                  </Field.ErrorText>
                 </Field.Root>
 
                 <Button

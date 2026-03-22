@@ -18,48 +18,52 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { FaHome, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 import { supabase } from "../../../lib/supabase";
 
+const signInSchema = z.object({
+  email: z.email("Please enter a valid email address"),
+  password: z.string().min(6, "Password is required"),
+});
+
+type SignInFormData = z.infer<typeof signInSchema>;
+
 const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
+  });
+
+  const onSubmit = async (data: SignInFormData) => {
     setIsLoading(true);
 
     try {
-      // Validate form
-      if (!email.trim() || !password.trim()) {
-        throw new Error("Please fill in all fields");
-      }
-
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      if (data.user) {
+      if (authData.user) {
         toaster.create({
           title: "Welcome back!",
           description: "You have successfully signed in.",
           type: "success",
         });
 
-        // Clear form
-        setEmail("");
-        setPassword("");
-
-        // Redirect to home page
+        reset();
         router.push("/");
       }
     } catch (error: any) {
@@ -82,9 +86,7 @@ const SignIn = () => {
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
     } catch (error: any) {
       toaster.create({
         title: "Google sign-in failed",
@@ -173,21 +175,21 @@ const SignIn = () => {
               </Text>
             </Box>
 
-            <Box as="form" onSubmit={handleSubmit}>
+            <Box as="form" onSubmit={handleSubmit(onSubmit)}>
               <VStack gap={5}>
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.email}>
                   <Field.Label>Email address</Field.Label>
                   <Input
+                    {...register("email")}
                     type="email"
                     placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     size="lg"
                     rounded="xl"
                   />
+                  <Field.ErrorText>{errors.email?.message}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.password}>
                   <Flex justify="space-between" w="100%" mb={2}>
                     <Field.Label>Password</Field.Label>
                     <Button
@@ -202,10 +204,9 @@ const SignIn = () => {
                   </Flex>
                   <Box position="relative" w="100%">
                     <Input
+                      {...register("password")}
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
                       size="lg"
                       pr={12}
                       rounded="xl"
@@ -231,6 +232,7 @@ const SignIn = () => {
                       )}
                     </IconButton>
                   </Box>
+                  <Field.ErrorText>{errors.password?.message}</Field.ErrorText>
                 </Field.Root>
 
                 <Button
