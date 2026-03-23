@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import PropertyCard from "../../../components/PropertyCard";
 
 //hooks
-import { useListedProperties } from "../../../hooks/useListedProperties";
+import { useListedProperties } from "../../../hooks/useProperties";
 
 //chakra ui components
 import {

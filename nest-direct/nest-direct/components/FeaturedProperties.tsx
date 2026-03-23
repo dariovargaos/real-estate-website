@@ -22,7 +22,7 @@ import { FaArrowRight } from "react-icons/fa";
 import PropertyCard from "./PropertyCard";
 
 //hooks
-import { useFeaturedProperties } from "../hooks/useListedProperties";
+import { useFeaturedProperties } from "../hooks/useProperties";
 
 export default function FeaturedProperties() {
   const sectionRef = useRef<HTMLDivElement | null>(null);

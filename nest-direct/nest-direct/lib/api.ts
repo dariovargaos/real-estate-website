@@ -7,15 +7,10 @@ import type {
 } from "./database.types";
 
 // API function to clean up old "New" tags (removes "New" tag from properties older than 7 days)
+// Uses a SECURITY DEFINER RPC function to bypass RLS, which would otherwise restrict
+// updates to only the current user's own properties.
 export async function cleanupOldNewTags(): Promise<void> {
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-  const { error } = await supabase
-    .from("properties")
-    .update({ tag: null })
-    .eq("tag", "New")
-    .lt("created_at", sevenDaysAgo.toISOString());
+  const { error } = await supabase.rpc("cleanup_old_new_tags");
 
   if (error) {
     console.error("Error cleaning up old New tags:", error.message);
