@@ -2,9 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 
+//form validation
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+//hooks
+import { useUser } from "../../../hooks/useAuthContext";
+import { useProperty } from "../../../hooks/useProperty";
+import { useUserProfile } from "../../../hooks/useProfile";
+
+//api
+import { createProperty, updateProperty, propertyKeys } from "../../../lib/api";
+
+//chakra components
 import {
   Box,
   Flex,
@@ -24,21 +39,26 @@ import {
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
-//hooks
-import { useUser } from "../../../hooks/useAuthContext";
-import { useProperty } from "../../../hooks/useProperty";
-import { useUserProfile } from "../../../hooks/useProfile";
-
-//api
-import { createProperty, updateProperty, propertyKeys } from "../../../lib/api";
-
 //icons
 import { FaEuroSign, FaCheckCircle } from "react-icons/fa";
 import { LuHouse, LuMapPin, LuUpload, LuX } from "react-icons/lu";
 
+const listPropertySchema = z.object({
+  title: z.string().min(1, "Property title is required"),
+  price: z.string().min(1, "Asking price is required"),
+  location: z.string().min(1, "Location is required"),
+  property_type: z.string().min(1, "Property type is required"),
+  beds: z.string().min(1, "Number of bedrooms is required"),
+  baths: z.string().min(1, "Number of bathrooms is required"),
+  size_m2: z.string().min(1, "Size is required"),
+  description: z.string().min(1, "Description is required"),
+  seller_phone: z.string().min(1, "Phone number is required"),
+});
+
+type ListPropertyFormData = z.infer<typeof listPropertySchema>;
+
 export default function ListProperty() {
   const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user, isLoading } = useUser();
   const { profile } = useUserProfile();
   const router = useRouter();
@@ -52,43 +72,54 @@ export default function ListProperty() {
     editId || undefined,
   );
 
-  // Form state
-  const [formData, setFormData] = useState({
-    title: "",
-    price: "",
-    location: "",
-    property_type: "",
-    beds: "",
-    baths: "",
-    size_m2: "",
-    description: "",
-    seller_phone: "",
-  });
-
   // File upload state
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  // Handle form field changes
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  // Track which existing image URLs the user has removed in edit mode
+  const [removedImageUrls, setRemovedImageUrls] = useState<Set<string>>(
+    new Set(),
+  );
 
-  // Pre-populate form when editing
-  useEffect(() => {
-    if (isEditMode && editProperty && !editLoading) {
-      setFormData({
-        title: editProperty.title || "",
-        price: editProperty.price?.replace(/[^0-9]/g, "") || "",
-        location: editProperty.location || "",
-        property_type: editProperty.type || "",
-        beds: editProperty.beds?.toString() || "",
-        baths: editProperty.baths?.toString() || "",
-        size_m2: editProperty.size_m2?.toString() || "",
-        description: editProperty.description || "",
-        seller_phone: editProperty.seller_phone || "",
-      });
-    }
-  }, [isEditMode, editProperty, editLoading]);
+  // Derived — no useEffect needed; reacts to editProperty loading automatically
+  const existingImages =
+    isEditMode && editProperty
+      ? (editProperty.images || []).filter(
+          (img) => img !== "/placeholder.jpg" && !removedImageUrls.has(img),
+        )
+      : [];
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<ListPropertyFormData>({
+    resolver: zodResolver(listPropertySchema),
+    values:
+      isEditMode && editProperty && !editLoading
+        ? {
+            title: editProperty.title || "",
+            price: editProperty.price?.replace(/[^0-9]/g, "") || "",
+            location: editProperty.location || "",
+            property_type: editProperty.type || "",
+            beds: editProperty.beds?.toString() || "",
+            baths: editProperty.baths?.toString() || "",
+            size_m2: editProperty.size_m2?.toString() || "",
+            description: editProperty.description || "",
+            seller_phone: editProperty.seller_phone || "",
+          }
+        : {
+            title: "",
+            price: "",
+            location: "",
+            property_type: "",
+            beds: "",
+            baths: "",
+            size_m2: "",
+            description: "",
+            seller_phone: "",
+          },
+  });
 
   // Redirect to home if user is not authenticated (client-side protection)
   useEffect(() => {
@@ -97,9 +128,7 @@ export default function ListProperty() {
     }
   }, [user, isLoading, router]);
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: ListPropertyFormData) => {
     if (!user) {
       toaster.create({
         title: "Authentication required",
@@ -111,57 +140,26 @@ export default function ListProperty() {
       return;
     }
 
-    // Validate required fields
-    const requiredFields = {
-      title: "Property Title",
-      price: "Asking Price",
-      location: "Location",
-      property_type: "Property Type",
-      beds: "Bedrooms",
-      baths: "Bathrooms",
-      size_m2: "Size",
-      description: "Description",
-      seller_phone: "Phone Number",
-    };
-
-    for (const [field, label] of Object.entries(requiredFields)) {
-      if (!formData[field as keyof typeof formData].trim()) {
-        toaster.create({
-          title: "Missing required field",
-          description: `Please fill in ${label}.`,
-          type: "error",
-          duration: 5000,
-          closable: true,
-        });
-        return;
-      }
-    }
-
-    setIsSubmitting(true);
-
     try {
-      // Debug: Log user object
-      console.log("User object:", user);
-      console.log("User ID:", user?.id);
-
       if (isEditMode && editId) {
         await updateProperty(
           editId,
           {
-            title: formData.title,
-            price: formData.price,
-            location: formData.location,
-            beds: parseInt(formData.beds),
-            baths: parseInt(formData.baths),
-            size_m2: formData.size_m2,
-            description: formData.description,
+            title: data.title,
+            price: data.price,
+            location: data.location,
+            beds: parseInt(data.beds),
+            baths: parseInt(data.baths),
+            size_m2: data.size_m2,
+            description: data.description,
             seller_name:
               `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
               user?.user_metadata?.full_name ||
               "Unknown",
-            seller_phone: formData.seller_phone,
-            property_type: formData.property_type,
+            seller_phone: data.seller_phone,
+            property_type: data.property_type,
             imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
+            keepImageUrls: existingImages,
           },
           user.id,
         );
@@ -189,20 +187,20 @@ export default function ListProperty() {
         return;
       } else {
         await createProperty({
-          title: formData.title,
-          price: formData.price,
-          location: formData.location,
-          beds: parseInt(formData.beds),
-          baths: parseInt(formData.baths),
-          size_m2: formData.size_m2,
-          description: formData.description,
+          title: data.title,
+          price: data.price,
+          location: data.location,
+          beds: parseInt(data.beds),
+          baths: parseInt(data.baths),
+          size_m2: data.size_m2,
+          description: data.description,
           seller_name:
             `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
             user?.user_metadata?.full_name ||
             "Unknown",
-          seller_phone: formData.seller_phone,
+          seller_phone: data.seller_phone,
           user_id: user.id,
-          property_type: formData.property_type,
+          property_type: data.property_type,
           imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
         });
 
@@ -234,8 +232,6 @@ export default function ListProperty() {
         duration: 7000,
         closable: true,
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -299,17 +295,7 @@ export default function ListProperty() {
               colorPalette="gray"
               onClick={() => {
                 setSubmitted(false);
-                setFormData({
-                  title: "",
-                  price: "",
-                  location: "",
-                  property_type: "",
-                  beds: "",
-                  baths: "",
-                  size_m2: "",
-                  description: "",
-                  seller_phone: "",
-                });
+                reset();
                 setUploadedFiles([]);
               }}
             >
@@ -439,36 +425,34 @@ export default function ListProperty() {
                 </Link>
               )}
             </Flex>
-            <Box as="form" onSubmit={handleSubmit}>
+            <Box as="form" onSubmit={handleSubmit(onSubmit)}>
               <Stack gap={6}>
                 <Grid
                   templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
                   gap={4}
                 >
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.title}>
                     <Field.Label>Property Title</Field.Label>
                     <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) =>
-                        handleInputChange("title", e.target.value)
-                      }
+                      {...register("title")}
                       placeholder="e.g. Modern Loft in Downtown"
                       rounded="xl"
                     />
+                    {errors.title && (
+                      <Field.ErrorText>{errors.title.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.price}>
                     <Field.Label>Asking Price (€)</Field.Label>
                     <Input
-                      id="price"
+                      {...register("price")}
                       type="number"
-                      value={formData.price}
-                      onChange={(e) =>
-                        handleInputChange("price", e.target.value)
-                      }
                       placeholder="500000"
                       rounded="xl"
                     />
+                    {errors.price && (
+                      <Field.ErrorText>{errors.price.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
                 </Grid>
 
@@ -476,28 +460,26 @@ export default function ListProperty() {
                   templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }}
                   gap={4}
                 >
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.location}>
                     <Field.Label>Location</Field.Label>
                     <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) =>
-                        handleInputChange("location", e.target.value)
-                      }
+                      {...register("location")}
                       placeholder="City"
                       rounded="xl"
                     />
+                    {errors.location && (
+                      <Field.ErrorText>
+                        {errors.location.message}
+                      </Field.ErrorText>
+                    )}
                   </Field.Root>
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.property_type}>
                     <Field.Label>Property Type</Field.Label>
                     <NativeSelect.Root>
                       <NativeSelect.Field
+                        {...register("property_type")}
                         placeholder="Select type"
                         borderRadius="xl"
-                        value={formData.property_type}
-                        onChange={(e) =>
-                          handleInputChange("property_type", e.target.value)
-                        }
                       >
                         <option value="apartment">Apartment</option>
                         <option value="house">House</option>
@@ -506,6 +488,11 @@ export default function ListProperty() {
                       </NativeSelect.Field>
                       <NativeSelect.Indicator />
                     </NativeSelect.Root>
+                    {errors.property_type && (
+                      <Field.ErrorText>
+                        {errors.property_type.message}
+                      </Field.ErrorText>
+                    )}
                   </Field.Root>
                 </Grid>
 
@@ -513,63 +500,132 @@ export default function ListProperty() {
                   templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
                   gap={4}
                 >
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.beds}>
                     <Field.Label>Bedrooms</Field.Label>
                     <Input
-                      id="beds"
+                      {...register("beds")}
                       type="number"
-                      value={formData.beds}
-                      onChange={(e) =>
-                        handleInputChange("beds", e.target.value)
-                      }
                       placeholder="3"
                       rounded="xl"
                     />
+                    {errors.beds && (
+                      <Field.ErrorText>{errors.beds.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.baths}>
                     <Field.Label>Bathrooms</Field.Label>
                     <Input
-                      id="baths"
+                      {...register("baths")}
                       type="number"
-                      value={formData.baths}
-                      onChange={(e) =>
-                        handleInputChange("baths", e.target.value)
-                      }
                       placeholder="2"
                       rounded="xl"
                     />
+                    {errors.baths && (
+                      <Field.ErrorText>{errors.baths.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.size_m2}>
                     <Field.Label>Size (m²)</Field.Label>
                     <Input
-                      id="size_m2"
+                      {...register("size_m2")}
                       type="number"
-                      value={formData.size_m2}
-                      onChange={(e) =>
-                        handleInputChange("size_m2", e.target.value)
-                      }
                       placeholder="100"
                       rounded="xl"
                     />
+                    {errors.size_m2 && (
+                      <Field.ErrorText>
+                        {errors.size_m2.message}
+                      </Field.ErrorText>
+                    )}
                   </Field.Root>
                 </Grid>
 
-                <Field.Root required>
+                <Field.Root required invalid={!!errors.description}>
                   <Field.Label>Description</Field.Label>
                   <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) =>
-                      handleInputChange("description", e.target.value)
-                    }
+                    {...register("description")}
                     placeholder="Describe your property — what makes it special?"
                     rows={5}
                     rounded="xl"
                   />
+                  {errors.description && (
+                    <Field.ErrorText>
+                      {errors.description.message}
+                    </Field.ErrorText>
+                  )}
                 </Field.Root>
 
                 <Field.Root>
-                  <Field.Label>Photos</Field.Label>
+                  <Field.Label>
+                    {isEditMode ? "Add New Photos" : "Photos"}
+                  </Field.Label>
+
+                  {/* Existing images in edit mode */}
+                  {isEditMode && existingImages.length > 0 && (
+                    <Box mb={4}>
+                      <Text fontSize="sm" color="gray.600" mb={3}>
+                        Current photos ({existingImages.length})
+                      </Text>
+                      <Grid
+                        templateColumns="repeat(auto-fill, minmax(120px, 1fr))"
+                        gap={3}
+                      >
+                        {existingImages.map((url, index) => (
+                          <Box
+                            key={url}
+                            position="relative"
+                            border="1px"
+                            borderColor="gray.200"
+                            rounded="lg"
+                            p={2}
+                            bg="white"
+                          >
+                            <Box
+                              bg="gray.100"
+                              rounded="md"
+                              overflow="hidden"
+                              position="relative"
+                              h="100px"
+                            >
+                              <Image
+                                src={url}
+                                alt={`Property photo ${index + 1}`}
+                                fill
+                                sizes="120px"
+                                style={{
+                                  objectFit: "cover",
+                                  borderRadius: "4px",
+                                }}
+                              />
+                              <Button
+                                size="sm"
+                                position="absolute"
+                                top={-1}
+                                right={-1}
+                                bg="red.500"
+                                color="white"
+                                rounded="full"
+                                w={6}
+                                h={6}
+                                minWidth="unset"
+                                p={0}
+                                fontSize="xs"
+                                _hover={{ bg: "red.600" }}
+                                onClick={() =>
+                                  setRemovedImageUrls(
+                                    (prev) => new Set([...prev, url]),
+                                  )
+                                }
+                              >
+                                <LuX />
+                              </Button>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Grid>
+                    </Box>
+                  )}
+
                   <FileUpload.Root
                     maxFiles={10}
                     maxFileSize={1 * 1024 * 1024} // 1MB
@@ -726,18 +782,19 @@ export default function ListProperty() {
                   >
                     Your Contact Info
                   </Heading>
-                  <Field.Root required>
+                  <Field.Root required invalid={!!errors.seller_phone}>
                     <Field.Label>Phone Number</Field.Label>
                     <Input
-                      id="phone"
-                      value={formData.seller_phone}
-                      onChange={(e) =>
-                        handleInputChange("seller_phone", e.target.value)
-                      }
+                      {...register("seller_phone")}
                       placeholder="0912345678"
                       type="tel"
                       rounded="xl"
                     />
+                    {errors.seller_phone && (
+                      <Field.ErrorText>
+                        {errors.seller_phone.message}
+                      </Field.ErrorText>
+                    )}
                   </Field.Root>
                 </Box>
 

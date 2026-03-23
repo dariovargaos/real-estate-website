@@ -618,6 +618,7 @@ export async function updateProperty(
     seller_phone: string;
     property_type?: string;
     imageFiles?: File[];
+    keepImageUrls?: string[]; // existing image URLs to retain after user deletions
   },
   userId: string,
 ): Promise<Property> {
@@ -640,9 +641,10 @@ export async function updateProperty(
     throw new Error("Unauthorized: You can only update your own properties");
   }
 
-  // Handle image uploads if new images provided
-  let imageUrls: string[] = existingProperty.images || ["/placeholder.jpg"];
-  let mainImage = existingProperty.images?.[0] || "/placeholder.jpg";
+  // Use keepImageUrls if provided (user may have deleted some), otherwise fall back to all existing
+  let imageUrls: string[] = propertyData.keepImageUrls ??
+    existingProperty.images ?? ["/placeholder.jpg"];
+  let mainImage = imageUrls[0] || "/placeholder.jpg";
 
   if (propertyData.imageFiles && propertyData.imageFiles.length > 0) {
     try {
@@ -650,13 +652,19 @@ export async function updateProperty(
         propertyData.imageFiles,
         userId,
       );
-      // Add new images to existing ones
+      // Append newly uploaded images after the retained existing ones
       imageUrls = [...imageUrls, ...newImageUrls];
       mainImage = imageUrls[0];
     } catch (error) {
       console.error("Error uploading new images:", error);
       // Continue with existing images if upload fails
     }
+  }
+
+  // Fall back to placeholder if no images remain
+  if (imageUrls.length === 0) {
+    imageUrls = ["/placeholder.jpg"];
+    mainImage = "/placeholder.jpg";
   }
 
   // Format as currency for display
