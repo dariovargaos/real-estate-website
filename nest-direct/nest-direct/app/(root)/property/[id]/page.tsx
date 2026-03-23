@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 //lightbox imports
 import Lightbox from "yet-another-react-lightbox";
@@ -15,8 +15,14 @@ import { useUser } from "../../../../hooks/useAuthContext";
 import { useUserFavorites } from "../../../../hooks/useProfile";
 
 //api and utils
-import { sendContactMessage } from "../../../../lib/api";
+import {
+  sendContactMessage,
+  deleteProperty,
+  userKeys,
+  propertyKeys,
+} from "../../../../lib/api";
 import { formatMemberSince } from "../../../../lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 //chakra components
 import {
@@ -36,6 +42,15 @@ import {
   Field,
   SimpleGrid,
   Spinner,
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogBackdrop,
+  DialogPositioner,
+  DialogCloseTrigger,
 } from "@chakra-ui/react";
 
 //react-icons
@@ -53,11 +68,14 @@ import {
   FaCalendarAlt,
   FaPaperPlane,
   FaMap,
+  FaTrash,
 } from "react-icons/fa";
 import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 const PropertyDetail = () => {
   const params = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const id = params.id as string;
   const { data: property, isLoading: loading, error } = useProperty(id);
   const { user } = useUser();
@@ -66,6 +84,8 @@ const PropertyDetail = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync favorites state with the hook data
   useEffect(() => {
@@ -155,6 +175,48 @@ const PropertyDetail = () => {
     }
   };
 
+  const handleDeleteProperty = async () => {
+    if (!property || !user) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteProperty(property.id, user.id);
+      // Invalidate caches so the profile listings and properties page update immediately
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: userKeys.properties(user.id),
+        }),
+        queryClient.invalidateQueries({ queryKey: propertyKeys.lists() }),
+        queryClient.removeQueries({
+          queryKey: propertyKeys.detail(property.id),
+        }),
+      ]);
+      toaster.create({
+        title: "Listing deleted",
+        description: "Your property listing has been removed.",
+        type: "success",
+        duration: 4000,
+        closable: true,
+      });
+      setIsDeleteDialogOpen(false);
+      router.push("/profile");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+      toaster.create({
+        title: "Failed to delete listing",
+        description: message,
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Contact form state
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -187,10 +249,11 @@ const PropertyDetail = () => {
               mb={4}
               color="red.500"
             >
-              Error loading property
+              Property not found
             </Heading>
             <Text color="gray.600" mb={4}>
-              {error.message}
+              Please check the URL or return to the properties listing to find
+              your next home.
             </Text>
             <Link href="/properties">
               <Button variant="outline">
@@ -716,7 +779,18 @@ const PropertyDetail = () => {
                           colorPalette="gray"
                           rounded="xl"
                         >
-                          <Link href="/profile">View All Listings</Link>
+                          <Link href="/profile">View My Listings</Link>
+                        </Button>
+
+                        <Button
+                          w="full"
+                          colorPalette="red"
+                          variant="outline"
+                          rounded="xl"
+                          onClick={() => setIsDeleteDialogOpen(true)}
+                        >
+                          <FaTrash />
+                          Delete Listing
                         </Button>
                       </VStack>
                     </VStack>
@@ -814,6 +888,59 @@ const PropertyDetail = () => {
         slides={slides}
         index={lightboxIndex}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <DialogRoot
+        open={isDeleteDialogOpen}
+        onOpenChange={(details) => setIsDeleteDialogOpen(details.open)}
+        role="alertdialog"
+        placement="center"
+      >
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent rounded="2xl" maxW="md" mx={4}>
+            <DialogHeader>
+              <DialogTitle
+                fontFamily="DM Serif Display, serif"
+                fontWeight="medium"
+              >
+                Delete Listing
+              </DialogTitle>
+              <DialogCloseTrigger disabled={isDeleting} />
+            </DialogHeader>
+            <DialogBody>
+              <Text color="gray.600" fontSize="sm">
+                Are you sure you want to delete{" "}
+                <Text as="span" fontWeight="semibold" color="gray.800">
+                  {property?.title}
+                </Text>
+                ? This action cannot be undone and the listing will be
+                permanently removed.
+              </Text>
+            </DialogBody>
+            <DialogFooter gap={3}>
+              <Button
+                colorPalette="gray"
+                rounded="xl"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorPalette="red"
+                rounded="xl"
+                onClick={handleDeleteProperty}
+                loading={isDeleting}
+                disabled={isDeleting}
+              >
+                <FaTrash />
+                Delete Listing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPositioner>
+      </DialogRoot>
 
       <Toaster />
     </Box>

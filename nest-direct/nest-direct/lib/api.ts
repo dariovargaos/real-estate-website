@@ -322,6 +322,41 @@ export async function fetchUserProperties(userId: string): Promise<Property[]> {
   return data || [];
 }
 
+// API function to hard-delete a property and all related data (cascade)
+export async function deleteProperty(
+  propertyId: string,
+  userId: string,
+): Promise<void> {
+  // Verify ownership before deleting
+  const { data: property, error: fetchError } = await supabase
+    .from("properties")
+    .select("user_id")
+    .eq("id", propertyId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  if (!property) {
+    throw new Error("Property not found");
+  }
+
+  if (property.user_id !== userId) {
+    throw new Error("You are not authorized to delete this property");
+  }
+
+  const { error } = await supabase
+    .from("properties")
+    .delete()
+    .eq("id", propertyId)
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // API function to fetch user favorites
 export async function fetchUserFavorites(
   userId: string,

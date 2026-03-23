@@ -22,8 +22,18 @@ import {
   IconButton,
   Icon,
   Spinner,
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogBody,
+  DialogFooter,
+  DialogBackdrop,
+  DialogPositioner,
+  DialogCloseTrigger,
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
+import { Tooltip } from "../../../components/ui/tooltip";
 
 //react-icons
 import { MdInbox, MdSettings } from "react-icons/md";
@@ -40,6 +50,7 @@ import {
   FaCircle,
   FaTrashAlt,
   FaTrash,
+  FaExpand,
 } from "react-icons/fa";
 
 //hooks
@@ -51,6 +62,8 @@ import {
   useUserProperties,
 } from "../../../hooks/useProfile";
 import { formatTimeAgo, formatMemberSince } from "../../../lib/utils";
+import { deleteProperty, userKeys, propertyKeys } from "../../../lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Section = "inbox" | "favourites" | "listings" | "settings";
 
@@ -63,6 +76,7 @@ interface SidebarItem {
 
 export default function Profile() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
   const { profile, loading: profileLoading, updateProfile } = useUserProfile();
   const {
@@ -81,6 +95,54 @@ export default function Profile() {
   const [activeSection, setActiveSection] = useState<Section>("inbox");
   const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+
+  // Delete listing state
+  const [propertyToDelete, setPropertyToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteListing = async () => {
+    if (!propertyToDelete || !user) return;
+    setIsDeleting(true);
+    try {
+      await deleteProperty(propertyToDelete.id, user.id);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: userKeys.properties(user.id),
+        }),
+        queryClient.invalidateQueries({ queryKey: propertyKeys.lists() }),
+        queryClient.removeQueries({
+          queryKey: propertyKeys.detail(propertyToDelete.id),
+        }),
+      ]);
+      toaster.create({
+        title: "Listing deleted",
+        description: "Your property listing has been removed.",
+        type: "success",
+        duration: 4000,
+        closable: true,
+      });
+      setIsDeleteDialogOpen(false);
+      setPropertyToDelete(null);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+      toaster.create({
+        title: "Failed to delete listing",
+        description: msg,
+        type: "error",
+        duration: 5000,
+        closable: true,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Settings state - initialized from profile data
   const [email, setEmail] = useState("");
@@ -887,8 +949,12 @@ export default function Profile() {
                                         <FaBath size={12} />
                                         <Text>{prop.baths}</Text>
                                       </HStack>
-                                      <Text>{prop.size_m2}</Text>
+                                      <HStack gap={1}>
+                                        <FaExpand size={12} />
+                                        <Text>{prop.size_m2}m²</Text>
+                                      </HStack>
                                     </HStack>
+
                                     <Text
                                       fontSize="base"
                                       fontWeight="semibold"
@@ -897,15 +963,40 @@ export default function Profile() {
                                       {prop.price}
                                     </Text>
                                   </VStack>
-                                  <Badge
-                                    variant="outline"
-                                    rounded="xl"
-                                    flexShrink={0}
-                                    fontSize="xs"
-                                    fontWeight="bold"
-                                  >
-                                    Active
-                                  </Badge>
+                                  <Flex gap={2}>
+                                    <Badge
+                                      variant="outline"
+                                      rounded="xl"
+                                      flexShrink={0}
+                                      fontSize="xs"
+                                      fontWeight="bold"
+                                    >
+                                      Active
+                                    </Badge>
+                                    <Tooltip content="Delete listing" showArrow>
+                                      <IconButton
+                                        aria-label="Delete listing"
+                                        variant="outline"
+                                        size="xs"
+                                        color="red.400"
+                                        _hover={{
+                                          color: "red.600",
+                                          bg: "red.50",
+                                        }}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          setPropertyToDelete({
+                                            id: prop.id,
+                                            title: prop.title,
+                                          });
+                                          setIsDeleteDialogOpen(true);
+                                        }}
+                                      >
+                                        <FaTrash />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Flex>
                                 </Flex>
                               </Card.Body>
                             </Flex>
@@ -1025,6 +1116,67 @@ export default function Profile() {
           </Flex>
         </Container>
       </Box>
+
+      {/* Delete Listing Confirmation Dialog */}
+      <DialogRoot
+        open={isDeleteDialogOpen}
+        onOpenChange={(details) => {
+          if (!isDeleting) {
+            setIsDeleteDialogOpen(details.open);
+            if (!details.open) setPropertyToDelete(null);
+          }
+        }}
+        role="alertdialog"
+        placement="center"
+      >
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent rounded="2xl" maxW="md" mx={4}>
+            <DialogHeader>
+              <DialogTitle
+                fontFamily="DM Serif Display, serif"
+                fontWeight="medium"
+              >
+                Delete Listing
+              </DialogTitle>
+              <DialogCloseTrigger disabled={isDeleting} />
+            </DialogHeader>
+            <DialogBody>
+              <Text color="gray.600" fontSize="sm">
+                Are you sure you want to delete{" "}
+                <Text as="span" fontWeight="semibold" color="gray.800">
+                  {propertyToDelete?.title}
+                </Text>
+                ? This action cannot be undone.
+              </Text>
+            </DialogBody>
+            <DialogFooter gap={3}>
+              <Button
+                colorPalette="gray"
+                rounded="xl"
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  setPropertyToDelete(null);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorPalette="red"
+                rounded="xl"
+                onClick={handleDeleteListing}
+                loading={isDeleting}
+                disabled={isDeleting}
+              >
+                <FaTrash />
+                Delete Listing
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPositioner>
+      </DialogRoot>
+
       <Toaster />
     </Box>
   );
