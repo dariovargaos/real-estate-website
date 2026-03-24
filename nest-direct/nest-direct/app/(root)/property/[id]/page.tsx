@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 //lightbox imports
 import Lightbox from "yet-another-react-lightbox";
@@ -22,7 +23,6 @@ import {
   propertyKeys,
 } from "../../../../lib/api";
 import { formatMemberSince } from "../../../../lib/utils";
-import { useQueryClient } from "@tanstack/react-query";
 
 //chakra components
 import {
@@ -40,7 +40,6 @@ import {
   AspectRatio,
   Badge,
   Field,
-  SimpleGrid,
   Spinner,
   DialogRoot,
   DialogContent,
@@ -52,6 +51,7 @@ import {
   DialogPositioner,
   DialogCloseTrigger,
 } from "@chakra-ui/react";
+import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 //react-icons
 import {
@@ -70,7 +70,6 @@ import {
   FaMap,
   FaTrash,
 } from "react-icons/fa";
-import { Toaster, toaster } from "../../../../components/ui/toaster";
 
 const PropertyDetail = () => {
   const params = useParams();
@@ -100,7 +99,7 @@ const PropertyDetail = () => {
       setIsFavorited(favorited);
     }
     // Note: If user exists but favorites are still loading, we don't update the state
-  }, [favorites, property?.id, user]);
+  }, [favorites, property, user]);
 
   // Handle favorites toggle with immediate UI feedback
   const handleFavoriteToggle = async () => {
