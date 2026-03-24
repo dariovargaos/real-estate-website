@@ -259,7 +259,7 @@ export async function sendMessageReply(
   // Get the recipient's name (original sender) from profiles
   const { data: recipientProfile, error: profileError } = await supabase
     .from("profiles")
-    .select("first_name, last_name")
+    .select("full_name")
     .eq("id", originalMessage.sender_id)
     .single();
 
@@ -270,7 +270,7 @@ export async function sendMessageReply(
   // Get the sender's name (current user replying) from profiles
   const { data: senderProfile, error: senderError } = await supabase
     .from("profiles")
-    .select("first_name, last_name")
+    .select("full_name")
     .eq("id", originalMessage.recipient_id)
     .single();
 
@@ -279,15 +279,8 @@ export async function sendMessageReply(
   }
 
   // Format names
-  const recipientName =
-    recipientProfile.first_name && recipientProfile.last_name
-      ? `${recipientProfile.first_name} ${recipientProfile.last_name}`
-      : recipientProfile.first_name || "Unknown User";
-
-  const senderName =
-    senderProfile.first_name && senderProfile.last_name
-      ? `${senderProfile.first_name} ${senderProfile.last_name}`
-      : senderProfile.first_name || "Unknown User";
+  const recipientName = recipientProfile.full_name || "Unknown User";
+  const senderName = senderProfile.full_name || "Unknown User";
 
   // Create reply message (swap sender and recipient)
   const { error } = await supabase.from("messages").insert({
@@ -430,7 +423,7 @@ export async function sendContactMessage(messageData: {
   // Get sender profile info
   const { data: senderProfile, error: senderError } = await supabase
     .from("profiles")
-    .select("first_name, last_name, email")
+    .select("full_name, email")
     .eq("id", messageData.senderId)
     .single();
 
@@ -439,10 +432,7 @@ export async function sendContactMessage(messageData: {
   }
 
   // Format sender name from profile
-  const senderName =
-    senderProfile?.first_name && senderProfile?.last_name
-      ? `${senderProfile.first_name} ${senderProfile.last_name}`
-      : senderProfile?.first_name || "Unknown User";
+  const senderName = senderProfile?.full_name || "Unknown User";
 
   const senderEmail = senderProfile?.email || "";
 
@@ -479,16 +469,12 @@ export async function sendContactMessage(messageData: {
   let recipientName = "Property Owner";
   const { data: ownerProfile } = await supabase
     .from("profiles")
-    .select("first_name, last_name")
+    .select("full_name")
     .eq("id", property.user_id)
     .single();
 
   if (ownerProfile) {
-    const { first_name, last_name } = ownerProfile;
-    recipientName =
-      first_name && last_name
-        ? `${first_name} ${last_name}`
-        : first_name || "Property Owner";
+    recipientName = ownerProfile.full_name || "Property Owner";
   }
 
   // Insert the message

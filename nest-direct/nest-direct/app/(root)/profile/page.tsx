@@ -147,8 +147,7 @@ export default function Profile() {
   // Settings state - initialized from profile data
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize settings form with profile data
@@ -156,8 +155,7 @@ export default function Profile() {
     if (profile) {
       setEmail(profile.email || "");
       setPhone(profile.phone || "");
-      setFirstName(profile.first_name || "");
-      setLastName(profile.last_name || "");
+      setFullName(profile.full_name || "");
     }
   }, [profile]);
 
@@ -192,8 +190,7 @@ export default function Profile() {
       const result = await updateProfile({
         email: email,
         phone: phone,
-        first_name: firstName,
-        last_name: lastName,
+        full_name: fullName,
         updated_at: new Date().toISOString(),
       });
 
@@ -335,12 +332,7 @@ export default function Profile() {
   }
 
   // Get display name
-  const displayName =
-    profile?.first_name && profile?.last_name
-      ? `${profile.first_name} ${profile.last_name}`
-      : profile?.first_name
-        ? profile.first_name
-        : user.email?.split("@")[0] || "User";
+  const displayName = profile?.full_name || user.email?.split("@")[0] || "User";
 
   const memberSince = profile?.created_at
     ? formatMemberSince(profile.created_at)
@@ -1027,21 +1019,11 @@ export default function Profile() {
                       <VStack gap={4} align="stretch">
                         <Box>
                           <Text fontSize="sm" fontWeight="medium" mb={1.5}>
-                            First Name
+                            Full Name
                           </Text>
                           <Input
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            bg="gray.100"
-                          />
-                        </Box>
-                        <Box>
-                          <Text fontSize="sm" fontWeight="medium" mb={1.5}>
-                            Last Name
-                          </Text>
-                          <Input
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
                             bg="gray.100"
                           />
                         </Box>

@@ -30,11 +30,13 @@ import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //icons
 import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
+import { withMask } from "use-mask-input";
 
 const signUpSchema = z
   .object({
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
+    phone: z.string().min(6, "Please enter a valid phone number"),
     email: z.email("Please enter a valid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmedPassword: z.string().min(6, "Please confirm your password"),
@@ -69,8 +71,8 @@ const SignUp = () => {
         password: data.password,
         options: {
           data: {
-            first_name: data.firstName,
-            last_name: data.lastName,
+            full_name: `${data.firstName} ${data.lastName}`.trim(),
+            phone: data.phone,
           },
         },
       });
@@ -90,7 +92,7 @@ const SignUp = () => {
         reset();
 
         setTimeout(() => {
-          router.push("/sign-in");
+          router.push("/");
         }, 2000);
       }
     } catch (error: any) {
@@ -122,6 +124,8 @@ const SignUp = () => {
       });
     }
   };
+
+  const { ref: phoneRef, ...phoneRest } = register("phone");
 
   return (
     <Flex minH="100vh">
@@ -251,6 +255,22 @@ const SignUp = () => {
                     rounded="xl"
                   />
                   <Field.ErrorText>{errors.lastName?.message}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root required invalid={!!errors.phone}>
+                  <Field.Label>Phone Number</Field.Label>
+                  <Input
+                    {...phoneRest}
+                    ref={(el) => {
+                      phoneRef(el);
+                      withMask("999 9999 999")(el);
+                    }}
+                    type="tel"
+                    placeholder="091 2345 678"
+                    size="lg"
+                    rounded="xl"
+                  />
+                  <Field.ErrorText>{errors.phone?.message}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root required invalid={!!errors.email}>

@@ -78,10 +78,9 @@ export type Database = {
           country: string | null;
           created_at: string;
           email: string | null;
-          first_name: string | null;
+          full_name: string | null;
           id: string;
           is_verified: boolean | null;
-          last_name: string | null;
           marketing_emails_enabled: boolean | null;
           phone: string | null;
           preferred_contact_method: string | null;
@@ -99,10 +98,9 @@ export type Database = {
           country?: string | null;
           created_at?: string;
           email?: string | null;
-          first_name?: string | null;
+          full_name?: string | null;
           id: string;
           is_verified?: boolean | null;
-          last_name?: string | null;
           marketing_emails_enabled?: boolean | null;
           phone?: string | null;
           preferred_contact_method?: string | null;
@@ -120,10 +118,9 @@ export type Database = {
           country?: string | null;
           created_at?: string;
           email?: string | null;
-          first_name?: string | null;
+          full_name?: string | null;
           id?: string;
           is_verified?: boolean | null;
-          last_name?: string | null;
           marketing_emails_enabled?: boolean | null;
           phone?: string | null;
           preferred_contact_method?: string | null;
