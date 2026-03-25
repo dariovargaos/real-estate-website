@@ -52,7 +52,7 @@ const listPropertySchema = z.object({
   baths: z.string().min(1, "Number of bathrooms is required"),
   size_m2: z.string().min(1, "Size is required"),
   description: z.string().min(1, "Description is required"),
-  seller_phone: z.string().min(1, "Phone number is required"),
+  seller_phone: z.string().min(9, "Phone number is required"),
 });
 
 type ListPropertyFormData = z.infer<typeof listPropertySchema>;
@@ -117,7 +117,7 @@ export default function ListProperty() {
             baths: "",
             size_m2: "",
             description: "",
-            seller_phone: "",
+            seller_phone: profile?.phone || "",
           },
   });
 
@@ -153,9 +153,7 @@ export default function ListProperty() {
             size_m2: data.size_m2,
             description: data.description,
             seller_name:
-              `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-              user?.user_metadata?.full_name ||
-              "Unknown",
+              profile?.full_name || user?.user_metadata?.full_name || "Unknown",
             seller_phone: data.seller_phone,
             property_type: data.property_type,
             imageFiles: uploadedFiles.length > 0 ? uploadedFiles : undefined,
@@ -195,9 +193,7 @@ export default function ListProperty() {
           size_m2: data.size_m2,
           description: data.description,
           seller_name:
-            `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() ||
-            user?.user_metadata?.full_name ||
-            "Unknown",
+            profile?.full_name || user?.user_metadata?.full_name || "Unknown",
           seller_phone: data.seller_phone,
           user_id: user.id,
           property_type: data.property_type,
