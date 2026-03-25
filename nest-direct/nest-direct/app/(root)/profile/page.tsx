@@ -4,6 +4,7 @@ import { useState, useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 //chakra components
 import {
@@ -11,6 +12,7 @@ import {
   Button,
   Card,
   Badge,
+  Field,
   Input,
   VStack,
   HStack,
@@ -61,9 +63,22 @@ import {
   useUserFavorites,
   useUserProperties,
 } from "../../../hooks/useProfile";
+
+//utils
 import { formatTimeAgo, formatMemberSince } from "../../../lib/utils";
 import { deleteProperty, userKeys, propertyKeys } from "../../../lib/api";
-import { useQueryClient } from "@tanstack/react-query";
+
+//form validation
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const settingsSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.email("Invalid email address"),
+  phone: z.string().min(9, "Phone number is required"),
+});
+type SettingsFormValues = z.infer<typeof settingsSchema>;
 
 type Section = "inbox" | "favourites" | "listings" | "settings";
 
@@ -144,20 +159,27 @@ export default function Profile() {
     }
   };
 
-  // Settings state - initialized from profile data
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  // Settings form with validation
+  const {
+    register: registerSettings,
+    handleSubmit: handleSettingsSubmit,
+    reset: resetSettingsForm,
+    formState: { errors: settingsErrors, isSubmitting: isSaving },
+  } = useForm<SettingsFormValues>({
+    resolver: zodResolver(settingsSchema),
+    defaultValues: { fullName: "", email: "", phone: "" },
+  });
 
   // Initialize settings form with profile data
   useEffect(() => {
     if (profile) {
-      setEmail(profile.email || "");
-      setPhone(profile.phone || "");
-      setFullName(profile.full_name || "");
+      resetSettingsForm({
+        email: profile.email || "",
+        phone: profile.phone || "",
+        fullName: profile.full_name || "",
+      });
     }
-  }, [profile]);
+  }, [profile, resetSettingsForm]);
 
   // Redirect to home page when user logs out
   useEffect(() => {
@@ -182,15 +204,14 @@ export default function Profile() {
     { key: "settings", label: "Settings", icon: <MdSettings /> },
   ];
 
-  const handleSaveSettings = async () => {
+  const handleSaveSettings = async (data: SettingsFormValues) => {
     if (!profile) return;
 
-    setIsSaving(true);
     try {
       const result = await updateProfile({
-        email: email,
-        phone: phone,
-        full_name: fullName,
+        email: data.email,
+        phone: data.phone,
+        full_name: data.fullName || "",
         updated_at: new Date().toISOString(),
       });
 
@@ -209,8 +230,6 @@ export default function Profile() {
         description: error.message || "Something went wrong.",
         type: "error",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -1016,54 +1035,74 @@ export default function Profile() {
                       </Card.Description>
                     </Card.Header>
                     <Card.Body>
-                      <VStack gap={4} align="stretch">
-                        <Box>
-                          <Text fontSize="sm" fontWeight="medium" mb={1.5}>
-                            Full Name
-                          </Text>
-                          <Input
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                            bg="gray.100"
-                          />
-                        </Box>
-                        <Box>
-                          <Text fontSize="sm" fontWeight="medium" mb={1.5}>
-                            Email Address
-                          </Text>
-                          <Input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            bg="gray.100"
-                          />
-                        </Box>
-                        <Box>
-                          <Text
-                            fontSize="sm"
-                            fontWeight="medium"
-                            color="foreground"
-                            mb={1.5}
+                      <Box
+                        as="form"
+                        onSubmit={handleSettingsSubmit(handleSaveSettings)}
+                      >
+                        <VStack gap={4} align="stretch">
+                          <Field.Root invalid={!!settingsErrors.fullName}>
+                            <Field.Label
+                              fontSize="sm"
+                              fontWeight="medium"
+                              mb={1.5}
+                            >
+                              Full Name
+                            </Field.Label>
+                            <Input
+                              type="text"
+                              {...registerSettings("fullName")}
+                              bg="gray.100"
+                            />
+                            <Field.ErrorText fontSize="xs">
+                              {settingsErrors.fullName?.message}
+                            </Field.ErrorText>
+                          </Field.Root>
+                          <Field.Root invalid={!!settingsErrors.email}>
+                            <Field.Label
+                              fontSize="sm"
+                              fontWeight="medium"
+                              mb={1.5}
+                            >
+                              Email Address
+                            </Field.Label>
+                            <Input
+                              type="email"
+                              {...registerSettings("email")}
+                              bg="gray.100"
+                            />
+                            <Field.ErrorText fontSize="xs">
+                              {settingsErrors.email?.message}
+                            </Field.ErrorText>
+                          </Field.Root>
+                          <Field.Root required invalid={!!settingsErrors.phone}>
+                            <Field.Label
+                              fontSize="sm"
+                              fontWeight="medium"
+                              mb={1.5}
+                            >
+                              Phone Number
+                            </Field.Label>
+                            <Input
+                              type="tel"
+                              {...registerSettings("phone")}
+                              bg="gray.100"
+                            />
+                            <Field.ErrorText fontSize="xs">
+                              {settingsErrors.phone?.message}
+                            </Field.ErrorText>
+                          </Field.Root>
+                          <Button
+                            type="submit"
+                            loading={isSaving}
+                            disabled={isSaving}
+                            colorPalette="gray"
+                            alignSelf="start"
+                            rounded="xl"
                           >
-                            Phone Number
-                          </Text>
-                          <Input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            bg="gray.100"
-                          />
-                        </Box>
-                        <Button
-                          onClick={handleSaveSettings}
-                          disabled={isSaving}
-                          colorPalette="gray"
-                          alignSelf="start"
-                          rounded="xl"
-                        >
-                          {isSaving ? "Saving..." : "Save Changes"}
-                        </Button>
-                      </VStack>
+                            Save Changes
+                          </Button>
+                        </VStack>
+                      </Box>
                     </Card.Body>
                   </Card.Root>
 
