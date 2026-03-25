@@ -10,6 +10,7 @@ import { toaster } from "./ui/toaster";
 
 //hooks
 import { useUser } from "../hooks/useAuthContext";
+import { useUserProfile } from "../hooks/useProfile";
 
 //icons
 import { LuHouse } from "react-icons/lu";
@@ -17,7 +18,18 @@ import { FiUser, FiLogOut } from "react-icons/fi";
 
 export default function Navbar() {
   const { user, signOut } = useUser();
+  const { profile } = useUserProfile();
   const router = useRouter();
+
+  const firstName =
+    (
+      profile?.full_name ||
+      user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      ""
+    ).split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "there";
 
   const handleListPropertyClick = () => {
     if (!user) {
@@ -133,11 +145,7 @@ export default function Navbar() {
           // Logged in state
           <Flex gap={3} alignItems="center">
             <Text fontSize="sm" color="gray.600">
-              Welcome,{" "}
-              {user.user_metadata?.first_name ||
-                user.user_metadata?.full_name ||
-                user.user_metadata?.name ||
-                user.email}
+              Welcome, {firstName}
             </Text>
             <Button
               asChild
