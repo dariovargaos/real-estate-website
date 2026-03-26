@@ -6,7 +6,7 @@ import type {
   UserFavorite,
 } from "./database.types";
 
-// API function to clean up old "New" tags (removes "New" tag from properties older than 7 days)
+// API function to clean up old "New" tags (removes "New" tag from properties older than 14 days)
 // Uses a SECURITY DEFINER RPC function to bypass RLS, which would otherwise restrict
 // updates to only the current user's own properties.
 export async function cleanupOldNewTags(): Promise<void> {
