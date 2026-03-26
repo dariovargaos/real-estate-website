@@ -90,6 +90,7 @@ export type Database = {
           user_type: string | null;
           verification_document_url: string | null;
           zip_code: string | null;
+          deletion_scheduled_at: string | null;
         };
         Insert: {
           avatar_url?: string | null;
@@ -110,6 +111,7 @@ export type Database = {
           user_type?: string | null;
           verification_document_url?: string | null;
           zip_code?: string | null;
+          deletion_scheduled_at?: string | null;
         };
         Update: {
           avatar_url?: string | null;
@@ -130,6 +132,7 @@ export type Database = {
           user_type?: string | null;
           verification_document_url?: string | null;
           zip_code?: string | null;
+          deletion_scheduled_at?: string | null;
         };
         Relationships: [];
       };

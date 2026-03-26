@@ -5,6 +5,8 @@ import { useUser } from "./useAuthContext";
 import {
   fetchUserProfile,
   updateUserProfile,
+  scheduleAccountDeletion,
+  cancelAccountDeletion,
   fetchUserMessages,
   fetchConversation,
   markMessageAsRead,
@@ -57,11 +59,35 @@ export function useUserProfile() {
     }
   };
 
+  const scheduleDeleteAccount = async () => {
+    if (!user?.id) return { success: false, error: "No user ID" };
+    try {
+      await scheduleAccountDeletion(user.id);
+      queryClient.invalidateQueries({ queryKey: userKeys.profile(user.id) });
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
+  const cancelDeleteAccount = async () => {
+    if (!user?.id) return { success: false, error: "No user ID" };
+    try {
+      await cancelAccountDeletion(user.id);
+      queryClient.invalidateQueries({ queryKey: userKeys.profile(user.id) });
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  };
+
   return {
     profile: profileQuery.data || null,
     loading: profileQuery.isLoading,
     error: profileQuery.error?.message || null,
     updateProfile,
+    scheduleDeleteAccount,
+    cancelDeleteAccount,
     refetch: profileQuery.refetch,
   };
 }

@@ -93,7 +93,13 @@ export default function Profile() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isLoading: userLoading } = useUser();
-  const { profile, loading: profileLoading, updateProfile } = useUserProfile();
+  const {
+    profile,
+    loading: profileLoading,
+    updateProfile,
+    scheduleDeleteAccount,
+    cancelDeleteAccount,
+  } = useUserProfile();
   const {
     messages,
     loading: messagesLoading,
@@ -118,6 +124,12 @@ export default function Profile() {
   } | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Delete account state
+  const [isDeleteAccountDialogOpen, setIsDeleteAccountDialogOpen] =
+    useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isCancellingDeletion, setIsCancellingDeletion] = useState(false);
 
   const handleDeleteListing = async () => {
     if (!propertyToDelete || !user) return;
@@ -234,11 +246,62 @@ export default function Profile() {
   };
 
   const handleDeleteAccount = () => {
-    toaster.create({
-      title: "Account deletion requested",
-      description: "This feature is available once backend is connected.",
-      type: "error",
-    });
+    setIsDeleteAccountDialogOpen(true);
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    try {
+      const result = await scheduleDeleteAccount();
+      if (result.success) {
+        toaster.create({
+          title: "Account deletion scheduled",
+          description:
+            "Your account will be permanently deleted in 7 days. You can cancel this at any time from Settings.",
+          type: "info",
+          duration: 8000,
+          closable: true,
+        });
+        setIsDeleteAccountDialogOpen(false);
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Failed to schedule deletion",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
+  const handleCancelDeletion = async () => {
+    setIsCancellingDeletion(true);
+    try {
+      const result = await cancelDeleteAccount();
+      if (result.success) {
+        toaster.create({
+          title: "Deletion cancelled",
+          description:
+            "Your account deletion has been cancelled. Your account is safe.",
+          type: "success",
+          duration: 5000,
+          closable: true,
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error: any) {
+      toaster.create({
+        title: "Failed to cancel deletion",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
+    } finally {
+      setIsCancellingDeletion(false);
+    }
   };
 
   const handleSendReply = async () => {
@@ -1120,15 +1183,61 @@ export default function Profile() {
                       </Card.Description>
                     </Card.Header>
                     <Card.Body>
-                      <Button
-                        variant="solid"
-                        colorPalette="red"
-                        onClick={handleDeleteAccount}
-                        rounded="xl"
-                      >
-                        <FaTrashAlt />
-                        Delete Account
-                      </Button>
+                      {profile?.deletion_scheduled_at ? (
+                        <VStack align="start" gap={3}>
+                          <Box
+                            bg="red.50"
+                            border="1px solid"
+                            borderColor="red.200"
+                            rounded="xl"
+                            p={4}
+                            w="full"
+                          >
+                            <Text
+                              fontSize="sm"
+                              color="red.700"
+                              fontWeight="semibold"
+                              mb={1}
+                            >
+                              Account deletion scheduled
+                            </Text>
+                            <Text fontSize="sm" color="red.600">
+                              Your account will be permanently deleted on{" "}
+                              <Text as="span" fontWeight="semibold">
+                                {new Date(
+                                  profile.deletion_scheduled_at,
+                                ).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                })}
+                              </Text>
+                              . All your listings, messages, and data will be
+                              removed.
+                            </Text>
+                          </Box>
+                          <Button
+                            variant="outline"
+                            colorPalette="gray"
+                            onClick={handleCancelDeletion}
+                            loading={isCancellingDeletion}
+                            disabled={isCancellingDeletion}
+                            rounded="xl"
+                          >
+                            Cancel Deletion
+                          </Button>
+                        </VStack>
+                      ) : (
+                        <Button
+                          variant="solid"
+                          colorPalette="red"
+                          onClick={handleDeleteAccount}
+                          rounded="xl"
+                        >
+                          <FaTrashAlt />
+                          Delete Account
+                        </Button>
+                      )}
                     </Card.Body>
                   </Card.Root>
                 </VStack>
@@ -1137,6 +1246,70 @@ export default function Profile() {
           </Flex>
         </Container>
       </Box>
+
+      {/* Delete Account Confirmation Dialog */}
+      <DialogRoot
+        open={isDeleteAccountDialogOpen}
+        onOpenChange={(details) => {
+          if (!isDeletingAccount) {
+            setIsDeleteAccountDialogOpen(details.open);
+          }
+        }}
+        role="alertdialog"
+        placement="center"
+      >
+        <DialogBackdrop />
+        <DialogPositioner>
+          <DialogContent rounded="2xl" maxW="md" mx={4}>
+            <DialogHeader>
+              <DialogTitle
+                fontFamily="DM Serif Display, serif"
+                fontWeight="medium"
+              >
+                Delete Account
+              </DialogTitle>
+              <DialogCloseTrigger disabled={isDeletingAccount} />
+            </DialogHeader>
+            <DialogBody>
+              <VStack align="start" gap={3}>
+                <Text color="gray.600" fontSize="sm">
+                  Are you sure you want to delete your account? Your account
+                  will be permanently removed after a{" "}
+                  <Text as="span" fontWeight="semibold" color="gray.800">
+                    7-day grace period
+                  </Text>
+                  .
+                </Text>
+                <Text color="gray.600" fontSize="sm">
+                  During this time you can cancel the deletion from Settings.
+                  After 7 days, all your listings, messages, and personal data
+                  will be permanently removed.
+                </Text>
+              </VStack>
+            </DialogBody>
+            <DialogFooter gap={3}>
+              <Button
+                colorPalette="gray"
+                rounded="xl"
+                onClick={() => setIsDeleteAccountDialogOpen(false)}
+                disabled={isDeletingAccount}
+              >
+                Cancel
+              </Button>
+              <Button
+                colorPalette="red"
+                rounded="xl"
+                onClick={handleConfirmDeleteAccount}
+                loading={isDeletingAccount}
+                disabled={isDeletingAccount}
+              >
+                <FaTrash />
+                Schedule Deletion
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </DialogPositioner>
+      </DialogRoot>
 
       {/* Delete Listing Confirmation Dialog */}
       <DialogRoot

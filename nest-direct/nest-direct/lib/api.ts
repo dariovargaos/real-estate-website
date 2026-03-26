@@ -748,6 +748,33 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
   return data || [];
 }
 
+// API function to schedule account deletion (7-day grace period)
+export async function scheduleAccountDeletion(userId: string): Promise<void> {
+  const deletionDate = new Date();
+  deletionDate.setDate(deletionDate.getDate() + 7);
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ deletion_scheduled_at: deletionDate.toISOString() })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+// API function to cancel a scheduled account deletion
+export async function cancelAccountDeletion(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ deletion_scheduled_at: null })
+    .eq("id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 // Query keys for consistent cache management
 export const propertyKeys = {
   all: ["properties"] as const,
