@@ -34,6 +34,7 @@ import {
   Text,
   Heading,
   IconButton,
+  Link as ChakraLink,
   Textarea,
   VStack,
   HStack,
@@ -729,7 +730,15 @@ const PropertyDetail = () => {
 
                   <HStack gap={2} fontSize="sm" color="gray.600" mb={6}>
                     <FaPhone size={16} />
-                    <Text>{property.seller_phone}</Text>
+                    <ChakraLink
+                      href={`tel:${property.seller_phone}`}
+                      _hover={{
+                        textDecoration: "underline",
+                        color: "gray.900",
+                      }}
+                    >
+                      {property.seller_phone}
+                    </ChakraLink>
                   </HStack>
 
                   {/* Conditional Content - Contact Form, Sign In Prompt, or Owner Actions */}
