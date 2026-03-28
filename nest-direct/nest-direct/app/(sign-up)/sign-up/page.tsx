@@ -12,6 +12,7 @@ import { z } from "zod";
 import { supabase } from "../../../lib/supabase";
 
 //chakra components
+import { withMask } from "use-mask-input";
 import {
   Box,
   Button,
@@ -29,8 +30,8 @@ import {
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //icons
-import { FaHome, FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
-import { withMask } from "use-mask-input";
+import { FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
+import { LuHouse } from "react-icons/lu";
 
 const signUpSchema = z
   .object({
@@ -152,7 +153,7 @@ const SignUp = () => {
         >
           <Link href="/">
             <HStack mb={8}>
-              <FaHome size={32} color="hsl(35, 80%, 56%)" />
+              <LuHouse size={32} color="hsl(35, 80%, 56%)" />
               <Text fontFamily="serif" fontSize="2xl" color="hsl(40, 33%, 98%)">
                 NestDirect
               </Text>
@@ -207,7 +208,7 @@ const SignUp = () => {
             <Box display={{ base: "block", lg: "none" }}>
               <Link href="/">
                 <HStack mb={8}>
-                  <FaHome size={24} color="#2D3748" />
+                  <LuHouse size={24} color="hsl(35, 80%, 56%)" />
                   <Text fontFamily="serif" fontSize="xl" color="gray.800">
                     NestDirect
                   </Text>

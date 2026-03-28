@@ -27,7 +27,8 @@ import {
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
 //icons
-import { FaHome, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
+import { LuHouse } from "react-icons/lu";
 
 import { supabase } from "../../../lib/supabase";
 
@@ -128,7 +129,7 @@ const SignIn = () => {
         >
           <Link href="/">
             <HStack mb={8}>
-              <FaHome size={32} color="hsl(35, 80%, 56%)" />
+              <LuHouse size={32} color="hsl(35, 80%, 56%)" />
               <Text fontFamily="serif" fontSize="2xl" color="hsl(40, 33%, 98%)">
                 NestDirect
               </Text>
@@ -158,7 +159,7 @@ const SignIn = () => {
             <Box display={{ base: "block", lg: "none" }}>
               <Link href="/">
                 <HStack mb={8}>
-                  <FaHome size={24} color="#2D3748" />
+                  <LuHouse size={24} color="hsl(35, 80%, 56%)" />
                   <Text fontFamily="serif" fontSize="xl" color="gray.800">
                     NestDirect
                   </Text>
