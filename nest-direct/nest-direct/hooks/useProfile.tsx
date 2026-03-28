@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "./useAuthContext";
 import {
@@ -19,6 +20,7 @@ import {
   removeFromFavorites,
   userKeys,
 } from "../lib/api";
+import { supabase } from "../lib/supabase";
 import type { Profile } from "../lib/database.types";
 
 // Hook for user profile data
@@ -97,6 +99,30 @@ export function useUserMessages() {
   const { user } = useUser();
   const queryClient = useQueryClient();
 
+  // Subscribe to message changes for this user — invalidates both inbox and
+  // any open conversation the moment a new message is inserted/updated/deleted.
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel("messages-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: userKeys.messages(user.id),
+          });
+          queryClient.invalidateQueries({ queryKey: ["conversation"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
+
   const messagesQuery = useQuery({
     queryKey: userKeys.messages(user?.id || ""),
     queryFn: () => {
@@ -106,7 +132,7 @@ export function useUserMessages() {
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 2, // 2 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
-    refetchInterval: 1000 * 60 * 1, // Refetch every minute for new messages
+    refetchInterval: 1000 * 60 * 5, // fallback poll every 5 minutes (Realtime handles live updates)
   });
 
   // Hook for conversation messages
@@ -114,13 +140,14 @@ export function useUserMessages() {
     return useQuery({
       queryKey: ["conversation", user?.id, otherUserId, propertyId],
       queryFn: () => {
-        if (!user?.id || !otherUserId || !propertyId) throw new Error("Missing required data");
+        if (!user?.id || !otherUserId || !propertyId)
+          throw new Error("Missing required data");
         return fetchConversation(user.id, otherUserId, propertyId);
       },
       enabled: !!(user?.id && otherUserId && propertyId),
       staleTime: 1000 * 30, // 30 seconds
       gcTime: 1000 * 60 * 5, // 5 minutes
-      refetchInterval: 1000 * 15, // Refetch every 15 seconds for real-time feel
+      refetchInterval: 1000 * 60 * 5, // fallback poll every 5 minutes (Realtime handles live updates)
     });
   };
 
@@ -139,8 +166,13 @@ export function useUserMessages() {
   });
 
   const sendReplyMutation = useMutation({
-    mutationFn: ({ messageId, content }: { messageId: string; content: string }) => 
-      sendMessageReply(messageId, content),
+    mutationFn: ({
+      messageId,
+      content,
+    }: {
+      messageId: string;
+      content: string;
+    }) => sendMessageReply(messageId, content),
     onSuccess: () => {
       // Invalidate messages to refetch updated data
       queryClient.invalidateQueries({
@@ -154,8 +186,13 @@ export function useUserMessages() {
   });
 
   const deleteMessageMutation = useMutation({
-    mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) => 
-      deleteMessage(messageId, userId),
+    mutationFn: ({
+      messageId,
+      userId,
+    }: {
+      messageId: string;
+      userId: string;
+    }) => deleteMessage(messageId, userId),
     onSuccess: () => {
       // Invalidate messages to refetch updated data
       queryClient.invalidateQueries({
@@ -169,10 +206,14 @@ export function useUserMessages() {
   });
 
   const deleteConversationMutation = useMutation({
-    mutationFn: ({ userId, otherUserId, propertyId }: { 
-      userId: string; 
-      otherUserId: string; 
-      propertyId: string; 
+    mutationFn: ({
+      userId,
+      otherUserId,
+      propertyId,
+    }: {
+      userId: string;
+      otherUserId: string;
+      propertyId: string;
     }) => deleteConversation(userId, otherUserId, propertyId),
     onSuccess: () => {
       // Invalidate messages to refetch updated data
@@ -214,13 +255,16 @@ export function useUserMessages() {
     }
   };
 
-  const deleteUserConversation = async (otherUserId: string, propertyId: string) => {
+  const deleteUserConversation = async (
+    otherUserId: string,
+    propertyId: string,
+  ) => {
     try {
       if (!user?.id) throw new Error("User ID is required");
-      await deleteConversationMutation.mutateAsync({ 
-        userId: user.id, 
-        otherUserId, 
-        propertyId 
+      await deleteConversationMutation.mutateAsync({
+        userId: user.id,
+        otherUserId,
+        propertyId,
       });
       return { success: true };
     } catch (error: any) {

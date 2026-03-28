@@ -34,10 +34,10 @@ import { withMask } from "use-mask-input";
 
 const signUpSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+    firstName: z.string().trim().min(1, "First name is required"),
+    lastName: z.string().trim().min(1, "Last name is required"),
     phone: z.string().min(6, "Please enter a valid phone number"),
-    email: z.email("Please enter a valid email address"),
+    email: z.email("Please enter a valid email address").trim(),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmedPassword: z.string().min(6, "Please confirm your password"),
   })
@@ -83,7 +83,7 @@ const SignUp = () => {
         toaster.create({
           title: "Account created successfully!",
           description: authData.user.email_confirmed_at
-            ? "You can now sign in to your account."
+            ? "Welcome to NestDirect! You can now sign in to your account."
             : "Please check your email to verify your account before signing in.",
           type: "success",
           duration: 6000,
@@ -92,8 +92,8 @@ const SignUp = () => {
         reset();
 
         setTimeout(() => {
-          router.push("/");
-        }, 2000);
+          router.push("/sign-in");
+        }, 1000);
       }
     } catch (error: any) {
       toaster.create({
