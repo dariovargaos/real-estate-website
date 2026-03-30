@@ -5,8 +5,16 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 
 // icons
-import { LuMapPin, LuBedDouble, LuBath, LuMaximize } from "react-icons/lu";
-import { FaRegHeart, FaHeart } from "react-icons/fa";
+import {
+  LuMapPin,
+  LuBedDouble,
+  LuBath,
+  LuMaximize,
+  LuHouse,
+} from "react-icons/lu";
+import { FaRegHeart, FaHeart, FaRegBuilding } from "react-icons/fa";
+import { PiBuildingApartmentBold } from "react-icons/pi";
+import { GiField } from "react-icons/gi";
 
 // hooks
 import { useUser } from "../hooks/useAuthContext";
@@ -40,6 +48,13 @@ interface PropertyCardProps {
   tag?: string | null;
 }
 
+const typeIconMap: Record<string, React.ReactElement> = {
+  house: <LuHouse size={14} />,
+  apartment: <PiBuildingApartmentBold size={14} />,
+  office_space: <FaRegBuilding size={14} />,
+  land: <GiField size={14} />,
+};
+
 const PropertyCard = ({
   id,
   image,
@@ -49,7 +64,7 @@ const PropertyCard = ({
   beds,
   baths,
   size_m2,
-  // type, // Keep for future use but not currently displayed
+  type,
   tag,
 }: PropertyCardProps) => {
   const { user } = useUser();
@@ -226,7 +241,7 @@ const PropertyCard = ({
           <Separator />
 
           {/* Features */}
-          <Flex align="center" gap={4} pt={4}>
+          <Flex align="center" gap={4} pt={4} flexWrap="wrap">
             <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
               <Icon>
                 <LuBedDouble size={14} />
@@ -245,6 +260,14 @@ const PropertyCard = ({
               </Icon>
               <span>{size_m2} m²</span>
             </Flex>
+            {type && (
+              <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
+                <Icon>
+                  {typeIconMap[type.toLowerCase()] ?? <LuHouse size={14} />}
+                </Icon>
+                <span>{type}</span>
+              </Flex>
+            )}
           </Flex>
         </Card.Body>
       </Link>
