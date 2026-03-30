@@ -373,7 +373,10 @@ const PropertyDetail = () => {
       <Box as="main" pt={24} pb={16}>
         {/* Back link */}
         <Box maxW="container.xl" mx="auto" px={4} mb={6}>
-          <Link href="/properties">
+          <Link
+            href="/properties"
+            style={{ width: "fit-content", display: "inline-flex" }}
+          >
             <HStack
               gap={1.5}
               fontSize="sm"
@@ -708,25 +711,62 @@ const PropertyDetail = () => {
                     {isOwner ? "Your Property" : "Listed by Owner"}
                   </Heading>
 
-                  <HStack gap={3} mb={4}>
-                    <Flex
-                      h={12}
-                      w={12}
-                      rounded="full"
-                      bg="gray.100"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
-                      <FaUser size={24} color="gray" />
-                    </Flex>
-                    <Box>
-                      <Text fontWeight="semibold">{property.seller_name}</Text>
-                      <HStack gap={1} fontSize="xs" color="gray.600">
-                        <FaCalendarAlt size={12} />
-                        <Text>{formatMemberSince(property.seller_since)}</Text>
-                      </HStack>
-                    </Box>
-                  </HStack>
+                  {!isOwner && property.user_id ? (
+                    <HStack gap={3} mb={4}>
+                      <Flex
+                        h={12}
+                        w={12}
+                        rounded="full"
+                        bg="gray.100"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <FaUser size={24} color="gray" />
+                      </Flex>
+                      <Box>
+                        <Link href={`/user-profile/${property.user_id}`}>
+                          <Text
+                            fontWeight="semibold"
+                            display="inline"
+                            _hover={{ color: "hsl(35, 80%, 50%)" }}
+                            transition="color 0.2s"
+                          >
+                            {property.seller_name}
+                          </Text>
+                        </Link>
+                        <HStack gap={1} fontSize="xs" color="gray.600">
+                          <FaCalendarAlt size={12} />
+                          <Text>
+                            {formatMemberSince(property.seller_since)}
+                          </Text>
+                        </HStack>
+                      </Box>
+                    </HStack>
+                  ) : (
+                    <HStack gap={3} mb={4}>
+                      <Flex
+                        h={12}
+                        w={12}
+                        rounded="full"
+                        bg="gray.100"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <FaUser size={24} color="gray" />
+                      </Flex>
+                      <Box>
+                        <Text fontWeight="semibold">
+                          {property.seller_name}
+                        </Text>
+                        <HStack gap={1} fontSize="xs" color="gray.600">
+                          <FaCalendarAlt size={12} />
+                          <Text>
+                            {formatMemberSince(property.seller_since)}
+                          </Text>
+                        </HStack>
+                      </Box>
+                    </HStack>
+                  )}
 
                   <HStack gap={2} fontSize="sm" color="gray.600" mb={6}>
                     <FaPhone size={16} />

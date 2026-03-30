@@ -732,6 +732,22 @@ export async function updateProperty(
   return data;
 }
 
+// API function to fetch public (active) properties for any user by ID
+export async function fetchPublicUserProperties(userId: string): Promise<Property[]> {
+  const { data, error } = await supabase
+    .from("properties")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data || [];
+}
+
 // API function to fetch only Premium and Elite properties
 export async function fetchFeaturedProperties(): Promise<Property[]> {
   const { data, error } = await supabase

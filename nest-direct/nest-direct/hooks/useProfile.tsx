@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "./useAuthContext";
 import {
   fetchUserProfile,
+  fetchPublicUserProperties,
   updateUserProfile,
   scheduleAccountDeletion,
   cancelAccountDeletion,
@@ -22,6 +23,33 @@ import {
 } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import type { Profile } from "../lib/database.types";
+
+// Hook for fetching any seller's public profile by their user ID
+export function useSellerProfile(userId: string | undefined) {
+  return useQuery({
+    queryKey: userKeys.profile(userId || ""),
+    queryFn: () => {
+      if (!userId) throw new Error("No user ID");
+      return fetchUserProfile(userId);
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+  });
+}
+
+// Hook for fetching any seller's active property listings by their user ID
+export function useSellerProperties(userId: string | undefined) {
+  return useQuery({
+    queryKey: ["user", "public-properties", userId || ""],
+    queryFn: () => {
+      if (!userId) throw new Error("No user ID");
+      return fetchPublicUserProperties(userId);
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+  });
+}
 
 // Hook for user profile data
 export function useUserProfile() {
