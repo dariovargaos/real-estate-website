@@ -390,89 +390,91 @@ const PropertyDetail = () => {
           </Link>
         </Box>
 
-        {/* Image Gallery */}
-        <Box maxW="container.xl" mx="auto" px={4} mb={10}>
-          <Box position="relative" rounded="2xl" overflow="hidden">
-            <AspectRatio ratio={{ base: 16 / 9, md: 2.2 / 1 }}>
-              <Box
-                position="relative"
-                cursor="pointer"
-                onClick={() => {
-                  setLightboxIndex(0);
-                  setLightboxOpen(true);
-                }}
-                _hover={{ opacity: 0.9 }}
-                transition="opacity 0.2s"
-                w="full"
-                h="full"
-              >
-                <Image
-                  src={property.images[0]}
-                  alt={`${property.title} - main image`}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
-                  priority
-                />
-              </Box>
-            </AspectRatio>
-
-            {property.tag && (
-              <Badge
-                position="absolute"
-                top={4}
-                left={4}
-                bg="hsl(35, 80%, 56%)"
-                color="white"
-                fontWeight="medium"
-                px={3}
-                py={1}
-              >
-                {property.tag}
-              </Badge>
-            )}
-          </Box>
-
-          {/* Thumbnails */}
-          <HStack gap={3} mt={3} overflowX="auto" py={2}>
-            {property.images.map((img, i) => (
-              <Box
-                key={i}
-                as="button"
-                position="relative"
-                rounded="xl"
-                overflow="hidden"
-                w={{ base: 24, md: 32 }}
-                h={{ base: 16, md: 20 }}
-                flexShrink={0}
-                border="2px"
-                borderColor="transparent"
-                opacity={0.9}
-                _hover={{ opacity: 1, borderColor: "hsl(35, 80%, 56%)" }}
-                transition="all 0.2s"
-                onClick={() => {
-                  setLightboxIndex(i);
-                  setLightboxOpen(true);
-                }}
-              >
-                <Image
-                  src={img}
-                  alt={`${property.title} - image ${i + 1}`}
-                  fill
-                  style={{ objectFit: "cover" }}
-                  sizes="(max-width: 768px) 96px, 128px"
-                />
-              </Box>
-            ))}
-          </HStack>
-        </Box>
-
         {/* Content Grid */}
         <Box maxW="container.xl" mx="auto" px={4}>
           <Grid templateColumns={{ base: "1fr", lg: "2fr 1fr" }} gap={10}>
-            {/* Left: Details */}
+            {/* Left: Gallery & Details */}
             <GridItem>
               <VStack gap={8} alignItems="stretch">
+                {/* Image Gallery */}
+                <Box>
+                  <Box position="relative" rounded="2xl" overflow="hidden">
+                    <AspectRatio ratio={16 / 9}>
+                      <Box
+                        position="relative"
+                        cursor="pointer"
+                        onClick={() => {
+                          setLightboxIndex(0);
+                          setLightboxOpen(true);
+                        }}
+                        _hover={{ opacity: 0.9 }}
+                        transition="opacity 0.2s"
+                        w="full"
+                        h="full"
+                      >
+                        <Image
+                          src={property.images[0]}
+                          alt={`${property.title} - main image`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 900px"
+                          priority
+                        />
+                      </Box>
+                    </AspectRatio>
+
+                    {property.tag && (
+                      <Badge
+                        position="absolute"
+                        top={4}
+                        left={4}
+                        bg="hsl(35, 80%, 56%)"
+                        color="white"
+                        fontWeight="medium"
+                        px={3}
+                        py={1}
+                      >
+                        {property.tag}
+                      </Badge>
+                    )}
+                  </Box>
+
+                  {/* Thumbnails */}
+                  <HStack gap={3} mt={3} overflowX="auto" py={2}>
+                    {property.images.map((img, i) => (
+                      <Box
+                        key={i}
+                        as="button"
+                        position="relative"
+                        rounded="xl"
+                        overflow="hidden"
+                        w={{ base: 24, md: 32 }}
+                        h={{ base: 16, md: 20 }}
+                        flexShrink={0}
+                        border="2px"
+                        borderColor="transparent"
+                        opacity={0.9}
+                        _hover={{
+                          opacity: 1,
+                          borderColor: "hsl(35, 80%, 56%)",
+                        }}
+                        transition="all 0.2s"
+                        onClick={() => {
+                          setLightboxIndex(i);
+                          setLightboxOpen(true);
+                        }}
+                      >
+                        <Image
+                          src={img}
+                          alt={`${property.title} - image ${i + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          sizes="(max-width: 768px) 96px, 128px"
+                        />
+                      </Box>
+                    ))}
+                  </HStack>
+                </Box>
                 {/* Header */}
                 <Box>
                   <Flex
@@ -691,239 +693,241 @@ const PropertyDetail = () => {
 
             {/* Right: Seller & Contact */}
             <GridItem>
-              <VStack gap={6} alignItems="stretch">
-                {/* Seller Card */}
-                <Box
-                  bg="white"
-                  rounded="2xl"
-                  p={6}
-                  shadow="lg"
-                  border="1px"
-                  borderColor="gray.200"
-                >
-                  <Heading
-                    as="h3"
-                    fontFamily="DM Serif Display, serif"
-                    fontSize="xl"
-                    fontWeight="medium"
-                    mb={4}
+              <Box position="sticky" top={24}>
+                <VStack gap={6} alignItems="stretch">
+                  {/* Seller Card */}
+                  <Box
+                    bg="white"
+                    rounded="2xl"
+                    p={6}
+                    shadow="lg"
+                    border="1px"
+                    borderColor="gray.200"
                   >
-                    {isOwner ? "Your Property" : "Listed by Owner"}
-                  </Heading>
+                    <Heading
+                      as="h3"
+                      fontFamily="DM Serif Display, serif"
+                      fontSize="xl"
+                      fontWeight="medium"
+                      mb={4}
+                    >
+                      {isOwner ? "Your Property" : "Listed by Owner"}
+                    </Heading>
 
-                  {!isOwner && property.user_id ? (
-                    <HStack gap={3} mb={4}>
-                      <Flex
-                        h={12}
-                        w={12}
-                        rounded="full"
-                        bg="gray.100"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <FaUser size={24} color="gray" />
-                      </Flex>
-                      <Box>
-                        <Link href={`/user-profile/${property.user_id}`}>
-                          <Text
-                            fontWeight="semibold"
-                            display="inline"
-                            _hover={{ color: "hsl(35, 80%, 50%)" }}
-                            transition="color 0.2s"
-                          >
+                    {!isOwner && property.user_id ? (
+                      <HStack gap={3} mb={4}>
+                        <Flex
+                          h={12}
+                          w={12}
+                          rounded="full"
+                          bg="gray.100"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <FaUser size={24} color="gray" />
+                        </Flex>
+                        <Box>
+                          <Link href={`/user-profile/${property.user_id}`}>
+                            <Text
+                              fontWeight="semibold"
+                              display="inline"
+                              _hover={{ color: "hsl(35, 80%, 50%)" }}
+                              transition="color 0.2s"
+                            >
+                              {property.seller_name}
+                            </Text>
+                          </Link>
+                          <HStack gap={1} fontSize="xs" color="gray.600">
+                            <FaCalendarAlt size={12} />
+                            <Text>
+                              {formatMemberSince(property.seller_since)}
+                            </Text>
+                          </HStack>
+                        </Box>
+                      </HStack>
+                    ) : (
+                      <HStack gap={3} mb={4}>
+                        <Flex
+                          h={12}
+                          w={12}
+                          rounded="full"
+                          bg="gray.100"
+                          alignItems="center"
+                          justifyContent="center"
+                        >
+                          <FaUser size={24} color="gray" />
+                        </Flex>
+                        <Box>
+                          <Text fontWeight="semibold">
                             {property.seller_name}
                           </Text>
-                        </Link>
-                        <HStack gap={1} fontSize="xs" color="gray.600">
-                          <FaCalendarAlt size={12} />
-                          <Text>
-                            {formatMemberSince(property.seller_since)}
-                          </Text>
-                        </HStack>
-                      </Box>
+                          <HStack gap={1} fontSize="xs" color="gray.600">
+                            <FaCalendarAlt size={12} />
+                            <Text>
+                              {formatMemberSince(property.seller_since)}
+                            </Text>
+                          </HStack>
+                        </Box>
+                      </HStack>
+                    )}
+
+                    <HStack gap={2} fontSize="sm" color="gray.600" mb={6}>
+                      <FaPhone size={16} />
+                      <ChakraLink
+                        href={`tel:${property.seller_phone}`}
+                        _hover={{
+                          textDecoration: "underline",
+                          color: "gray.900",
+                        }}
+                      >
+                        {property.seller_phone}
+                      </ChakraLink>
                     </HStack>
-                  ) : (
-                    <HStack gap={3} mb={4}>
-                      <Flex
-                        h={12}
-                        w={12}
-                        rounded="full"
-                        bg="gray.100"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <FaUser size={24} color="gray" />
-                      </Flex>
-                      <Box>
-                        <Text fontWeight="semibold">
-                          {property.seller_name}
-                        </Text>
-                        <HStack gap={1} fontSize="xs" color="gray.600">
-                          <FaCalendarAlt size={12} />
-                          <Text>
-                            {formatMemberSince(property.seller_since)}
+
+                    {/* Conditional Content - Contact Form, Sign In Prompt, or Owner Actions */}
+                    {isOwner ? (
+                      <VStack gap={4} align="stretch">
+                        <Box
+                          bg="green.50"
+                          border="1px"
+                          borderColor="green.200"
+                          rounded="xl"
+                          p={4}
+                          textAlign="center"
+                        >
+                          <Text
+                            fontSize="sm"
+                            color="green.700"
+                            fontWeight="medium"
+                          >
+                            This is your property listing
                           </Text>
-                        </HStack>
-                      </Box>
-                    </HStack>
-                  )}
+                          <Text fontSize="xs" color="green.600" mt={1}>
+                            You can edit or manage your listing
+                          </Text>
+                        </Box>
 
-                  <HStack gap={2} fontSize="sm" color="gray.600" mb={6}>
-                    <FaPhone size={16} />
-                    <ChakraLink
-                      href={`tel:${property.seller_phone}`}
-                      _hover={{
-                        textDecoration: "underline",
-                        color: "gray.900",
-                      }}
-                    >
-                      {property.seller_phone}
-                    </ChakraLink>
-                  </HStack>
-
-                  {/* Conditional Content - Contact Form, Sign In Prompt, or Owner Actions */}
-                  {isOwner ? (
-                    <VStack gap={4} align="stretch">
-                      <Box
-                        bg="green.50"
-                        border="1px"
-                        borderColor="green.200"
-                        rounded="xl"
-                        p={4}
-                        textAlign="center"
-                      >
-                        <Text
-                          fontSize="sm"
-                          color="green.700"
-                          fontWeight="medium"
-                        >
-                          This is your property listing
-                        </Text>
-                        <Text fontSize="xs" color="green.600" mt={1}>
-                          You can edit or manage your listing
-                        </Text>
-                      </Box>
-
-                      <VStack gap={2} align="stretch">
-                        <Button
-                          asChild
-                          w="full"
-                          colorPalette="orange"
-                          rounded="xl"
-                          bg="hsl(35, 80%, 56%)"
-                          color="white"
-                          _hover={{
-                            bg: "hsl(35, 80%, 50%)",
-                          }}
-                        >
-                          <Link href={`/list-property?edit=${property.id}`}>
-                            Edit Property
-                          </Link>
-                        </Button>
-
-                        <Button
-                          asChild
-                          w="full"
-                          colorPalette="gray"
-                          rounded="xl"
-                        >
-                          <Link href="/profile">View My Listings</Link>
-                        </Button>
-
-                        <Button
-                          w="full"
-                          colorPalette="red"
-                          variant="outline"
-                          rounded="xl"
-                          onClick={() => setIsDeleteDialogOpen(true)}
-                        >
-                          <FaTrash />
-                          Delete Listing
-                        </Button>
-                      </VStack>
-                    </VStack>
-                  ) : !user ? (
-                    /* Sign in required message for unauthenticated users */
-                    <VStack gap={4} align="stretch">
-                      <Box
-                        bg="gray.50"
-                        rounded="xl"
-                        p={6}
-                        textAlign="center"
-                        borderBottomColor="gray.200"
-                      >
-                        <Text
-                          fontSize="sm"
-                          color="gray.700"
-                          fontWeight="medium"
-                          mb={2}
-                        >
-                          Sign in to contact the seller
-                        </Text>
-                        <Text fontSize="xs" mb={4} color="gray.500">
-                          You need to be signed in to send messages to property
-                          owners.
-                        </Text>
-                        <VStack gap={2}>
+                        <VStack gap={2} align="stretch">
                           <Button
                             asChild
                             w="full"
+                            colorPalette="orange"
+                            rounded="xl"
                             bg="hsl(35, 80%, 56%)"
                             color="white"
                             _hover={{
                               bg: "hsl(35, 80%, 50%)",
                             }}
-                            rounded="xl"
                           >
-                            <Link href="/sign-in">Sign In</Link>
+                            <Link href={`/list-property?edit=${property.id}`}>
+                              Edit Property
+                            </Link>
                           </Button>
+
                           <Button
                             asChild
                             w="full"
                             colorPalette="gray"
                             rounded="xl"
                           >
-                            <Link href="/sign-up">Create Account</Link>
+                            <Link href="/profile">View My Listings</Link>
+                          </Button>
+
+                          <Button
+                            w="full"
+                            colorPalette="red"
+                            variant="outline"
+                            rounded="xl"
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                          >
+                            <FaTrash />
+                            Delete Listing
+                          </Button>
+                        </VStack>
+                      </VStack>
+                    ) : !user ? (
+                      /* Sign in required message for unauthenticated users */
+                      <VStack gap={4} align="stretch">
+                        <Box
+                          bg="gray.50"
+                          rounded="xl"
+                          p={6}
+                          textAlign="center"
+                          borderBottomColor="gray.200"
+                        >
+                          <Text
+                            fontSize="sm"
+                            color="gray.700"
+                            fontWeight="medium"
+                            mb={2}
+                          >
+                            Sign in to contact the seller
+                          </Text>
+                          <Text fontSize="xs" mb={4} color="gray.500">
+                            You need to be signed in to send messages to
+                            property owners.
+                          </Text>
+                          <VStack gap={2}>
+                            <Button
+                              asChild
+                              w="full"
+                              bg="hsl(35, 80%, 56%)"
+                              color="white"
+                              _hover={{
+                                bg: "hsl(35, 80%, 50%)",
+                              }}
+                              rounded="xl"
+                            >
+                              <Link href="/sign-in">Sign In</Link>
+                            </Button>
+                            <Button
+                              asChild
+                              w="full"
+                              colorPalette="gray"
+                              rounded="xl"
+                            >
+                              <Link href="/sign-up">Create Account</Link>
+                            </Button>
+                          </VStack>
+                        </Box>
+                      </VStack>
+                    ) : (
+                      <Box as="form" onSubmit={handleContact}>
+                        <VStack gap={4}>
+                          <Field.Root required>
+                            <Field.Label fontSize="xs">
+                              Message
+                              <Field.RequiredIndicator />
+                            </Field.Label>
+                            <Textarea
+                              placeholder="Hi, I'm interested in this property. Could you tell me more about..."
+                              bg="gray.50"
+                              border="1px"
+                              borderColor="gray.200"
+                              minH="120px"
+                              value={message}
+                              onChange={(e) => setMessage(e.target.value)}
+                              disabled={isSubmitting}
+                            />
+                          </Field.Root>
+
+                          <Button
+                            type="submit"
+                            w="full"
+                            colorPalette="gray"
+                            rounded="xl"
+                            disabled={isSubmitting}
+                            loading={isSubmitting}
+                          >
+                            <FaPaperPlane />{" "}
+                            {isSubmitting ? "Sending..." : "Send Message"}
                           </Button>
                         </VStack>
                       </Box>
-                    </VStack>
-                  ) : (
-                    <Box as="form" onSubmit={handleContact}>
-                      <VStack gap={4}>
-                        <Field.Root required>
-                          <Field.Label fontSize="xs">
-                            Message
-                            <Field.RequiredIndicator />
-                          </Field.Label>
-                          <Textarea
-                            placeholder="Hi, I'm interested in this property. Could you tell me more about..."
-                            bg="gray.50"
-                            border="1px"
-                            borderColor="gray.200"
-                            minH="120px"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            disabled={isSubmitting}
-                          />
-                        </Field.Root>
-
-                        <Button
-                          type="submit"
-                          w="full"
-                          colorPalette="gray"
-                          rounded="xl"
-                          disabled={isSubmitting}
-                          loading={isSubmitting}
-                        >
-                          <FaPaperPlane />{" "}
-                          {isSubmitting ? "Sending..." : "Send Message"}
-                        </Button>
-                      </VStack>
-                    </Box>
-                  )}
-                </Box>
-              </VStack>
+                    )}
+                  </Box>
+                </VStack>
+              </Box>
             </GridItem>
           </Grid>
         </Box>
