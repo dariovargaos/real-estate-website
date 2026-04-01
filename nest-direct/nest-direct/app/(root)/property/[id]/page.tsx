@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 //lightbox imports
 import Lightbox from "yet-another-react-lightbox";
@@ -21,6 +21,8 @@ import {
   deleteProperty,
   userKeys,
   propertyKeys,
+  getPropertyViewCount,
+  recordPropertyView,
 } from "../../../../lib/api";
 import { formatMemberSince } from "../../../../lib/utils";
 
@@ -70,6 +72,7 @@ import {
   FaPaperPlane,
   FaMap,
   FaTrash,
+  FaEye,
 } from "react-icons/fa";
 
 const PropertyDetail = () => {
@@ -86,6 +89,33 @@ const PropertyDetail = () => {
   const [isToggling, setIsToggling] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Fetch view count via React Query
+  const { data: viewCount } = useQuery({
+    queryKey: ["property-views", property?.id],
+    queryFn: () => getPropertyViewCount(property!.id),
+    enabled: !!property?.id,
+  });
+
+  // Record a view as a side effect (once per property per day per browser)
+  useEffect(() => {
+    if (!property) return;
+
+    const STORAGE_KEY = `viewed_property_${property.id}`;
+    const now = Date.now();
+    const lastViewed = localStorage.getItem(STORAGE_KEY);
+    if (lastViewed && now - parseInt(lastViewed) < 1000 * 60 * 60 * 24) return;
+
+    let sessionId = localStorage.getItem("nest_session_id");
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      localStorage.setItem("nest_session_id", sessionId);
+    }
+
+    recordPropertyView(property.id, sessionId, user?.id).then(() => {
+      localStorage.setItem(STORAGE_KEY, now.toString());
+    });
+  }, [property, user?.id]);
 
   // Sync favorites state with the hook data
   useEffect(() => {
@@ -532,9 +562,20 @@ const PropertyDetail = () => {
                     </HStack>
                   </Flex>
 
-                  <HStack gap={1.5} color="gray.600" fontSize="sm" mb={4}>
-                    <FaMapMarkerAlt size={16} />
-                    <Text>{property.location}</Text>
+                  <HStack gap={4} color="gray.600" fontSize="sm" mb={4}>
+                    <HStack gap={1.5}>
+                      <FaMapMarkerAlt size={16} />
+                      <Text>{property.location}</Text>
+                    </HStack>
+                    {viewCount !== undefined && (
+                      <HStack gap={1.5}>
+                        <FaEye size={16} />
+                        <Text>
+                          {viewCount.toLocaleString()}{" "}
+                          {viewCount === 1 ? "view" : "views"}
+                        </Text>
+                      </HStack>
+                    )}
                   </HStack>
 
                   <Text
@@ -548,8 +589,7 @@ const PropertyDetail = () => {
                     <Text fontSize="sm" color="gray.500" mt={1}>
                       €
                       {Math.round(
-                        property.price /
-                          parseFloat(property.size_m2),
+                        property.price / parseFloat(property.size_m2),
                       ).toLocaleString()}{" "}
                       / m²
                     </Text>

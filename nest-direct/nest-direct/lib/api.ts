@@ -760,6 +760,40 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
   return data || [];
 }
 
+// API function to get the total view count for a property
+export async function getPropertyViewCount(
+  propertyId: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc("get_property_view_count", {
+    p_property_id: propertyId,
+  });
+
+  if (error) {
+    console.error("Error fetching view count:", error.message);
+    return 0;
+  }
+
+  return data ?? 0;
+}
+
+// API function to record a property view
+// session_id is stored in localStorage to deduplicate views within a session
+export async function recordPropertyView(
+  propertyId: string,
+  sessionId: string,
+  userId?: string,
+): Promise<void> {
+  const { error } = await supabase.from("property_views").insert({
+    property_id: propertyId,
+    session_id: sessionId,
+    viewer_id: userId ?? null,
+  });
+
+  if (error) {
+    console.error("Error recording property view:", error.message);
+  }
+}
+
 // API function to schedule account deletion (7-day grace period)
 export async function scheduleAccountDeletion(userId: string): Promise<void> {
   const deletionDate = new Date();

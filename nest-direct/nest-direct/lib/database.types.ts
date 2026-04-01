@@ -299,6 +299,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      get_property_view_count: {
+        Args: { p_property_id: string };
+        Returns: number;
+      };
     };
     Enums: {
       [_ in never]: never;
