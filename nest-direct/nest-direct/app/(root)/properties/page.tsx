@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 //components
 import PropertyCard from "../../../components/PropertyCard";
@@ -23,21 +23,41 @@ import {
   InputGroup,
   createListCollection,
   Spinner,
+  Pagination,
+  ButtonGroup,
+  IconButton,
 } from "@chakra-ui/react";
 import { Toaster } from "../../../components/ui/toaster";
 
 //icons
 import { CiSearch } from "react-icons/ci";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
 export default function Properties() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const searchFromUrl = searchParams.get("search") ?? "";
+  const pageFromUrl = parseInt(searchParams.get("page") ?? "1", 10);
 
   const { data: properties, isLoading: loading, error } = useListedProperties();
   const [search, setSearch] = useState(searchFromUrl);
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
   const [tagsFilter, setTagsFilter] = useState<string[]>(["any"]);
   const [typeFilter, setTypeFilter] = useState<string[]>(["any"]);
+  const page_size = 9;
+
+  const page = pageFromUrl;
+
+  const setPage = useCallback(
+    (newPage: number) => {
+      const currentPage = parseInt(searchParams.get("page") ?? "1", 10);
+      if (currentPage === newPage) return;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("page", String(newPage));
+      router.replace(`/properties?${params.toString()}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
 
   useEffect(() => {
     setSearch(searchFromUrl);
@@ -97,6 +117,11 @@ export default function Properties() {
 
     return result;
   }, [properties, search, sortBy, tagsFilter, typeFilter]);
+
+  const paginatedResults = useMemo(() => {
+    const start = (page - 1) * page_size;
+    return filtered.slice(start, start + page_size);
+  }, [filtered, page]);
 
   return (
     <Box minH="100vh" bg="gray.50">
@@ -180,7 +205,10 @@ export default function Properties() {
                     <InputGroup startElement={<CiSearch />}>
                       <Input
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => {
+                          setSearch(e.target.value);
+                          setPage(1);
+                        }}
                         pl={10}
                         placeholder="Search by title or location..."
                         rounded="xl"
@@ -191,7 +219,10 @@ export default function Properties() {
                     <Select.Root
                       collection={tagsCollection}
                       value={tagsFilter}
-                      onValueChange={(e) => setTagsFilter(e.value)}
+                      onValueChange={(e) => {
+                        setTagsFilter(e.value);
+                        setPage(1);
+                      }}
                     >
                       <Select.HiddenSelect />
 
@@ -219,7 +250,10 @@ export default function Properties() {
                     <Select.Root
                       collection={typeCollection}
                       value={typeFilter}
-                      onValueChange={(e) => setTypeFilter(e.value)}
+                      onValueChange={(e) => {
+                        setTypeFilter(e.value);
+                        setPage(1);
+                      }}
                     >
                       <Select.HiddenSelect />
 
@@ -247,7 +281,10 @@ export default function Properties() {
                     <Select.Root
                       collection={sortCollection}
                       value={sortBy}
-                      onValueChange={(e) => setSortBy(e.value)}
+                      onValueChange={(e) => {
+                        setSortBy(e.value);
+                        setPage(1);
+                      }}
                     >
                       <Select.HiddenSelect />
 
@@ -282,18 +319,59 @@ export default function Properties() {
                   {filtered.length} properties found
                 </Text>
                 {filtered.length > 0 ? (
-                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-                    {filtered.map((property, index) => (
-                      <Box
-                        key={property.id}
-                        opacity={0}
-                        animation="fadeInUp 0.4s forwards"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      >
-                        <PropertyCard {...property} />
-                      </Box>
-                    ))}
-                  </SimpleGrid>
+                  <>
+                    <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                      {paginatedResults.map((property, index) => (
+                        <Box
+                          key={property.id}
+                          opacity={0}
+                          animation="fadeInUp 0.4s forwards"
+                          style={{ animationDelay: `${index * 0.05}s` }}
+                        >
+                          <PropertyCard {...property} />
+                        </Box>
+                      ))}
+                    </SimpleGrid>
+
+                    {filtered.length > page_size && (
+                      <Flex justify="center" mt={10}>
+                        <Pagination.Root
+                          count={filtered.length}
+                          pageSize={page_size}
+                          page={page}
+                          onPageChange={(e) => setPage(e.page)}
+                          siblingCount={1}
+                        >
+                          <ButtonGroup variant="ghost" size="sm">
+                            <Pagination.PrevTrigger asChild>
+                              <IconButton>
+                                <HiChevronLeft />
+                              </IconButton>
+                            </Pagination.PrevTrigger>
+
+                            <Pagination.Items
+                              render={(pageItem) => (
+                                <IconButton
+                                  variant={{
+                                    base: "ghost",
+                                    _selected: "outline",
+                                  }}
+                                >
+                                  {pageItem.value}
+                                </IconButton>
+                              )}
+                            />
+
+                            <Pagination.NextTrigger asChild>
+                              <IconButton>
+                                <HiChevronRight />
+                              </IconButton>
+                            </Pagination.NextTrigger>
+                          </ButtonGroup>
+                        </Pagination.Root>
+                      </Flex>
+                    )}
+                  </>
                 ) : (
                   <VStack textAlign="center" py={16}>
                     <Text color="gray.600" fontSize="lg">
