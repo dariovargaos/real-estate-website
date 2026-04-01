@@ -21,7 +21,6 @@ export function useListedProperties() {
         { event: "*", schema: "public", table: "properties" },
         () => {
           queryClient.invalidateQueries({ queryKey: propertyKeys.lists() });
-          queryClient.invalidateQueries({ queryKey: propertyKeys.featured() });
         },
       )
       .subscribe();
@@ -43,12 +42,30 @@ export function useListedProperties() {
 
 // Hook for fetching only Premium and Elite properties for the featured section
 export function useFeaturedProperties() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("featured-properties-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "properties" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: propertyKeys.featured() });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   return useQuery({
     queryKey: propertyKeys.featured(),
     queryFn: fetchFeaturedProperties,
     staleTime: 1000 * 60 * 10, // cache for 10 minutes before considering stale
     gcTime: 1000 * 60 * 30, // keep in memory for 30 minutes
-    refetchInterval: 1000 * 60 * 10, // fallback poll every 10 minutes
     refetchOnWindowFocus: false,
   });
 }

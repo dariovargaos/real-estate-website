@@ -727,7 +727,9 @@ export async function updateProperty(
 }
 
 // API function to fetch public (active) properties for any user by ID
-export async function fetchPublicUserProperties(userId: string): Promise<Property[]> {
+export async function fetchPublicUserProperties(
+  userId: string,
+): Promise<Property[]> {
   const { data, error } = await supabase
     .from("properties")
     .select("*")
@@ -748,7 +750,7 @@ export async function fetchFeaturedProperties(): Promise<Property[]> {
     .from("properties")
     .select("*")
     .eq("status", "active")
-    .in("tag", ["Premium", "Elite"])
+    .or("tag.ilike.premium,tag.ilike.elite")
     .order("created_at", { ascending: false });
 
   if (error) {
