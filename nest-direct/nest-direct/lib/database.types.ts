@@ -147,7 +147,7 @@ export type Database = {
           image: string;
           images: string[];
           location: string;
-          price: string;
+          price: number;
           seller_name: string;
           seller_phone: string;
           seller_since: string;
@@ -169,7 +169,7 @@ export type Database = {
           image: string;
           images?: string[];
           location: string;
-          price: string;
+          price: number;
           seller_name: string;
           seller_phone: string;
           seller_since: string;
@@ -191,7 +191,7 @@ export type Database = {
           image?: string;
           images?: string[];
           location?: string;
-          price?: string;
+          price?: number;
           seller_name?: string;
           seller_phone?: string;
           seller_since?: string;

@@ -898,7 +898,7 @@ export default function Profile() {
                                     fontWeight="semibold"
                                     color="hsl(35, 80%, 56%)"
                                   >
-                                    {fav.property.price}
+                                    {`€${fav.property.price.toLocaleString()}`}
                                   </Text>
                                 </VStack>
                               </Card.Body>
@@ -1034,7 +1034,7 @@ export default function Profile() {
                                       fontWeight="semibold"
                                       color="hsl(35, 80%, 56%)"
                                     >
-                                      {prop.price}
+                                      {`€${prop.price.toLocaleString()}`}
                                     </Text>
                                   </VStack>
                                   <Flex gap={2}>

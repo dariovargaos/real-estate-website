@@ -540,7 +540,7 @@ export async function uploadPropertyImages(
 // API function to create a new property listing
 export async function createProperty(propertyData: {
   title: string;
-  price: string;
+  price: number;
   location: string;
   beds: number;
   baths: number;
@@ -576,9 +576,6 @@ export async function createProperty(propertyData: {
     .eq("id", propertyData.user_id)
     .single();
 
-  // Format as currency for display
-  const formattedPrice = `€${parseInt(propertyData.price).toLocaleString()}`;
-
   // Debug: Log user ID
   console.log("Creating property for user ID:", propertyData.user_id);
 
@@ -592,7 +589,7 @@ export async function createProperty(propertyData: {
     .from("properties")
     .insert({
       title: propertyData.title,
-      price: formattedPrice,
+      price: propertyData.price,
       location: propertyData.location,
       beds: propertyData.beds,
       baths: propertyData.baths,
@@ -629,7 +626,7 @@ export async function updateProperty(
   propertyId: string,
   propertyData: {
     title: string;
-    price: string;
+    price: number;
     location: string;
     beds: number;
     baths: number;
@@ -688,9 +685,6 @@ export async function updateProperty(
     mainImage = "/placeholder.jpg";
   }
 
-  // Format as currency for display
-  const formattedPrice = `€${parseInt(propertyData.price).toLocaleString()}`;
-
   // Prepare features array
   const features = [];
   if (propertyData.property_type) {
@@ -702,7 +696,7 @@ export async function updateProperty(
     .from("properties")
     .update({
       title: propertyData.title,
-      price: formattedPrice,
+      price: propertyData.price,
       location: propertyData.location,
       beds: propertyData.beds,
       baths: propertyData.baths,

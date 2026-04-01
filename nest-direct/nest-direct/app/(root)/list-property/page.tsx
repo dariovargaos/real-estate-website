@@ -36,6 +36,7 @@ import {
   Separator,
   Spinner,
   FileUpload,
+  InputGroup,
 } from "@chakra-ui/react";
 import { Toaster, toaster } from "../../../components/ui/toaster";
 
@@ -99,7 +100,7 @@ export default function ListProperty() {
       isEditMode && editProperty && !editLoading
         ? {
             title: editProperty.title || "",
-            price: editProperty.price?.replace(/[^0-9]/g, "") || "",
+            price: editProperty.price?.toString() || "",
             location: editProperty.location || "",
             property_type: editProperty.type || "",
             beds: editProperty.beds?.toString() || "",
@@ -146,7 +147,7 @@ export default function ListProperty() {
           editId,
           {
             title: data.title,
-            price: data.price,
+            price: parseInt(data.price),
             location: data.location,
             beds: parseInt(data.beds),
             baths: parseInt(data.baths),
@@ -186,7 +187,7 @@ export default function ListProperty() {
       } else {
         await createProperty({
           title: data.title,
-          price: data.price,
+          price: parseInt(data.price),
           location: data.location,
           beds: parseInt(data.beds),
           baths: parseInt(data.baths),
@@ -439,13 +440,15 @@ export default function ListProperty() {
                     )}
                   </Field.Root>
                   <Field.Root required invalid={!!errors.price}>
-                    <Field.Label>Asking Price (€)</Field.Label>
-                    <Input
-                      {...register("price")}
-                      type="number"
-                      placeholder="500000"
-                      rounded="xl"
-                    />
+                    <Field.Label>Asking Price</Field.Label>
+                    <InputGroup startElement={<FaEuroSign />}>
+                      <Input
+                        {...register("price")}
+                        type="number"
+                        placeholder="500000"
+                        rounded="xl"
+                      />
+                    </InputGroup>
                     {errors.price && (
                       <Field.ErrorText>{errors.price.message}</Field.ErrorText>
                     )}

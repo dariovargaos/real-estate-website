@@ -90,17 +90,9 @@ export default function Properties() {
     }
 
     if (sortBy[0] === "price-asc") {
-      result = [...result].sort(
-        (a, b) =>
-          parseFloat(a.price.replace(/[^0-9]/g, "")) -
-          parseFloat(b.price.replace(/[^0-9]/g, "")),
-      );
+      result = [...result].sort((a, b) => a.price - b.price);
     } else if (sortBy[0] === "price-desc") {
-      result = [...result].sort(
-        (a, b) =>
-          parseFloat(b.price.replace(/[^0-9]/g, "")) -
-          parseFloat(a.price.replace(/[^0-9]/g, "")),
-      );
+      result = [...result].sort((a, b) => b.price - a.price);
     }
 
     return result;

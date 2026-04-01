@@ -38,7 +38,7 @@ import {
 interface PropertyCardProps {
   id: string;
   image: string;
-  price: string;
+  price: number;
   title: string;
   location: string;
   beds: number;
@@ -226,7 +226,7 @@ const PropertyCard = ({
             fontSize="2xl"
             mb={2}
           >
-            {price}
+            {`€${price.toLocaleString()}`}
           </Text>
           <Heading as="h3" fontWeight="semibold" fontSize="sm" mb={1}>
             {title}

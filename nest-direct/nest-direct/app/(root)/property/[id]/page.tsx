@@ -542,8 +542,18 @@ const PropertyDetail = () => {
                     fontSize="3xl"
                     color="hsl(35, 80%, 56%)"
                   >
-                    {property.price}
+                    {`€${property.price.toLocaleString()}`}
                   </Text>
+                  {property.size_m2 && parseFloat(property.size_m2) > 0 && (
+                    <Text fontSize="sm" color="gray.500" mt={1}>
+                      €
+                      {Math.round(
+                        property.price /
+                          parseFloat(property.size_m2),
+                      ).toLocaleString()}{" "}
+                      / m²
+                    </Text>
+                  )}
                 </Box>
 
                 {/* Stats */}
