@@ -227,7 +227,7 @@ const SignUp = () => {
               >
                 Create an account
               </Heading>
-              <Text color="gray.600">
+              <Text color="gray.500">
                 Get started in under a minute - completely free.
               </Text>
             </Box>
@@ -239,7 +239,6 @@ const SignUp = () => {
                   <Input
                     {...register("firstName")}
                     type="text"
-                    placeholder="John"
                     size="lg"
                     rounded="xl"
                   />
@@ -251,7 +250,6 @@ const SignUp = () => {
                   <Input
                     {...register("lastName")}
                     type="text"
-                    placeholder="Doe"
                     size="lg"
                     rounded="xl"
                   />
@@ -267,7 +265,6 @@ const SignUp = () => {
                       withMask("999 9999 999")(el);
                     }}
                     type="tel"
-                    placeholder="091 2345 678"
                     size="lg"
                     rounded="xl"
                   />
@@ -279,7 +276,6 @@ const SignUp = () => {
                   <Input
                     {...register("email")}
                     type="email"
-                    placeholder="you@example.com"
                     size="lg"
                     rounded="xl"
                   />
@@ -303,7 +299,6 @@ const SignUp = () => {
                     <Input
                       {...register("password")}
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
                       size="lg"
                       pr={12}
                       rounded="xl"
@@ -338,7 +333,6 @@ const SignUp = () => {
                     <Input
                       {...register("confirmedPassword")}
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
                       size="lg"
                       pr={12}
                       rounded="xl"

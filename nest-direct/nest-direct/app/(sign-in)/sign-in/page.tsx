@@ -190,7 +190,6 @@ const SignIn = () => {
                   <Input
                     {...register("email")}
                     type="email"
-                    placeholder="you@example.com"
                     size="lg"
                     rounded="xl"
                   />
@@ -214,7 +213,6 @@ const SignIn = () => {
                     <Input
                       {...register("password")}
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
                       size="lg"
                       pr={12}
                       rounded="xl"
