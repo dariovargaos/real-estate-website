@@ -403,21 +403,16 @@ const PropertyDetail = () => {
       <Box as="main" pt={24} pb={16}>
         {/* Back link */}
         <Box maxW="container.xl" mx="auto" px={4} mb={6}>
-          <Link
-            href="/properties"
-            style={{ width: "fit-content", display: "inline-flex" }}
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            px={0}
+            color="gray.500"
+            _hover={{ bg: "transparent", color: "gray.700" }}
           >
-            <HStack
-              gap={1.5}
-              fontSize="sm"
-              color="gray.600"
-              _hover={{ color: "gray.900" }}
-              transition="colors 0.2s"
-            >
-              <FaArrowLeft size={16} />
-              <Text>Back to properties</Text>
-            </HStack>
-          </Link>
+            <FaArrowLeft />
+            <Text>Back to properties</Text>
+          </Button>
         </Box>
 
         {/* Content Grid */}
