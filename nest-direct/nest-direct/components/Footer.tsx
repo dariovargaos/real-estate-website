@@ -11,7 +11,7 @@ import {
   GridItem,
   Heading,
   Icon,
-  Separator,
+  List,
 } from "@chakra-ui/react";
 
 import { Link as ChakraLink } from "@chakra-ui/react";
@@ -19,18 +19,37 @@ import { Link as ChakraLink } from "@chakra-ui/react";
 //icons
 import { LuHouse } from "react-icons/lu";
 
+const columns = [
+  {
+    title: "Links",
+    links: [
+      { label: "Browse Listings", href: "/properties" },
+      { label: "List Property", href: "/list-property" },
+      { label: "Premium", href: "/premium" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms of Service", href: "/terms-of-service" },
+    ],
+  },
+  {
+    title: "Real Estates",
+    links: [
+      { label: "Apartments", href: "/properties?type=apartment" },
+      { label: "Houses", href: "/properties?type=house" },
+      { label: "Office Space", href: "/properties?type=office" },
+      { label: "Land", href: "/properties?type=land" },
+    ],
+  },
+  {
+    title: "Contact",
+    links: [
+      { label: "Contact Us", href: "/contact" },
+      { label: "Adresa", href: "/adresa" },
+      { label: "Telefon", href: "/telefon" },
+    ],
+  },
+];
+
 export default function Footer() {
-  const columns = [
-    {
-      title: "Marketplace",
-      links: ["Browse Listings", "Sell Property", "Pricing", "How It Works"],
-    },
-    { title: "Company", links: ["About Us", "Careers", "Blog", "Press"] },
-    {
-      title: "Support",
-      links: ["Help Center"],
-    },
-  ];
   return (
     <Flex
       direction="column"
@@ -71,66 +90,26 @@ export default function Footer() {
               >
                 {col.title}
               </Heading>
-              <Box>
+              <List.Root variant="plain" gap={2}>
                 {col.links.map((link) => (
-                  <ChakraLink
-                    key={link}
-                    as={Link}
-                    href="#"
-                    color="gray.500"
-                    fontSize="sm"
-                    _hover={{
-                      color: "#B9B9BB",
-                      textDecoration: "none",
-                    }}
-                    _focus={{ boxShadow: "none", outline: "none" }}
-                    _active={{ boxShadow: "none", outline: "none" }}
-                    display="block"
-                    mb={2}
-                  >
-                    {link}
-                  </ChakraLink>
+                  <List.Item key={link.label}>
+                    <ChakraLink
+                      as={Link}
+                      href={link.href}
+                      color="gray.500"
+                      fontSize="sm"
+                      _hover={{
+                        color: "#B9B9BB",
+                        textDecoration: "none",
+                      }}
+                      _focus={{ boxShadow: "none", outline: "none" }}
+                      _active={{ boxShadow: "none", outline: "none" }}
+                    >
+                      {link.label}
+                    </ChakraLink>
+                  </List.Item>
                 ))}
-                <ChakraLink
-                  as={Link}
-                  href="/contact"
-                  color="gray.500"
-                  fontSize="sm"
-                  _hover={{ color: "gray.400", textDecoration: "none" }}
-                  _focus={{ boxShadow: "none", outline: "none" }}
-                  _active={{ boxShadow: "none", outline: "none" }}
-                  display="block"
-                  mb={2}
-                >
-                  Contact
-                </ChakraLink>
-                <ChakraLink
-                  as={Link}
-                  href="/privacy-policy"
-                  color="gray.500"
-                  fontSize="sm"
-                  _hover={{ color: "gray.400", textDecoration: "none" }}
-                  _focus={{ boxShadow: "none", outline: "none" }}
-                  _active={{ boxShadow: "none", outline: "none" }}
-                  display="block"
-                  mb={2}
-                >
-                  Privacy Policy
-                </ChakraLink>
-                <ChakraLink
-                  as={Link}
-                  href="/terms-of-service"
-                  color="gray.500"
-                  fontSize="sm"
-                  _hover={{ color: "gray.400", textDecoration: "none" }}
-                  _focus={{ boxShadow: "none", outline: "none" }}
-                  _active={{ boxShadow: "none", outline: "none" }}
-                  display="block"
-                  mb={2}
-                >
-                  Terms of Service
-                </ChakraLink>
-              </Box>
+              </List.Root>
             </Box>
           ))}
         </Grid>

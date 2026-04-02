@@ -37,13 +37,14 @@ export default function Properties() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchFromUrl = searchParams.get("search") ?? "";
+  const typeFromFooterUrl = searchParams.get("type") ?? "any";
   const pageFromUrl = parseInt(searchParams.get("page") ?? "1", 10);
 
   const { data: properties, isLoading: loading, error } = useListedProperties();
   const [search, setSearch] = useState(searchFromUrl);
   const [sortBy, setSortBy] = useState<string[]>(["default"]);
   const [tagsFilter, setTagsFilter] = useState<string[]>(["any"]);
-  const [typeFilter, setTypeFilter] = useState<string[]>(["any"]);
+  const [typeFilter, setTypeFilter] = useState<string[]>([typeFromFooterUrl]);
   const page_size = 9;
 
   const page = pageFromUrl;
@@ -62,6 +63,10 @@ export default function Properties() {
   useEffect(() => {
     setSearch(searchFromUrl);
   }, [searchFromUrl]);
+
+  useEffect(() => {
+    setTypeFilter([typeFromFooterUrl]);
+  }, [typeFromFooterUrl]);
 
   // Collection data for Select components
   const tagsCollection = createListCollection({
