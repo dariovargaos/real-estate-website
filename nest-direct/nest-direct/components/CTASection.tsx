@@ -1,11 +1,31 @@
+"use client";
+
 import Link from "next/link";
 
+//hooks
+import { useUser } from "../hooks/useAuthContext";
+
+//components
 import { Box, Flex, Text, Button, Icon } from "@chakra-ui/react";
+import { toaster } from "./ui/toaster";
 
 //react icons
 import { FaArrowRight } from "react-icons/fa";
 
 export default function CTASection() {
+  const { user } = useUser();
+
+  const handleListPropertyClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      toaster.create({
+        title: "Sign in required",
+        description: "You need to sign in to list your property.",
+        type: "warning",
+        duration: 5000,
+      });
+    }
+  };
   return (
     <Flex direction="column" bg="#1D212B" p={10} maxH="500px">
       <Flex direction="column" align="center" justify="center" gap={5}>
@@ -48,7 +68,9 @@ export default function CTASection() {
               bg: "whiteAlpha.300",
             }}
           >
-            <Link href="/list-property">List Your Home</Link>
+            <Link href="/list-property" onClick={handleListPropertyClick}>
+              List Your Home
+            </Link>
           </Button>
         </Flex>
       </Flex>
