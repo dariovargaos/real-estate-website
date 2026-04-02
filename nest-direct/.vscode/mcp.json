@@ -8,6 +8,10 @@
     "supabase": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=qpfbjvonfgazjrfkdkud"
+    },
+    "mapbox-mcp": {
+      "type": "http",
+      "url": "https://mcp.mapbox.com/mcp"
     }
   },
   "inputs": []

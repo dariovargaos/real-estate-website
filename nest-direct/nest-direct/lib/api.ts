@@ -538,6 +538,25 @@ export async function uploadPropertyImages(
 }
 
 // API function to create a new property listing
+// Geocode a location string to lat/lng using Mapbox (called once on property create/update)
+async function geocodeLocation(
+  location: string,
+): Promise<{ latitude: number; longitude: number } | null> {
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+  if (!token) return null;
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(location)}.json?access_token=${token}&limit=1`,
+    );
+    const data = await res.json();
+    const [longitude, latitude] = data.features?.[0]?.center ?? [];
+    if (longitude == null || latitude == null) return null;
+    return { latitude, longitude };
+  } catch {
+    return null;
+  }
+}
+
 export async function createProperty(propertyData: {
   title: string;
   price: number;
@@ -550,8 +569,11 @@ export async function createProperty(propertyData: {
   seller_phone: string;
   user_id: string;
   property_type?: string;
-  imageFiles?: File[]; // Add image files to the interface
+  imageFiles?: File[];
 }): Promise<Property> {
+  // Geocode the location once on creation
+  const coords = await geocodeLocation(propertyData.location);
+
   // Upload images if provided
   let imageUrls: string[] = ["/placeholder.jpg"];
   let mainImage = "/placeholder.jpg";
@@ -606,6 +628,7 @@ export async function createProperty(propertyData: {
       tag: "New", // Mark new properties with "New" tag
       status: "pending", // Properties start as pending for review
       created_at: new Date().toISOString(),
+      ...(coords ?? {}),
     })
     .select()
     .single();
@@ -637,9 +660,12 @@ export async function updateProperty(
     property_type?: string;
     imageFiles?: File[];
     keepImageUrls?: string[]; // existing image URLs to retain after user deletions
-  },
+},
   userId: string,
 ): Promise<Property> {
+  // Geocode the (potentially updated) location once on update
+  const coords = await geocodeLocation(propertyData.location);
+
   // First, verify the user owns this property
   const { data: existingProperty, error: fetchError } = await supabase
     .from("properties")
@@ -709,6 +735,7 @@ export async function updateProperty(
       features,
       type: propertyData.property_type, // Store property_type in type column
       updated_at: new Date().toISOString(),
+      ...(coords ?? {}),
     })
     .eq("id", propertyId)
     .eq("user_id", userId) // Double-check user ownership

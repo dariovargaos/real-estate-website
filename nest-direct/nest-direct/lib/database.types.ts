@@ -146,6 +146,8 @@ export type Database = {
           id: string;
           image: string;
           images: string[];
+          latitude: number | null;
+          longitude: number | null;
           location: string;
           price: number;
           seller_name: string;
@@ -168,6 +170,8 @@ export type Database = {
           id?: string;
           image: string;
           images?: string[];
+          latitude?: number | null;
+          longitude?: number | null;
           location: string;
           price: number;
           seller_name: string;
@@ -190,6 +194,8 @@ export type Database = {
           id?: string;
           image?: string;
           images?: string[];
+          latitude?: number | null;
+          longitude?: number | null;
           location?: string;
           price?: number;
           seller_name?: string;

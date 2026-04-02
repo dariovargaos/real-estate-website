@@ -4,11 +4,30 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 //lightbox imports
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
+
+//map
+const PropertyMap = dynamic(
+  () => import("../../../../components/PropertyMap").then((m) => m.PropertyMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          background: "#f7f7f7",
+          borderRadius: "1rem",
+        }}
+      />
+    ),
+  },
+);
 
 //hooks
 import { useProperty } from "../../../../hooks/useProperty";
@@ -70,7 +89,6 @@ import {
   FaPhone,
   FaCalendarAlt,
   FaPaperPlane,
-  FaMap,
   FaTrash,
   FaEye,
 } from "react-icons/fa";
@@ -678,26 +696,26 @@ const PropertyDetail = () => {
                   >
                     Location
                   </Heading>
-                  <AspectRatio ratio={16 / 9}>
-                    <Flex
-                      direction="column"
-                      alignItems="center"
-                      justifyContent="center"
-                      gap={3}
-                      bg="gray.50"
-                      rounded="2xl"
-                      border="1px"
-                      borderColor="gray.200"
-                    >
-                      <FaMap size={40} color="gray" />
-                      <Text fontSize="sm" color="gray.600">
-                        Interactive map coming soon
-                      </Text>
-                      <Text fontSize="xs" color="gray.600">
-                        {property.location}
-                      </Text>
-                    </Flex>
-                  </AspectRatio>
+                  <Box h="400px" rounded="2xl" overflow="hidden">
+                    {property.latitude != null && property.longitude != null ? (
+                      <PropertyMap
+                        latitude={property.latitude}
+                        longitude={property.longitude}
+                      />
+                    ) : (
+                      <Box
+                        h="100%"
+                        bg="gray.100"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Text color="gray.500" fontSize="sm">
+                          Map location not available
+                        </Text>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
 
                 {/* Created at */}
