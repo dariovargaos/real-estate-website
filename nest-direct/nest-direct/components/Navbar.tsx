@@ -2,9 +2,19 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 //components
-import { Button, Flex, Text, Icon } from "@chakra-ui/react";
+import {
+  Button,
+  CloseButton,
+  Drawer,
+  Flex,
+  Icon,
+  Portal,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import { Link as ChakraLink } from "@chakra-ui/react";
 import { toaster } from "./ui/toaster";
 
@@ -14,12 +24,13 @@ import { useUserProfile } from "../hooks/useProfile";
 
 //icons
 import { LuHouse } from "react-icons/lu";
-import { FiUser, FiLogOut } from "react-icons/fi";
+import { FiMenu, FiUser, FiLogOut } from "react-icons/fi";
 
 export default function Navbar() {
   const { user, signOut } = useUser();
   const { profile } = useUserProfile();
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const firstName =
     (
@@ -32,6 +43,7 @@ export default function Navbar() {
     "there";
 
   const handleListPropertyClick = () => {
+    setDrawerOpen(false);
     if (!user) {
       toaster.create({
         title: "Sign in required",
@@ -45,6 +57,7 @@ export default function Navbar() {
   };
 
   const handleLogout = async () => {
+    setDrawerOpen(false);
     try {
       await signOut();
 
@@ -63,6 +76,7 @@ export default function Navbar() {
       });
     }
   };
+
   return (
     <Flex
       justifyContent="space-between"
@@ -77,6 +91,7 @@ export default function Navbar() {
       w="100%"
       backdropFilter="blur(16px)"
     >
+      {/* Logo */}
       <Flex gap={5} alignItems="center">
         <Icon size="lg" color="#E99E35">
           <LuHouse />
@@ -86,15 +101,13 @@ export default function Navbar() {
         </Text>
       </Flex>
 
-      <Flex gap={5} alignItems="center">
+      {/* Desktop nav */}
+      <Flex gap={5} alignItems="center" display={{ base: "none", md: "flex" }}>
         <ChakraLink
           as={Link}
           href="/properties"
           color="gray.500"
-          _hover={{
-            color: "black",
-            textDecoration: "none",
-          }}
+          _hover={{ color: "black", textDecoration: "none" }}
           _focus={{ boxShadow: "none", outline: "none" }}
           _active={{ boxShadow: "none", outline: "none" }}
         >
@@ -105,10 +118,7 @@ export default function Navbar() {
           as={Link}
           href="/how-it-works"
           color="gray.500"
-          _hover={{
-            color: "black",
-            textDecoration: "none",
-          }}
+          _hover={{ color: "black", textDecoration: "none" }}
           _focus={{ boxShadow: "none", outline: "none" }}
           _active={{ boxShadow: "none", outline: "none" }}
         >
@@ -119,10 +129,7 @@ export default function Navbar() {
           as={Link}
           href="/premium"
           color="gray.500"
-          _hover={{
-            color: "black",
-            textDecoration: "none",
-          }}
+          _hover={{ color: "black", textDecoration: "none" }}
           _focus={{ boxShadow: "none", outline: "none" }}
           _active={{ boxShadow: "none", outline: "none" }}
         >
@@ -140,9 +147,7 @@ export default function Navbar() {
           List Property
         </Button>
 
-        {/* Authentication Buttons */}
         {user ? (
-          // Logged in state
           <Flex gap={3} alignItems="center">
             <Text fontSize="sm" color="gray.600">
               Welcome, {firstName}
@@ -151,10 +156,7 @@ export default function Navbar() {
               asChild
               variant="plain"
               rounded="full"
-              _hover={{
-                color: "white",
-                bg: "#E99E35",
-              }}
+              _hover={{ color: "white", bg: "#E99E35" }}
             >
               <Link href="/profile">
                 <FiUser />
@@ -166,22 +168,151 @@ export default function Navbar() {
               rounded="xl"
               bg="white"
               size="sm"
-              _hover={{
-                color: "white",
-                bg: "red.500",
-              }}
+              _hover={{ color: "white", bg: "red.500" }}
             >
               <FiLogOut />
               Sign Out
             </Button>
           </Flex>
         ) : (
-          // Logged out state
           <Button asChild rounded="xl" colorPalette="gray">
             <Link href="/sign-in">Sign In</Link>
           </Button>
         )}
       </Flex>
+
+      {/* Mobile hamburger */}
+      <Drawer.Root
+        open={drawerOpen}
+        onOpenChange={(e) => setDrawerOpen(e.open)}
+        placement="top"
+      >
+        <Drawer.Trigger asChild>
+          <Button
+            variant="ghost"
+            display={{ base: "flex", md: "none" }}
+            aria-label="Open menu"
+          >
+            <FiMenu size={22} />
+          </Button>
+        </Drawer.Trigger>
+
+        <Portal>
+          <Drawer.Backdrop />
+          <Drawer.Positioner>
+            <Drawer.Content h="auto">
+              <Drawer.Header>
+                <Drawer.Title>
+                  <Link href="/" onClick={() => setDrawerOpen(false)}>
+                    <Flex gap={2} alignItems="center">
+                      <Icon size="md" color="#E99E35">
+                        <LuHouse />
+                      </Icon>
+                      NestDirect
+                    </Flex>
+                  </Link>
+                </Drawer.Title>
+              </Drawer.Header>
+
+              <Drawer.Body pb={4}>
+                <VStack align="stretch" gap={4}>
+                  {user && (
+                    <Text fontSize="sm" color="gray.500">
+                      Welcome, {firstName}
+                    </Text>
+                  )}
+
+                  <ChakraLink
+                    as={Link}
+                    href="/properties"
+                    color="gray.700"
+                    fontSize="md"
+                    _hover={{ color: "#E99E35", textDecoration: "none" }}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    Browse
+                  </ChakraLink>
+
+                  <ChakraLink
+                    as={Link}
+                    href="/how-it-works"
+                    color="gray.700"
+                    fontSize="md"
+                    _hover={{ color: "#E99E35", textDecoration: "none" }}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    How It Works
+                  </ChakraLink>
+
+                  <ChakraLink
+                    as={Link}
+                    href="/premium"
+                    color="gray.700"
+                    fontSize="md"
+                    _hover={{ color: "#E99E35", textDecoration: "none" }}
+                    onClick={() => setDrawerOpen(false)}
+                  >
+                    Premium
+                  </ChakraLink>
+
+                  <Button
+                    onClick={handleListPropertyClick}
+                    bg="#E99E35"
+                    color="white"
+                    _hover={{ bg: "#e2a856" }}
+                    variant="solid"
+                    rounded="xl"
+                    w="full"
+                  >
+                    List Property
+                  </Button>
+
+                  {user ? (
+                    <>
+                      <Button
+                        asChild
+                        colorPalette="gray"
+                        rounded="xl"
+                        w="full"
+                        onClick={() => setDrawerOpen(false)}
+                      >
+                        <Link href="/profile">
+                          <FiUser />
+                          My Profile
+                        </Link>
+                      </Button>
+                      <Button
+                        onClick={handleLogout}
+                        colorPalette="gray"
+                        rounded="xl"
+                        w="full"
+                        _hover={{ color: "white", bg: "red.500" }}
+                      >
+                        <FiLogOut />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      asChild
+                      rounded="xl"
+                      colorPalette="gray"
+                      w="full"
+                      onClick={() => setDrawerOpen(false)}
+                    >
+                      <Link href="/sign-in">Sign In</Link>
+                    </Button>
+                  )}
+                </VStack>
+              </Drawer.Body>
+
+              <Drawer.CloseTrigger asChild>
+                <CloseButton size="sm" />
+              </Drawer.CloseTrigger>
+            </Drawer.Content>
+          </Drawer.Positioner>
+        </Portal>
+      </Drawer.Root>
     </Flex>
   );
 }
