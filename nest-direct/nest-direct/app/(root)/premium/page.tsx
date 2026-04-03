@@ -167,11 +167,7 @@ export default function Premium() {
       {/* Stats */}
       <Box pb={12} px={4}>
         <Container maxW="4xl" mx="auto">
-          <Grid
-            templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
-            gap={6}
-            textAlign="center"
-          >
+          <Grid templateColumns="repeat(3, 1fr)" gap={6} textAlign="center">
             {[
               { value: "3x", label: "Faster sales", icon: TbBolt },
               { value: "85%", label: "More views", icon: FiUsers },
@@ -215,7 +211,21 @@ export default function Premium() {
             </Text>
           </Flex>
 
-          <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
+          {/* Mobile: horizontal scroll with peek. Desktop: 3-col grid */}
+          <Box
+            display={{ base: "flex", md: "grid" }}
+            gridTemplateColumns={{ md: "repeat(3, 1fr)" }}
+            gap={6}
+            overflowX={{ base: "auto", md: "unset" }}
+            pb={{ base: 4, md: 0 }}
+            pt={{ base: 6, md: 0 }}
+            mx={{ base: -4, md: 0 }}
+            px={{ base: 4, md: 0 }}
+            css={{
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
             {featuredPlans.map((plan) => (
               <Card.Root
                 key={plan.name}
@@ -225,10 +235,12 @@ export default function Premium() {
                 }
                 borderRadius="xl"
                 bg="white"
-                transform={plan.popular ? "scale(1.02)" : "none"}
                 boxShadow={plan.popular ? "xl" : "md"}
                 display="flex"
                 flexDirection="column"
+                flexShrink={0}
+                w={{ base: plan.popular ? "85%" : "78%", md: "auto" }}
+                css={{ scrollSnapAlign: "start" }}
               >
                 {plan.popular && (
                   <Badge
@@ -329,7 +341,7 @@ export default function Premium() {
                 </Card.Footer>
               </Card.Root>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
 
@@ -369,7 +381,21 @@ export default function Premium() {
             </Text>
           </Flex>
 
-          <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
+          {/* Mobile: horizontal scroll with peek. Desktop: 3-col grid */}
+          <Box
+            display={{ base: "flex", md: "grid" }}
+            gridTemplateColumns={{ md: "repeat(3, 1fr)" }}
+            gap={6}
+            overflowX={{ base: "auto", md: "unset" }}
+            pb={{ base: 4, md: 0 }}
+            pt={{ base: 6, md: 0 }}
+            mx={{ base: -4, md: 0 }}
+            px={{ base: 4, md: 0 }}
+            css={{
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
             {photographyPackages.map((pkg) => (
               <Card.Root
                 key={pkg.name}
@@ -377,10 +403,12 @@ export default function Premium() {
                 border={pkg.popular ? "2px solid #E99E35" : "1px solid #D5D1CB"}
                 borderRadius="xl"
                 bg="white"
-                transform={pkg.popular ? "scale(1.02)" : "none"}
                 boxShadow={pkg.popular ? "xl" : "md"}
                 display="flex"
                 flexDirection="column"
+                flexShrink={0}
+                w={{ base: pkg.popular ? "85%" : "78%", md: "auto" }}
+                css={{ scrollSnapAlign: "start" }}
               >
                 {pkg.popular && (
                   <Badge
@@ -482,7 +510,7 @@ export default function Premium() {
                 </Card.Footer>
               </Card.Root>
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
 
