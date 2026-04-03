@@ -7,7 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-//lightbox imports
+//lightbox
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 
@@ -78,6 +78,8 @@ import { Toaster, toaster } from "../../../../components/ui/toaster";
 //react-icons
 import {
   FaArrowLeft,
+  FaChevronLeft,
+  FaChevronRight,
   FaBed,
   FaBath,
   FaExpand,
@@ -103,6 +105,7 @@ const PropertyDetail = () => {
   const { favorites, addToFavorites, removeFromFavorites } = useUserFavorites();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -416,6 +419,16 @@ const PropertyDetail = () => {
   // Check if current user is the property owner
   const isOwner = user && property && user.id === property.user_id;
 
+  // Tag badge color (matches PropertyCard logic)
+  const tagBadgeColor =
+    property?.tag?.toLowerCase() === "elite"
+      ? "#FFD400"
+      : property?.tag?.toLowerCase() === "premium"
+        ? "#E85D04"
+        : property?.tag?.toLowerCase() === "featured"
+          ? "#F77F00"
+          : "#E99E35";
+
   return (
     <Box minH="100vh">
       <Box as="main" pt={24} pb={16}>
@@ -447,7 +460,7 @@ const PropertyDetail = () => {
                         position="relative"
                         cursor="pointer"
                         onClick={() => {
-                          setLightboxIndex(0);
+                          setLightboxIndex(selectedImageIndex);
                           setLightboxOpen(true);
                         }}
                         _hover={{ opacity: 0.9 }}
@@ -456,7 +469,7 @@ const PropertyDetail = () => {
                         h="full"
                       >
                         <Image
-                          src={property.images[0]}
+                          src={property.images[selectedImageIndex]}
                           alt={`${property.title} - main image`}
                           fill
                           style={{ objectFit: "cover" }}
@@ -466,16 +479,65 @@ const PropertyDetail = () => {
                       </Box>
                     </AspectRatio>
 
+                    {/* Prev button */}
+                    {property.images.length > 1 && selectedImageIndex > 0 && (
+                      <IconButton
+                        aria-label="Previous image"
+                        position="absolute"
+                        left={3}
+                        top="50%"
+                        transform="translateY(-50%)"
+                        h={9}
+                        w={9}
+                        rounded="full"
+                        bg="blackAlpha.600"
+                        color="white"
+                        _hover={{ bg: "blackAlpha.800" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedImageIndex((i) => i - 1);
+                        }}
+                      >
+                        <FaChevronLeft size={14} />
+                      </IconButton>
+                    )}
+
+                    {/* Next button */}
+                    {property.images.length > 1 &&
+                      selectedImageIndex < property.images.length - 1 && (
+                        <IconButton
+                          aria-label="Next image"
+                          position="absolute"
+                          right={3}
+                          top="50%"
+                          transform="translateY(-50%)"
+                          h={9}
+                          w={9}
+                          rounded="full"
+                          bg="blackAlpha.600"
+                          color="white"
+                          _hover={{ bg: "blackAlpha.800" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedImageIndex((i) => i + 1);
+                          }}
+                        >
+                          <FaChevronRight size={14} />
+                        </IconButton>
+                      )}
+
                     {property.tag && (
                       <Badge
                         position="absolute"
                         top={4}
                         left={4}
-                        bg="hsl(35, 80%, 56%)"
+                        bg={tagBadgeColor}
                         color="white"
                         fontWeight="medium"
                         px={3}
                         py={1}
+                        textTransform="uppercase"
+                        letterSpacing="wider"
                       >
                         {property.tag}
                       </Badge>
@@ -495,17 +557,18 @@ const PropertyDetail = () => {
                         h={{ base: 16, md: 20 }}
                         flexShrink={0}
                         border="2px"
-                        borderColor="transparent"
-                        opacity={0.9}
+                        borderColor={
+                          selectedImageIndex === i
+                            ? "hsl(35, 80%, 56%)"
+                            : "transparent"
+                        }
+                        opacity={selectedImageIndex === i ? 1 : 0.9}
                         _hover={{
                           opacity: 1,
                           borderColor: "hsl(35, 80%, 56%)",
                         }}
                         transition="all 0.2s"
-                        onClick={() => {
-                          setLightboxIndex(i);
-                          setLightboxOpen(true);
-                        }}
+                        onClick={() => setSelectedImageIndex(i)}
                       >
                         <Image
                           src={img}

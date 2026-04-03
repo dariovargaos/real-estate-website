@@ -91,7 +91,7 @@ export default function Properties() {
 
   const sortCollection = createListCollection({
     items: [
-      { label: "Default", value: "default" },
+      { label: "Price", value: "default" },
       { label: "Price: Low → High", value: "price-asc" },
       { label: "Price: High → Low", value: "price-desc" },
     ],
