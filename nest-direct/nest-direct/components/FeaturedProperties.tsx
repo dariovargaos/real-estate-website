@@ -118,7 +118,7 @@ export default function FeaturedProperties() {
         ) : (
           <>
             <Flex
-              align="flex-end"
+              align={{ base: "flex-start", md: "flex-end" }}
               justify="space-between"
               mb={12}
               direction={{ base: "column", md: "row" }}
@@ -147,7 +147,7 @@ export default function FeaturedProperties() {
               <ChakraLink
                 as={Link}
                 href="/properties"
-                display={{ base: "none", md: "inline-flex" }}
+                display="inline-flex"
                 fontSize="sm"
                 color="gray.500"
                 _hover={{ color: "gray.700" }}

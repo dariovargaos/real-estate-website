@@ -29,7 +29,12 @@ export default function CTASection() {
   return (
     <Flex direction="column" bg="#1D212B" p={10} maxH="500px">
       <Flex direction="column" align="center" justify="center" gap={5}>
-        <Text color="white" fontSize="5xl" fontFamily="serif">
+        <Text
+          color="white"
+          fontSize="5xl"
+          fontFamily="serif"
+          textAlign="center"
+        >
           Ready to Buy or Sell?
         </Text>
         <Box maxW="500px">
