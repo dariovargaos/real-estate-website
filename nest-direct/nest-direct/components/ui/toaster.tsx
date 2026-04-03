@@ -9,10 +9,26 @@ import {
   createToaster,
 } from "@chakra-ui/react";
 
-export const toaster = createToaster({
+const TOAST_COOLDOWN_MS = 5000;
+let _lastToastTime = 0;
+
+const _toaster = createToaster({
   placement: "top",
   pauseOnPageIdle: true,
+  max: 1,
 });
+
+// Wrap createToaster so that no new toast can be queued within 5 seconds
+// of the previous one, preventing spam from repeated clicks.
+export const toaster = {
+  ..._toaster,
+  create(options: Parameters<typeof _toaster.create>[0]): string {
+    const now = Date.now();
+    if (now - _lastToastTime < TOAST_COOLDOWN_MS) return "";
+    _lastToastTime = now;
+    return _toaster.create(options);
+  },
+};
 
 export const Toaster = () => {
   return (

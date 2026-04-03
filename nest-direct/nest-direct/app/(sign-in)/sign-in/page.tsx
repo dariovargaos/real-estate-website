@@ -24,7 +24,7 @@ import {
   Field,
   IconButton,
 } from "@chakra-ui/react";
-import { Toaster, toaster } from "../../../components/ui/toaster";
+import { toaster } from "../../../components/ui/toaster";
 
 //icons
 import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
@@ -69,6 +69,7 @@ const SignIn = () => {
           title: "Welcome back!",
           description: "You have successfully signed in.",
           type: "success",
+          duration: 5000,
         });
 
         reset();
@@ -79,6 +80,7 @@ const SignIn = () => {
         title: "Sign in failed",
         description: error.message || "Something went wrong. Please try again.",
         type: "error",
+        duration: 5000,
       });
     } finally {
       setIsLoading(false);
@@ -100,6 +102,7 @@ const SignIn = () => {
         title: "Google sign-in failed",
         description: error.message || "Something went wrong. Please try again.",
         type: "error",
+        duration: 5000,
       });
     }
   };
@@ -307,7 +310,6 @@ const SignIn = () => {
           </Stack>
         </Box>
       </Flex>
-      <Toaster />
     </Flex>
   );
 };

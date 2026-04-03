@@ -27,7 +27,7 @@ import {
   Field,
   IconButton,
 } from "@chakra-ui/react";
-import { Toaster, toaster } from "../../../components/ui/toaster";
+import { toaster } from "../../../components/ui/toaster";
 
 //icons
 import { FaEye, FaEyeSlash, FaGoogle, FaCheck } from "react-icons/fa";
@@ -87,7 +87,7 @@ const SignUp = () => {
             ? "Welcome to NestDirect! You can now sign in to your account."
             : "Please check your email to verify your account before signing in.",
           type: "success",
-          duration: 6000,
+          duration: 5000,
         });
 
         reset();
@@ -101,6 +101,7 @@ const SignUp = () => {
         title: "Sign up failed",
         description: error.message || "Something went wrong. Please try again.",
         type: "error",
+        duration: 5000,
       });
     } finally {
       setIsLoading(false);
@@ -122,6 +123,7 @@ const SignUp = () => {
         title: "Google sign-up failed",
         description: error.message || "Something went wrong. Please try again.",
         type: "error",
+        duration: 5000,
       });
     }
   };
@@ -429,7 +431,6 @@ const SignUp = () => {
           </Stack>
         </Box>
       </Flex>
-      <Toaster />
     </Flex>
   );
 };
