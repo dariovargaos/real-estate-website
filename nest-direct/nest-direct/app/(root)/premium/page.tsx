@@ -260,18 +260,18 @@ export default function Premium() {
                   </Badge>
                 )}
 
-                <Card.Header textAlign="center" pb={2}>
-                  <Flex justify="center" mb={3}>
+                <Card.Header textAlign="center" pb={2} pt={{ base: 3, md: 4 }}>
+                  <Flex justify="center" mb={{ base: 2, md: 3 }}>
                     <Flex
-                      h={12}
-                      w={12}
+                      h={{ base: 10, md: 12 }}
+                      w={{ base: 10, md: 12 }}
                       borderRadius="full"
                       bg="#F5F5F5"
                       align="center"
                       justify="center"
                     >
                       <Box color="#E99E35">
-                        <plan.icon size={24} />
+                        <plan.icon size={22} />
                       </Box>
                     </Flex>
                   </Flex>
@@ -286,15 +286,19 @@ export default function Premium() {
                   </Card.Description>
                 </Card.Header>
 
-                <Card.Body flex={1}>
+                <Card.Body
+                  flex={1}
+                  pt={{ base: 2, md: 4 }}
+                  pb={{ base: 2, md: 4 }}
+                >
                   <Flex
                     direction="column"
                     align="center"
                     textAlign="center"
-                    mb={6}
+                    mb={{ base: 3, md: 6 }}
                   >
                     <Text
-                      fontSize="4xl"
+                      fontSize={{ base: "2xl", md: "4xl" }}
                       fontFamily="UI Serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                     >
                       {plan.price}
@@ -303,7 +307,7 @@ export default function Premium() {
                       {plan.period}
                     </Text>
                   </Flex>
-                  <List.Root spaceY={3}>
+                  <List.Root spaceY={{ base: 1.5, md: 3 }}>
                     {plan.features.map((feature) => (
                       <List.Item
                         key={feature}
@@ -428,11 +432,11 @@ export default function Premium() {
                   </Badge>
                 )}
 
-                <Card.Header textAlign="center" pb={2}>
-                  <Flex justify="center" mb={3}>
+                <Card.Header textAlign="center" pb={2} pt={{ base: 3, md: 4 }}>
+                  <Flex justify="center" mb={{ base: 2, md: 3 }}>
                     <Flex
-                      h={12}
-                      w={12}
+                      h={{ base: 10, md: 12 }}
+                      w={{ base: 10, md: 12 }}
                       borderRadius="full"
                       bg="#F5F5F5"
                       align="center"
@@ -456,15 +460,19 @@ export default function Premium() {
                   </Card.Description>
                 </Card.Header>
 
-                <Card.Body flex={1}>
+                <Card.Body
+                  flex={1}
+                  pt={{ base: 2, md: 4 }}
+                  pb={{ base: 2, md: 4 }}
+                >
                   <Flex
                     direction="column"
                     align="center"
                     textAlign="center"
-                    mb={6}
+                    mb={{ base: 3, md: 6 }}
                   >
                     <Text
-                      fontSize="4xl"
+                      fontSize={{ base: "2xl", md: "4xl" }}
                       fontFamily="UI Serif, Georgia, Cambria, 'Times New Roman', Times, serif"
                     >
                       {pkg.price}
@@ -473,7 +481,7 @@ export default function Premium() {
                       one-time payment
                     </Text>
                   </Flex>
-                  <List.Root spaceY={3}>
+                  <List.Root spaceY={{ base: 1.5, md: 3 }}>
                     {pkg.features.map((feature) => (
                       <List.Item
                         key={feature}

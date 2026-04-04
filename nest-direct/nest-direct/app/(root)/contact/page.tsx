@@ -54,7 +54,7 @@ export default function Contact() {
   return (
     <Box minH="100vh" bg="#FCFAF8">
       <Box as="main" pt="24" pb="16">
-        <Container maxW="5xl" px="4">
+        <Container maxW="5xl" px={{ base: "2", sm: "4" }}>
           <Box textAlign="center" mb="12">
             <Heading
               as="h1"
@@ -101,7 +101,12 @@ export default function Contact() {
             ))}
           </SimpleGrid>
 
-          <Card.Root maxW="2xl" mx="auto" p="8" rounded="xl">
+          <Card.Root
+            maxW="2xl"
+            mx="auto"
+            p={{ base: "4", sm: "8" }}
+            rounded="xl"
+          >
             <Card.Body>
               <Heading
                 as="h2"
