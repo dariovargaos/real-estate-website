@@ -153,7 +153,7 @@ export type Database = {
           seller_name: string;
           seller_phone: string;
           seller_since: string;
-          size_m2: string;
+          size_m2: number;
           status: string | null;
           tag: string | null;
           title: string;
@@ -163,7 +163,7 @@ export type Database = {
         };
         Insert: {
           baths: number;
-          beds: number;
+          rooms: number;
           created_at?: string | null;
           description: string;
           features?: string[];
@@ -177,7 +177,7 @@ export type Database = {
           seller_name: string;
           seller_phone: string;
           seller_since: string;
-          size_m2: string;
+          size_m2: number;
           status?: string | null;
           tag?: string | null;
           title: string;
@@ -201,7 +201,7 @@ export type Database = {
           seller_name?: string;
           seller_phone?: string;
           seller_since?: string;
-          size_m2?: string;
+          size_m2?: number;
           status?: string | null;
           tag?: string | null;
           title?: string;

@@ -45,12 +45,21 @@ export default function CTASection() {
           </Text>
         </Box>
 
-        <Flex gap={5} mt={5} mb={5}>
+        <Flex
+          gap={4}
+          mt={5}
+          mb={5}
+          direction={{ base: "column", sm: "row" }}
+          w="full"
+          maxW="400px"
+          px={4}
+        >
           <Button
             asChild
             bg="#E99E35"
             rounded="xl"
-            size="xl"
+            size={{ base: "md", md: "xl" }}
+            w={{ base: "full", sm: "auto" }}
             _hover={{
               bg: "#bc802d",
             }}
@@ -67,7 +76,8 @@ export default function CTASection() {
             asChild
             bg="transparent"
             borderColor="gray.500"
-            size="xl"
+            size={{ base: "md", md: "xl" }}
+            w={{ base: "full", sm: "auto" }}
             rounded="xl"
             _hover={{
               bg: "whiteAlpha.300",

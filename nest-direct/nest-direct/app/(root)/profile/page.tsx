@@ -890,7 +890,7 @@ export default function Profile() {
                                   >
                                     <HStack gap={1}>
                                       <FaBed size={12} />
-                                      <Text>{fav.property.beds}</Text>
+                                      <Text>{fav.property.rooms}</Text>
                                     </HStack>
                                     <HStack gap={1}>
                                       <FaBath size={12} />
@@ -1022,7 +1022,7 @@ export default function Profile() {
                                     >
                                       <HStack gap={1}>
                                         <FaBed size={12} />
-                                        <Text>{prop.beds}</Text>
+                                        <Text>{prop.rooms}</Text>
                                       </HStack>
                                       <HStack gap={1}>
                                         <FaBath size={12} />

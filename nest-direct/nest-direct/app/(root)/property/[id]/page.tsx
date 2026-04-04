@@ -667,11 +667,11 @@ const PropertyDetail = () => {
                   >
                     {`€${property.price.toLocaleString()}`}
                   </Text>
-                  {property.size_m2 && parseFloat(property.size_m2) > 0 && (
+                  {property.size_m2 && property.size_m2 > 0 && (
                     <Text fontSize="sm" color="gray.500" mt={1}>
                       €
                       {Math.round(
-                        property.price / parseFloat(property.size_m2),
+                        property.price / property.size_m2,
                       ).toLocaleString()}{" "}
                       / m²
                     </Text>
@@ -698,7 +698,7 @@ const PropertyDetail = () => {
                   >
                     <HStack gap={2}>
                       <FaBed size={20} color="gray" />
-                      <Text fontWeight="medium">{property.beds} Bedrooms</Text>
+                      <Text fontWeight="medium">{property.rooms} Rooms</Text>
                     </HStack>
                     <HStack gap={2}>
                       <FaBath size={20} color="gray" />

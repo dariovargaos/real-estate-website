@@ -41,9 +41,9 @@ interface PropertyCardProps {
   price: number;
   title: string;
   location: string;
-  beds: number;
+  rooms: number;
   baths: number;
-  size_m2: string;
+  size_m2: number;
   type?: string | null;
   tag?: string | null;
 }
@@ -61,7 +61,7 @@ const PropertyCard = ({
   price,
   title,
   location,
-  beds,
+  rooms,
   baths,
   size_m2,
   type,
@@ -246,7 +246,7 @@ const PropertyCard = ({
               <Icon>
                 <LuBedDouble size={14} />
               </Icon>
-              <span>{beds} Bedrooms</span>
+              <span>{rooms} Rooms</span>
             </Flex>
             <Flex align="center" gap={1.5} color="gray.500" fontSize="xs">
               <Icon>

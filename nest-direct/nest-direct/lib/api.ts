@@ -561,9 +561,9 @@ export async function createProperty(propertyData: {
   title: string;
   price: number;
   location: string;
-  beds: number;
+  rooms: number;
   baths: number;
-  size_m2: string;
+  size_m2: number;
   description: string;
   seller_name: string;
   seller_phone: string;
@@ -613,7 +613,7 @@ export async function createProperty(propertyData: {
       title: propertyData.title,
       price: propertyData.price,
       location: propertyData.location,
-      beds: propertyData.beds,
+      rooms: propertyData.rooms,
       baths: propertyData.baths,
       size_m2: propertyData.size_m2,
       description: propertyData.description,
@@ -651,16 +651,16 @@ export async function updateProperty(
     title: string;
     price: number;
     location: string;
-    beds: number;
+    rooms: number;
     baths: number;
-    size_m2: string;
+    size_m2: number;
     description: string;
     seller_name: string;
     seller_phone: string;
     property_type?: string;
     imageFiles?: File[];
     keepImageUrls?: string[]; // existing image URLs to retain after user deletions
-},
+  },
   userId: string,
 ): Promise<Property> {
   // Geocode the (potentially updated) location once on update
@@ -724,7 +724,7 @@ export async function updateProperty(
       title: propertyData.title,
       price: propertyData.price,
       location: propertyData.location,
-      beds: propertyData.beds,
+      rooms: propertyData.rooms,
       baths: propertyData.baths,
       size_m2: propertyData.size_m2,
       description: propertyData.description,

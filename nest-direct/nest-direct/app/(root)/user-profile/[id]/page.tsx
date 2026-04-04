@@ -297,7 +297,7 @@ export default function UserProfile() {
                       price={property.price}
                       title={property.title}
                       location={property.location}
-                      beds={property.beds}
+                      rooms={property.rooms}
                       baths={property.baths}
                       size_m2={property.size_m2}
                       tag={property.tag}

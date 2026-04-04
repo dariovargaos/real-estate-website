@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Map, { Marker, NavigationControl } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 
@@ -9,6 +10,8 @@ interface PropertyMapProps {
 }
 
 export function PropertyMap({ latitude, longitude }: PropertyMapProps) {
+  const [mapLoaded, setMapLoaded] = useState(false);
+
   if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
     return (
       <div
@@ -34,12 +37,15 @@ export function PropertyMap({ latitude, longitude }: PropertyMapProps) {
       style={{ width: "100%", height: "100%" }}
       mapStyle="mapbox://styles/mapbox/streets-v12"
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+      onLoad={() => setMapLoaded(true)}
     >
-      <Marker
-        longitude={longitude}
-        latitude={latitude}
-        color="hsl(35, 80%, 56%)"
-      />
+      {mapLoaded && (
+        <Marker
+          longitude={longitude}
+          latitude={latitude}
+          color="hsl(35, 80%, 56%)"
+        />
+      )}
       <NavigationControl position="top-right" />
     </Map>
   );

@@ -49,7 +49,7 @@ const listPropertySchema = z.object({
   price: z.string().min(1, "Asking price is required"),
   location: z.string().min(1, "Location is required"),
   property_type: z.string().min(1, "Property type is required"),
-  beds: z.string().min(1, "Number of bedrooms is required"),
+  rooms: z.string().min(1, "Number of rooms is required"),
   baths: z.string().min(1, "Number of bathrooms is required"),
   size_m2: z.string().min(1, "Size is required"),
   description: z.string().min(1, "Description is required"),
@@ -103,7 +103,7 @@ function ListPropertyContent() {
             price: editProperty.price?.toString() || "",
             location: editProperty.location || "",
             property_type: editProperty.type || "",
-            beds: editProperty.beds?.toString() || "",
+            rooms: editProperty.rooms?.toString() || "",
             baths: editProperty.baths?.toString() || "",
             size_m2: editProperty.size_m2?.toString() || "",
             description: editProperty.description || "",
@@ -114,7 +114,7 @@ function ListPropertyContent() {
             price: "",
             location: "",
             property_type: "",
-            beds: "",
+            rooms: "",
             baths: "",
             size_m2: "",
             description: "",
@@ -149,9 +149,9 @@ function ListPropertyContent() {
             title: data.title,
             price: parseInt(data.price),
             location: data.location,
-            beds: parseInt(data.beds),
+            rooms: parseFloat(data.rooms),
             baths: parseInt(data.baths),
-            size_m2: data.size_m2,
+            size_m2: parseFloat(data.size_m2),
             description: data.description,
             seller_name:
               profile?.full_name || user?.user_metadata?.full_name || "Unknown",
@@ -189,9 +189,9 @@ function ListPropertyContent() {
           title: data.title,
           price: parseInt(data.price),
           location: data.location,
-          beds: parseInt(data.beds),
+          rooms: parseFloat(data.rooms),
           baths: parseInt(data.baths),
-          size_m2: data.size_m2,
+          size_m2: parseFloat(data.size_m2),
           description: data.description,
           seller_name:
             profile?.full_name || user?.user_metadata?.full_name || "Unknown",
@@ -499,16 +499,17 @@ function ListPropertyContent() {
                   templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
                   gap={4}
                 >
-                  <Field.Root required invalid={!!errors.beds}>
-                    <Field.Label>Bedrooms</Field.Label>
+                  <Field.Root required invalid={!!errors.rooms}>
+                    <Field.Label>Rooms</Field.Label>
                     <Input
-                      {...register("beds")}
+                      {...register("rooms")}
                       type="number"
-                      placeholder="3"
+                      step="0.5"
+                      placeholder="2.5"
                       rounded="xl"
                     />
-                    {errors.beds && (
-                      <Field.ErrorText>{errors.beds.message}</Field.ErrorText>
+                    {errors.rooms && (
+                      <Field.ErrorText>{errors.rooms.message}</Field.ErrorText>
                     )}
                   </Field.Root>
                   <Field.Root required invalid={!!errors.baths}>
