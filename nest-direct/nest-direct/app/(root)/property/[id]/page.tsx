@@ -695,6 +695,7 @@ const PropertyDetail = () => {
                     borderTop="1px"
                     borderBottom="1px"
                     borderColor="gray.200"
+                    flexWrap="wrap"
                   >
                     <HStack gap={2}>
                       <FaBed size={20} color="gray" />
@@ -768,6 +769,7 @@ const PropertyDetail = () => {
                   <Box h="400px" rounded="2xl" overflow="hidden">
                     {property.latitude != null && property.longitude != null ? (
                       <PropertyMap
+                        key={property.id}
                         latitude={property.latitude}
                         longitude={property.longitude}
                       />

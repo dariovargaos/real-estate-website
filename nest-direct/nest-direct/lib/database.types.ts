@@ -139,7 +139,7 @@ export type Database = {
       properties: {
         Row: {
           baths: number;
-          beds: number;
+          rooms: number;
           created_at: string | null;
           description: string;
           features: string[];
@@ -187,7 +187,7 @@ export type Database = {
         };
         Update: {
           baths?: number;
-          beds?: number;
+          rooms?: number;
           created_at?: string | null;
           description?: string;
           features?: string[];
