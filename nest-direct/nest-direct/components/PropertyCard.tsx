@@ -192,7 +192,7 @@ const PropertyCard = ({
           >
             <Icon>
               {isFavorited ? (
-                <FaHeart size={14} color="red" />
+                <FaHeart size={14} color="#E99E35" />
               ) : (
                 <FaRegHeart size={14} color="black" />
               )}

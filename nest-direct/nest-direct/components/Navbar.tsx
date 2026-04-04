@@ -255,54 +255,56 @@ export default function Navbar() {
                     Premium
                   </ChakraLink>
 
-                  <Button
-                    onClick={handleListPropertyClick}
-                    bg="#E99E35"
-                    color="white"
-                    _hover={{ bg: "#e2a856" }}
-                    variant="solid"
-                    rounded="xl"
-                    w="full"
-                  >
-                    List Property
-                  </Button>
+                  <Flex gap={2}>
+                    <Button
+                      onClick={handleListPropertyClick}
+                      bg="#E99E35"
+                      color="white"
+                      _hover={{ bg: "#e2a856" }}
+                      variant="solid"
+                      rounded="xl"
+                      flex={1}
+                    >
+                      List Property
+                    </Button>
 
-                  {user ? (
-                    <>
+                    {user ? (
+                      <>
+                        <Button
+                          asChild
+                          colorPalette="gray"
+                          rounded="xl"
+                          flex={1}
+                          onClick={() => setDrawerOpen(false)}
+                        >
+                          <Link href="/profile">
+                            <FiUser />
+                            My Profile
+                          </Link>
+                        </Button>
+                        <Button
+                          onClick={handleLogout}
+                          colorPalette="gray"
+                          rounded="xl"
+                          flex={1}
+                          _hover={{ color: "white", bg: "red.500" }}
+                        >
+                          <FiLogOut />
+                          Sign Out
+                        </Button>
+                      </>
+                    ) : (
                       <Button
                         asChild
-                        colorPalette="gray"
                         rounded="xl"
-                        w="full"
+                        colorPalette="gray"
+                        flex={1}
                         onClick={() => setDrawerOpen(false)}
                       >
-                        <Link href="/profile">
-                          <FiUser />
-                          My Profile
-                        </Link>
+                        <Link href="/sign-in">Sign In</Link>
                       </Button>
-                      <Button
-                        onClick={handleLogout}
-                        colorPalette="gray"
-                        rounded="xl"
-                        w="full"
-                        _hover={{ color: "white", bg: "red.500" }}
-                      >
-                        <FiLogOut />
-                        Sign Out
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      asChild
-                      rounded="xl"
-                      colorPalette="gray"
-                      w="full"
-                      onClick={() => setDrawerOpen(false)}
-                    >
-                      <Link href="/sign-in">Sign In</Link>
-                    </Button>
-                  )}
+                    )}
+                  </Flex>
                 </VStack>
               </Drawer.Body>
 

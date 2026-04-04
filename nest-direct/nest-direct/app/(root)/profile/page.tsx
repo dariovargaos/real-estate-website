@@ -462,7 +462,6 @@ export default function Profile() {
                     as="nav"
                     direction={{ base: "row", md: "column" }}
                     gap={1}
-                    wrap={{ base: "wrap", md: "nowrap" }}
                   >
                     {sidebarItems.map((item) => (
                       <Button
@@ -484,8 +483,9 @@ export default function Profile() {
                           color: "black",
                           bg: "gray.100",
                         }}
-                        justifyContent="flex-start"
-                        w="full"
+                        justifyContent={{ base: "center", md: "flex-start" }}
+                        flex={{ base: 1, md: "none" }}
+                        w={{ base: "auto", md: "full" }}
                         px={3}
                         py={2.5}
                         fontSize="sm"

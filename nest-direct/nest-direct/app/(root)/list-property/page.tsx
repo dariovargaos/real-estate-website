@@ -349,7 +349,7 @@ export default function ListProperty() {
         <Box py={12} bg="gray.50" borderBottom="1px" borderColor="gray.200">
           <Box px={4}>
             <Grid
-              templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }}
+              templateColumns="repeat(3, 1fr)"
               gap={8}
               maxW="4xl"
               mx="auto"
