@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -58,7 +58,7 @@ const listPropertySchema = z.object({
 
 type ListPropertyFormData = z.infer<typeof listPropertySchema>;
 
-export default function ListProperty() {
+function ListPropertyContent() {
   const [submitted, setSubmitted] = useState(false);
   const { user, isLoading } = useUser();
   const { profile } = useUserProfile();
@@ -835,5 +835,13 @@ export default function ListProperty() {
         </Box>
       </Box>
     </Box>
+  );
+}
+
+export default function ListPropertyPage() {
+  return (
+    <Suspense>
+      <ListPropertyContent />
+    </Suspense>
   );
 }
