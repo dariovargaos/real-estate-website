@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 //components
@@ -33,7 +33,7 @@ import { Toaster } from "../../../components/ui/toaster";
 import { CiSearch } from "react-icons/ci";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 
-export default function Properties() {
+function PropertiesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchFromUrl = searchParams.get("search") ?? "";
@@ -407,5 +407,13 @@ export default function Properties() {
         }
       `}</style>
     </Box>
+  );
+}
+
+export default function Properties() {
+  return (
+    <Suspense>
+      <PropertiesContent />
+    </Suspense>
   );
 }
