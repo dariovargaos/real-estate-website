@@ -84,8 +84,11 @@ export function useUserProfile() {
     try {
       await updateProfileMutation.mutateAsync(updates);
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -95,8 +98,11 @@ export function useUserProfile() {
       await scheduleAccountDeletion(user.id);
       queryClient.invalidateQueries({ queryKey: userKeys.profile(user.id) });
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -106,8 +112,11 @@ export function useUserProfile() {
       await cancelAccountDeletion(user.id);
       queryClient.invalidateQueries({ queryKey: userKeys.profile(user.id) });
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -259,8 +268,11 @@ export function useUserMessages() {
     try {
       await markAsReadMutation.mutateAsync(messageId);
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -268,8 +280,11 @@ export function useUserMessages() {
     try {
       await sendReplyMutation.mutateAsync({ messageId, content });
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -278,8 +293,11 @@ export function useUserMessages() {
       if (!user?.id) throw new Error("User ID is required");
       await deleteMessageMutation.mutateAsync({ messageId, userId: user.id });
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -295,8 +313,11 @@ export function useUserMessages() {
         propertyId,
       });
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -382,8 +403,11 @@ export function useUserFavorites() {
     try {
       await addToFavoritesMutation.mutateAsync(propertyId);
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 
@@ -391,8 +415,11 @@ export function useUserFavorites() {
     try {
       await removeFromFavoritesMutation.mutateAsync(propertyId);
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
     }
   };
 

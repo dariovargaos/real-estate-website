@@ -75,10 +75,13 @@ const SignIn = () => {
         reset();
         router.push("/");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Sign in failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
         type: "error",
         duration: 5000,
       });
@@ -97,10 +100,13 @@ const SignIn = () => {
       });
 
       if (error) throw error;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Google sign-in failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
         type: "error",
         duration: 5000,
       });

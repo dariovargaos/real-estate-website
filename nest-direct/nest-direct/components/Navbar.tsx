@@ -67,10 +67,11 @@ export default function Navbar() {
         type: "success",
         duration: 5000,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Logout failed",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
         duration: 5000,
       });

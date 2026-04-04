@@ -213,10 +213,13 @@ const PropertyDetail = () => {
           });
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Error",
-        description: error.message || "Something went wrong. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
         type: "error",
         duration: 5000,
         closable: true,
@@ -399,11 +402,14 @@ const PropertyDetail = () => {
 
       // Reset form
       setMessage("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Contact form error:", error);
       toaster.create({
         title: "Failed to send message",
-        description: error.message || "Something went wrong. Please try again.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
         type: "error",
         duration: 5000,
         closable: true,

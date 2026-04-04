@@ -151,7 +151,7 @@ export default function Hero() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         color="gray.500"
-                        placeholder="Search by city, neighborhood, or address..."
+                        placeholder="Search by city or address..."
                         _placeholder={{ color: "gray.500" }}
                         py={3}
                         fontSize="sm"

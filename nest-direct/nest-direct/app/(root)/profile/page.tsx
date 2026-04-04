@@ -236,10 +236,11 @@ export default function Profile() {
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Save failed",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     }
@@ -266,10 +267,11 @@ export default function Profile() {
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Failed to schedule deletion",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     } finally {
@@ -293,10 +295,11 @@ export default function Profile() {
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Failed to cancel deletion",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     } finally {
@@ -320,10 +323,11 @@ export default function Profile() {
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Send failed",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     }
@@ -356,10 +360,11 @@ export default function Profile() {
       } else {
         throw new Error(result.error);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       toaster.create({
         title: "Delete failed",
-        description: error.message || "Something went wrong.",
+        description:
+          error instanceof Error ? error.message : "Something went wrong.",
         type: "error",
       });
     }
